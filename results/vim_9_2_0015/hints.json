@@ -1,0 +1,3443 @@
+{
+ "hints": {
+  "ALLOC_CLEAR_MULT": [
+   {
+    "name": "ALLOC_CLEAR_MULT",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "ALLOC_CLEAR_ONE": [
+   {
+    "name": "ALLOC_CLEAR_ONE",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "ALLOC_CLEAR_ONE_ID": [
+   {
+    "name": "ALLOC_CLEAR_ONE_ID",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "ALLOC_MULT": [
+   {
+    "name": "ALLOC_MULT",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "ALLOC_ONE": [
+   {
+    "name": "ALLOC_ONE",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "ALLOC_ONE_ID": [
+   {
+    "name": "ALLOC_ONE_ID",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "CONVERT_FROM_UTF8": [
+   {
+    "name": "CONVERT_FROM_UTF8",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "CONVERT_FROM_UTF8_FREE": [
+   {
+    "name": "CONVERT_FROM_UTF8_FREE",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "CONVERT_TO_UTF8": [
+   {
+    "name": "CONVERT_TO_UTF8",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "CONVERT_TO_UTF8_FREE": [
+   {
+    "name": "CONVERT_TO_UTF8_FREE",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "ExpandOne": [
+   {
+    "name": "ExpandOne",
+    "role": "Allocator",
+    "target": "return"
+   },
+   {
+    "name": "ExpandOne",
+    "role": "Deallocator",
+    "target": "arg2"
+   }
+  ],
+  "ExpandOne_start": [
+   {
+    "name": "ExpandOne_start",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "FREE_ITEM": [
+   {
+    "name": "FREE_ITEM",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "FreeWild": [
+   {
+    "name": "FreeWild",
+    "role": "Deallocator",
+    "target": "arg1"
+   }
+  ],
+  "FullName_save": [
+   {
+    "name": "FullName_save",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "LALLOC_CLEAR_MULT": [
+   {
+    "name": "LALLOC_CLEAR_MULT",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "LALLOC_CLEAR_ONE": [
+   {
+    "name": "LALLOC_CLEAR_ONE",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "LALLOC_MULT": [
+   {
+    "name": "LALLOC_MULT",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "StringToLine": [
+   {
+    "name": "StringToLine",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "U_ALLOC_LINE": [
+   {
+    "name": "U_ALLOC_LINE",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "VIM_CLEAR": [
+   {
+    "name": "VIM_CLEAR",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "XDL_ALLOC_ARRAY": [
+   {
+    "name": "XDL_ALLOC_ARRAY",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "XDL_CALLOC_ARRAY": [
+   {
+    "name": "XDL_CALLOC_ARRAY",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "add_channel": [
+   {
+    "name": "add_channel",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "add_defer_function": [
+   {
+    "name": "add_defer_function",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "addstar": [
+   {
+    "name": "addstar",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "alist_set": [
+   {
+    "name": "alist_set",
+    "role": "Deallocator",
+    "target": "arg2"
+   }
+  ],
+  "alist_unlink": [
+   {
+    "name": "alist_unlink",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "alloc": [
+   {
+    "name": "alloc",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "alloc_clear": [
+   {
+    "name": "alloc_clear",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "alloc_clear_id": [
+   {
+    "name": "alloc_clear_id",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "alloc_func_type": [
+   {
+    "name": "alloc_func_type",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "alloc_id": [
+   {
+    "name": "alloc_id",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "alloc_new_sign": [
+   {
+    "name": "alloc_new_sign",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "alloc_object": [
+   {
+    "name": "alloc_object",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "alloc_printable_func_name": [
+   {
+    "name": "alloc_printable_func_name",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "alloc_string_tv": [
+   {
+    "name": "alloc_string_tv",
+    "role": "Allocator",
+    "target": "return"
+   },
+   {
+    "name": "alloc_string_tv",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "alloc_tabpage": [
+   {
+    "name": "alloc_tabpage",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "alloc_tuple_type": [
+   {
+    "name": "alloc_tuple_type",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "alloc_tv": [
+   {
+    "name": "alloc_tv",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "alloc_type": [
+   {
+    "name": "alloc_type",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "alloc_ufunc": [
+   {
+    "name": "alloc_ufunc",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "append_converted_string_to_list": [
+   {
+    "name": "append_converted_string_to_list",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "append_generic_func_type_args": [
+   {
+    "name": "append_generic_func_type_args",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "append_validated_line_to_list": [
+   {
+    "name": "append_validated_line_to_list",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "au_event_disable": [
+   {
+    "name": "au_event_disable",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "au_event_restore": [
+   {
+    "name": "au_event_restore",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "autoload_name": [
+   {
+    "name": "autoload_name",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "backslash_halve_save": [
+   {
+    "name": "backslash_halve_save",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "base64_encode": [
+   {
+    "name": "base64_encode",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "bexpr_eval": [
+   {
+    "name": "bexpr_eval",
+    "role": "Deallocator",
+    "target": "arg5"
+   }
+  ],
+  "blob_alloc": [
+   {
+    "name": "blob_alloc",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "blob_free": [
+   {
+    "name": "blob_free",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "block_def2str": [
+   {
+    "name": "block_def2str",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "bt_regcomp": [
+   {
+    "name": "bt_regcomp",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "bt_regfree": [
+   {
+    "name": "bt_regfree",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "buf_modname": [
+   {
+    "name": "buf_modname",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "buflist_new": [
+   {
+    "name": "buflist_new",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "buflist_nr2name": [
+   {
+    "name": "buflist_nr2name",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "call_findfunc": [
+   {
+    "name": "call_findfunc",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "call_func_retstr": [
+   {
+    "name": "call_func_retstr",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "call_user_func_check": [
+   {
+    "name": "call_user_func_check",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "channel_free": [
+   {
+    "name": "channel_free",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "channel_free_channel": [
+   {
+    "name": "channel_free_channel",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "channel_may_free": [
+   {
+    "name": "channel_may_free",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "channel_open": [
+   {
+    "name": "channel_open",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "channel_open_func": [
+   {
+    "name": "channel_open_func",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "channel_open_unix": [
+   {
+    "name": "channel_open_unix",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "channel_read_block": [
+   {
+    "name": "channel_read_block",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "channel_unref": [
+   {
+    "name": "channel_unref",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "char_from_string": [
+   {
+    "name": "char_from_string",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "class_free": [
+   {
+    "name": "class_free",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "cleanup_function_call": [
+   {
+    "name": "cleanup_function_call",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "clear_diffblock": [
+   {
+    "name": "clear_diffblock",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "clear_ht_prop_types": [
+   {
+    "name": "clear_ht_prop_types",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "clear_snapshot_rec": [
+   {
+    "name": "clear_snapshot_rec",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "clip_wl_destroy_buffer_store": [
+   {
+    "name": "clip_wl_destroy_buffer_store",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "clip_wl_destroy_fs_surface": [
+   {
+    "name": "clip_wl_destroy_fs_surface",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "clip_wl_init_buffer_store": [
+   {
+    "name": "clip_wl_init_buffer_store",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "close_buffer": [
+   {
+    "name": "close_buffer",
+    "role": "Deallocator",
+    "target": "arg1"
+   }
+  ],
+  "close_spellbuf": [
+   {
+    "name": "close_spellbuf",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "close_tabpage": [
+   {
+    "name": "close_tabpage",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "cmdcomplete_type_to_str": [
+   {
+    "name": "cmdcomplete_type_to_str",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "concat_fnames": [
+   {
+    "name": "concat_fnames",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "concat_pattern_with_buffer_match": [
+   {
+    "name": "concat_pattern_with_buffer_match",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "concat_str": [
+   {
+    "name": "concat_str",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "convert_filter": [
+   {
+    "name": "convert_filter",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "convert_filterW": [
+   {
+    "name": "convert_filterW",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "convert_string": [
+   {
+    "name": "convert_string",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "copy_function": [
+   {
+    "name": "copy_function",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "copy_id_list": [
+   {
+    "name": "copy_id_list",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "copy_option_val": [
+   {
+    "name": "copy_option_val",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "copy_type": [
+   {
+    "name": "copy_type",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "copy_type_deep": [
+   {
+    "name": "copy_type_deep",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "copy_type_deep_rec": [
+   {
+    "name": "copy_type_deep_rec",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "create_funccal": [
+   {
+    "name": "create_funccal",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "create_readdirex_item": [
+   {
+    "name": "create_readdirex_item",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "create_timer": [
+   {
+    "name": "create_timer",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "crnl_to_nl": [
+   {
+    "name": "crnl_to_nl",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "crypt_create": [
+   {
+    "name": "crypt_create",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "crypt_create_for_writing": [
+   {
+    "name": "crypt_create_for_writing",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "crypt_create_from_file": [
+   {
+    "name": "crypt_create_from_file",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "crypt_create_from_header": [
+   {
+    "name": "crypt_create_from_header",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "crypt_free_key": [
+   {
+    "name": "crypt_free_key",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "crypt_free_state": [
+   {
+    "name": "crypt_free_state",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "cs_create_cmd": [
+   {
+    "name": "cs_create_cmd",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "cs_make_vim_style_matches": [
+   {
+    "name": "cs_make_vim_style_matches",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "cs_parse_results": [
+   {
+    "name": "cs_parse_results",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "cs_resolve_file": [
+   {
+    "name": "cs_resolve_file",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "default_free": [
+   {
+    "name": "default_free",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "default_malloc": [
+   {
+    "name": "default_malloc",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "delbuf_msg": [
+   {
+    "name": "delbuf_msg",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "dict_alloc": [
+   {
+    "name": "dict_alloc",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "dict_alloc_id": [
+   {
+    "name": "dict_alloc_id",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "dict_alloc_lock": [
+   {
+    "name": "dict_alloc_lock",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "dict_copy": [
+   {
+    "name": "dict_copy",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "dict_free": [
+   {
+    "name": "dict_free",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "dict_free_dict": [
+   {
+    "name": "dict_free_dict",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "dict_get_string": [
+   {
+    "name": "dict_get_string",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "dict_typval2type": [
+   {
+    "name": "dict_typval2type",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "dict_unref": [
+   {
+    "name": "dict_unref",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "dictitem_alloc": [
+   {
+    "name": "dictitem_alloc",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "dictitem_copy": [
+   {
+    "name": "dictitem_copy",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "dictitem_free": [
+   {
+    "name": "dictitem_free",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "dictitem_remove": [
+   {
+    "name": "dictitem_remove",
+    "role": "Deallocator",
+    "target": "arg1"
+   }
+  ],
+  "did_set_string_option": [
+   {
+    "name": "did_set_string_option",
+    "role": "Deallocator",
+    "target": "arg2"
+   }
+  ],
+  "diff_alloc_new": [
+   {
+    "name": "diff_alloc_new",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "discard_exception": [
+   {
+    "name": "discard_exception",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "discard_pending_return": [
+   {
+    "name": "discard_pending_return",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "do_insert_char_pre": [
+   {
+    "name": "do_insert_char_pre",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "do_return": [
+   {
+    "name": "do_return",
+    "role": "Deallocator",
+    "target": "arg3"
+   }
+  ],
+  "do_source_buffer_init": [
+   {
+    "name": "do_source_buffer_init",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "do_string_sub": [
+   {
+    "name": "do_string_sub",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "drop_callback": [
+   {
+    "name": "drop_callback",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "echo_string": [
+   {
+    "name": "echo_string",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "echo_string_core": [
+   {
+    "name": "echo_string_core",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "enc_canonize": [
+   {
+    "name": "enc_canonize",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "enc_to_utf16": [
+   {
+    "name": "enc_to_utf16",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "escape_option_str_cmdline": [
+   {
+    "name": "escape_option_str_cmdline",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "eval_client_expr_to_string": [
+   {
+    "name": "eval_client_expr_to_string",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "eval_expr": [
+   {
+    "name": "eval_expr",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "eval_expr_ext": [
+   {
+    "name": "eval_expr_ext",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "eval_expr_get_funccal": [
+   {
+    "name": "eval_expr_get_funccal",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "eval_expr_no_emsg": [
+   {
+    "name": "eval_expr_no_emsg",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "eval_for_line": [
+   {
+    "name": "eval_for_line",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "eval_includeexpr": [
+   {
+    "name": "eval_includeexpr",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "eval_map_expr": [
+   {
+    "name": "eval_map_expr",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "eval_soundfold": [
+   {
+    "name": "eval_soundfold",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "eval_to_string": [
+   {
+    "name": "eval_to_string",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "eval_to_string_eap": [
+   {
+    "name": "eval_to_string_eap",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "eval_to_string_safe": [
+   {
+    "name": "eval_to_string_safe",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "eval_to_string_skip": [
+   {
+    "name": "eval_to_string_skip",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "ex_win_close": [
+   {
+    "name": "ex_win_close",
+    "role": "Deallocator",
+    "target": "arg1"
+   }
+  ],
+  "exarg_getline": [
+   {
+    "name": "exarg_getline",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "exe_substitute_instr": [
+   {
+    "name": "exe_substitute_instr",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "execreg_line_continuation": [
+   {
+    "name": "execreg_line_continuation",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "expand_env_save": [
+   {
+    "name": "expand_env_save",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "expand_env_save_opt": [
+   {
+    "name": "expand_env_save_opt",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "expand_sfile": [
+   {
+    "name": "expand_sfile",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "expand_tag_fname": [
+   {
+    "name": "expand_tag_fname",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "ff_create_stack_element": [
+   {
+    "name": "ff_create_stack_element",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "ff_free_stack_element": [
+   {
+    "name": "ff_free_stack_element",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "ff_free_visited_list": [
+   {
+    "name": "ff_free_visited_list",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "ff_get_visited_list": [
+   {
+    "name": "ff_get_visited_list",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "file_name_at_cursor": [
+   {
+    "name": "file_name_at_cursor",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "file_name_in_line": [
+   {
+    "name": "file_name_in_line",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "file_pat_to_reg_pat": [
+   {
+    "name": "file_pat_to_reg_pat",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "fill_partial_and_closure": [
+   {
+    "name": "fill_partial_and_closure",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "find_directory_in_path": [
+   {
+    "name": "find_directory_in_path",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "find_file_in_path": [
+   {
+    "name": "find_file_in_path",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "find_file_in_path_option": [
+   {
+    "name": "find_file_in_path_option",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "find_file_name_in_path": [
+   {
+    "name": "find_file_name_in_path",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "find_longest_match": [
+   {
+    "name": "find_longest_match",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "findfunc_find_file": [
+   {
+    "name": "findfunc_find_file",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "findswapname": [
+   {
+    "name": "findswapname",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "finish_exception": [
+   {
+    "name": "finish_exception",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "fix_fname": [
+   {
+    "name": "fix_fname",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "fm_getname": [
+   {
+    "name": "fm_getname",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "fp_typval2type": [
+   {
+    "name": "fp_typval2type",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "frame_flatten": [
+   {
+    "name": "frame_flatten",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "free_array": [
+   {
+    "name": "free_array",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "free_blocks": [
+   {
+    "name": "free_blocks",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "free_buffer": [
+   {
+    "name": "free_buffer",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "free_for_info": [
+   {
+    "name": "free_for_info",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "free_funccal": [
+   {
+    "name": "free_funccal",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "free_funccal_contents": [
+   {
+    "name": "free_funccal_contents",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "free_msglist": [
+   {
+    "name": "free_msglist",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "free_register": [
+   {
+    "name": "free_register",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "free_string_option": [
+   {
+    "name": "free_string_option",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "free_tabpage": [
+   {
+    "name": "free_tabpage",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "free_timer": [
+   {
+    "name": "free_timer",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "free_tv": [
+   {
+    "name": "free_tv",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "free_type": [
+   {
+    "name": "free_type",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "free_wininfo": [
+   {
+    "name": "free_wininfo",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "func_clear_free": [
+   {
+    "name": "func_clear_free",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "func_free": [
+   {
+    "name": "func_free",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "func_ptr_unref": [
+   {
+    "name": "func_ptr_unref",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "funccal_unref": [
+   {
+    "name": "funccal_unref",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "funcstack_check_refcount": [
+   {
+    "name": "funcstack_check_refcount",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "fuzmatch_str_free": [
+   {
+    "name": "fuzmatch_str_free",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "fuzzymatches_to_strmatches": [
+   {
+    "name": "fuzzymatches_to_strmatches",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "ga_concat_strings": [
+   {
+    "name": "ga_concat_strings",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "generate_EXEC": [
+   {
+    "name": "generate_EXEC",
+    "role": "Deallocator",
+    "target": "arg2"
+   }
+  ],
+  "generate_NEWFUNC": [
+   {
+    "name": "generate_NEWFUNC",
+    "role": "Deallocator",
+    "target": "arg1"
+   },
+   {
+    "name": "generate_NEWFUNC",
+    "role": "Deallocator",
+    "target": "arg2"
+   }
+  ],
+  "get_autoload_prefix": [
+   {
+    "name": "get_autoload_prefix",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "get_buffcont": [
+   {
+    "name": "get_buffcont",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "get_buffer_info": [
+   {
+    "name": "get_buffer_info",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "get_cmd_output": [
+   {
+    "name": "get_cmd_output",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "get_cmdline_completion": [
+   {
+    "name": "get_cmdline_completion",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "get_cmdline_completion_pattern": [
+   {
+    "name": "get_cmdline_completion_pattern",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "get_cmdline_str": [
+   {
+    "name": "get_cmdline_str",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "get_dict_type": [
+   {
+    "name": "get_dict_type",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "get_diff_hunk_indices": [
+   {
+    "name": "get_diff_hunk_indices",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "get_emsg_lnum": [
+   {
+    "name": "get_emsg_lnum",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "get_emsg_source": [
+   {
+    "name": "get_emsg_source",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "get_expanded_name": [
+   {
+    "name": "get_expanded_name",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "get_expr_line": [
+   {
+    "name": "get_expr_line",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "get_expr_line_src": [
+   {
+    "name": "get_expr_line_src",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "get_fib": [
+   {
+    "name": "get_fib",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "get_file_in_dir": [
+   {
+    "name": "get_file_in_dir",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "get_find_dialog_text": [
+   {
+    "name": "get_find_dialog_text",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "get_func_line": [
+   {
+    "name": "get_func_line",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "get_func_type": [
+   {
+    "name": "get_func_type",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "get_generic_func_name": [
+   {
+    "name": "get_generic_func_name",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "get_input_buf": [
+   {
+    "name": "get_input_buf",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "get_isolated_shell_name": [
+   {
+    "name": "get_isolated_shell_name",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "get_last_insert_save": [
+   {
+    "name": "get_last_insert_save",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "get_list_type": [
+   {
+    "name": "get_list_type",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "get_literal_key": [
+   {
+    "name": "get_literal_key",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "get_loop_line": [
+   {
+    "name": "get_loop_line",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "get_mef_name": [
+   {
+    "name": "get_mef_name",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "get_next_or_prev_match": [
+   {
+    "name": "get_next_or_prev_match",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "get_prop_ids_from_list": [
+   {
+    "name": "get_prop_ids_from_list",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "get_prop_types_from_names": [
+   {
+    "name": "get_prop_types_from_names",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "get_recorded": [
+   {
+    "name": "get_recorded",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "get_reg_contents": [
+   {
+    "name": "get_reg_contents",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "get_register": [
+   {
+    "name": "get_register",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "get_return_cmd": [
+   {
+    "name": "get_return_cmd",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "get_script_local_funcs": [
+   {
+    "name": "get_script_local_funcs",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "get_scriptlocal_funcname": [
+   {
+    "name": "get_scriptlocal_funcname",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "get_separator": [
+   {
+    "name": "get_separator",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "get_signal_name": [
+   {
+    "name": "get_signal_name",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "get_sound_callback": [
+   {
+    "name": "get_sound_callback",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "get_split_sourceline": [
+   {
+    "name": "get_split_sourceline",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "get_str_line": [
+   {
+    "name": "get_str_line",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "get_tabpage_info": [
+   {
+    "name": "get_tabpage_info",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "get_tuple_type": [
+   {
+    "name": "get_tuple_type",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "get_type_ptr": [
+   {
+    "name": "get_type_ptr",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "get_view_file": [
+   {
+    "name": "get_view_file",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "get_win_info": [
+   {
+    "name": "get_win_info",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "get_winbuf_options": [
+   {
+    "name": "get_winbuf_options",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "getnextac": [
+   {
+    "name": "getnextac",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "grab_file_name": [
+   {
+    "name": "grab_file_name",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "gui_handle_drop": [
+   {
+    "name": "gui_handle_drop",
+    "role": "Deallocator",
+    "target": "arg3"
+   }
+  ],
+  "gui_mch_browse": [
+   {
+    "name": "gui_mch_browse",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "gui_mch_browsedir": [
+   {
+    "name": "gui_mch_browsedir",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "gui_mch_create_beval_area": [
+   {
+    "name": "gui_mch_create_beval_area",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "gui_mch_destroy_beval_area": [
+   {
+    "name": "gui_mch_destroy_beval_area",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "gui_mch_destroy_sign": [
+   {
+    "name": "gui_mch_destroy_sign",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "gui_mch_font_dialog": [
+   {
+    "name": "gui_mch_font_dialog",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "gui_mch_get_fontname": [
+   {
+    "name": "gui_mch_get_fontname",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "gui_mch_register_sign": [
+   {
+    "name": "gui_mch_register_sign",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "gui_ph_get_font": [
+   {
+    "name": "gui_ph_get_font",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "handle_drop": [
+   {
+    "name": "handle_drop",
+    "role": "Deallocator",
+    "target": "arg1"
+   },
+   {
+    "name": "handle_drop",
+    "role": "Deallocator",
+    "target": "arg4"
+   }
+  ],
+  "hash_create": [
+   {
+    "name": "hash_create",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "heredoc_get": [
+   {
+    "name": "heredoc_get",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "highlight_get_attr_dict": [
+   {
+    "name": "highlight_get_attr_dict",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "highlight_get_info": [
+   {
+    "name": "highlight_get_info",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "home_replace_save": [
+   {
+    "name": "home_replace_save",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "ins_compl_add_matches": [
+   {
+    "name": "ins_compl_add_matches",
+    "role": "Deallocator",
+    "target": "arg1"
+   }
+  ],
+  "ins_compl_dict_alloc": [
+   {
+    "name": "ins_compl_dict_alloc",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "ins_compl_item_free": [
+   {
+    "name": "ins_compl_item_free",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "invoke_one_time_callback": [
+   {
+    "name": "invoke_one_time_callback",
+    "role": "Deallocator",
+    "target": "arg2"
+   }
+  ],
+  "job_alloc": [
+   {
+    "name": "job_alloc",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "job_free": [
+   {
+    "name": "job_free",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "job_free_job": [
+   {
+    "name": "job_free_job",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "job_start": [
+   {
+    "name": "job_start",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "job_unref": [
+   {
+    "name": "job_unref",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "lalloc": [
+   {
+    "name": "lalloc",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "lalloc_clear": [
+   {
+    "name": "lalloc_clear",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "lalloc_id": [
+   {
+    "name": "lalloc_id",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "list_alloc": [
+   {
+    "name": "list_alloc",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "list_alloc_id": [
+   {
+    "name": "list_alloc_id",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "list_copy": [
+   {
+    "name": "list_copy",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "list_free": [
+   {
+    "name": "list_free",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "list_free_item": [
+   {
+    "name": "list_free_item",
+    "role": "Deallocator",
+    "target": "arg1"
+   }
+  ],
+  "list_free_list": [
+   {
+    "name": "list_free_list",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "list_slice": [
+   {
+    "name": "list_slice",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "list_typval2type": [
+   {
+    "name": "list_typval2type",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "list_unlet_range": [
+   {
+    "name": "list_unlet_range",
+    "role": "Deallocator",
+    "target": "arg1"
+   }
+  ],
+  "list_unref": [
+   {
+    "name": "list_unref",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "listitem_alloc": [
+   {
+    "name": "listitem_alloc",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "listitem_free": [
+   {
+    "name": "listitem_free",
+    "role": "Deallocator",
+    "target": "arg1"
+   }
+  ],
+  "listitem_remove": [
+   {
+    "name": "listitem_remove",
+    "role": "Deallocator",
+    "target": "arg1"
+   }
+  ],
+  "load_dummy_buffer": [
+   {
+    "name": "load_dummy_buffer",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "logfont2name": [
+   {
+    "name": "logfont2name",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "loopvars_check_refcount": [
+   {
+    "name": "loopvars_check_refcount",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "luaV_call_lua_func_free": [
+   {
+    "name": "luaV_call_lua_func_free",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "mac_enc_to_utf16": [
+   {
+    "name": "mac_enc_to_utf16",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "mac_precompose_path": [
+   {
+    "name": "mac_precompose_path",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "mac_string_convert": [
+   {
+    "name": "mac_string_convert",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "mac_utf16_to_enc": [
+   {
+    "name": "mac_utf16_to_enc",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "mac_utf16_to_utf8": [
+   {
+    "name": "mac_utf16_to_utf8",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "mac_utf8_to_utf16": [
+   {
+    "name": "mac_utf8_to_utf16",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "make_expanded_name": [
+   {
+    "name": "make_expanded_name",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "make_extmatch": [
+   {
+    "name": "make_extmatch",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "make_filter_cmd": [
+   {
+    "name": "make_filter_cmd",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "make_get_fullcmd": [
+   {
+    "name": "make_get_fullcmd",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "make_percent_swname": [
+   {
+    "name": "make_percent_swname",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "make_win_info_dict": [
+   {
+    "name": "make_win_info_dict",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "makeswapname": [
+   {
+    "name": "makeswapname",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "map_add": [
+   {
+    "name": "map_add",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "mark_line": [
+   {
+    "name": "mark_line",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "mb_str2wide": [
+   {
+    "name": "mb_str2wide",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "mch_getenv": [
+   {
+    "name": "mch_getenv",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "mch_resolve_path": [
+   {
+    "name": "mch_resolve_path",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "mem_realloc": [
+   {
+    "name": "mem_realloc",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "mf_alloc_bhdr": [
+   {
+    "name": "mf_alloc_bhdr",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "mf_close": [
+   {
+    "name": "mf_close",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "mf_free": [
+   {
+    "name": "mf_free",
+    "role": "Deallocator",
+    "target": "arg1"
+   }
+  ],
+  "mf_free_bhdr": [
+   {
+    "name": "mf_free_bhdr",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "mf_new": [
+   {
+    "name": "mf_new",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "mf_open": [
+   {
+    "name": "mf_open",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "ml_crypt_prepare": [
+   {
+    "name": "ml_crypt_prepare",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "ml_encrypt_data": [
+   {
+    "name": "ml_encrypt_data",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "ml_new_data": [
+   {
+    "name": "ml_new_data",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "ml_new_ptr": [
+   {
+    "name": "ml_new_ptr",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "modname": [
+   {
+    "name": "modname",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "msg_strtrunc": [
+   {
+    "name": "msg_strtrunc",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "nb_quote": [
+   {
+    "name": "nb_quote",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "nb_unquote": [
+   {
+    "name": "nb_unquote",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "new_scope": [
+   {
+    "name": "new_scope",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "next_fenc": [
+   {
+    "name": "next_fenc",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "nfa_get_match_text": [
+   {
+    "name": "nfa_get_match_text",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "nfa_regfree": [
+   {
+    "name": "nfa_regfree",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "normalize_encoding_name": [
+   {
+    "name": "normalize_encoding_name",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "nv_K_getcmd": [
+   {
+    "name": "nv_K_getcmd",
+    "role": "Deallocator",
+    "target": "arg6"
+   }
+  ],
+  "object_free": [
+   {
+    "name": "object_free",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "object_free_object": [
+   {
+    "name": "object_free_object",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "object_tv2string": [
+   {
+    "name": "object_tv2string",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "object_unref": [
+   {
+    "name": "object_unref",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "open_spellbuf": [
+   {
+    "name": "open_spellbuf",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "parse_type": [
+   {
+    "name": "parse_type",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "parse_type_func": [
+   {
+    "name": "parse_type_func",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "parse_type_member": [
+   {
+    "name": "parse_type_member",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "parse_type_tuple": [
+   {
+    "name": "parse_type_tuple",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "parse_type_user_defined": [
+   {
+    "name": "parse_type_user_defined",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "partial_free": [
+   {
+    "name": "partial_free",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "partial_typval2type": [
+   {
+    "name": "partial_typval2type",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "partial_unref": [
+   {
+    "name": "partial_unref",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "popup_create": [
+   {
+    "name": "popup_create",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "popup_free": [
+   {
+    "name": "popup_free",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "popup_mode_name": [
+   {
+    "name": "popup_mode_name",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "prop_add_one": [
+   {
+    "name": "prop_add_one",
+    "role": "Deallocator",
+    "target": "arg3"
+   }
+  ],
+  "pum_display_ltr_text": [
+   {
+    "name": "pum_display_ltr_text",
+    "role": "Deallocator",
+    "target": "arg2"
+   }
+  ],
+  "pum_display_rtl_text": [
+   {
+    "name": "pum_display_rtl_text",
+    "role": "Deallocator",
+    "target": "arg2"
+   }
+  ],
+  "put_register": [
+   {
+    "name": "put_register",
+    "role": "Deallocator",
+    "target": "arg1"
+   }
+  ],
+  "py3_get_system_libname": [
+   {
+    "name": "py3_get_system_libname",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "py_dict_alloc": [
+   {
+    "name": "py_dict_alloc",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "py_list_alloc": [
+   {
+    "name": "py_list_alloc",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "py_tuple_alloc": [
+   {
+    "name": "py_tuple_alloc",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "qf_alloc_list_stack": [
+   {
+    "name": "qf_alloc_list_stack",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "qf_free_lists": [
+   {
+    "name": "qf_free_lists",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "read_cnt_string": [
+   {
+    "name": "read_cnt_string",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "read_string": [
+   {
+    "name": "read_string",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "read_string_decrypt": [
+   {
+    "name": "read_string_decrypt",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "readfile_charconvert": [
+   {
+    "name": "readfile_charconvert",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "redraw_listener_free": [
+   {
+    "name": "redraw_listener_free",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "reg_submatch": [
+   {
+    "name": "reg_submatch",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "reg_submatch_list": [
+   {
+    "name": "reg_submatch_list",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "remove_from_writeque": [
+   {
+    "name": "remove_from_writeque",
+    "role": "Deallocator",
+    "target": "arg1"
+   }
+  ],
+  "remove_listener_from_list": [
+   {
+    "name": "remove_listener_from_list",
+    "role": "Deallocator",
+    "target": "arg1"
+   }
+  ],
+  "replace_makeprg": [
+   {
+    "name": "replace_makeprg",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "resolve_appexeclink": [
+   {
+    "name": "resolve_appexeclink",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "resolve_shortcut": [
+   {
+    "name": "resolve_shortcut",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "restore_env_var": [
+   {
+    "name": "restore_env_var",
+    "role": "Deallocator",
+    "target": "arg1"
+   }
+  ],
+  "restore_gettext_codeset": [
+   {
+    "name": "restore_gettext_codeset",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "reverse_text": [
+   {
+    "name": "reverse_text",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "save_function_name": [
+   {
+    "name": "save_function_name",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "searchpath_save": [
+   {
+    "name": "searchpath_save",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "serverMakeName": [
+   {
+    "name": "serverMakeName",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "set_input_buf": [
+   {
+    "name": "set_input_buf",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "sign_get_info": [
+   {
+    "name": "sign_get_info",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "sign_group_ref": [
+   {
+    "name": "sign_group_ref",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "sign_undefine": [
+   {
+    "name": "sign_undefine",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "slang_alloc": [
+   {
+    "name": "slang_alloc",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "slang_free": [
+   {
+    "name": "slang_free",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "socket_server_encode_cmd": [
+   {
+    "name": "socket_server_encode_cmd",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "socket_server_get_path_from_name": [
+   {
+    "name": "socket_server_get_path_from_name",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "spell_load_file": [
+   {
+    "name": "spell_load_file",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "split_button_string": [
+   {
+    "name": "split_button_string",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "split_button_translation": [
+   {
+    "name": "split_button_translation",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "stacktrace_create": [
+   {
+    "name": "stacktrace_create",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "stop_timer": [
+   {
+    "name": "stop_timer",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "string2blob": [
+   {
+    "name": "string2blob",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "string_convert": [
+   {
+    "name": "string_convert",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "string_convert_ext": [
+   {
+    "name": "string_convert_ext",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "string_from_blob": [
+   {
+    "name": "string_from_blob",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "string_quote": [
+   {
+    "name": "string_quote",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "string_slice": [
+   {
+    "name": "string_slice",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "string_to_line": [
+   {
+    "name": "string_to_line",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "strlow_save": [
+   {
+    "name": "strlow_save",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "stropt_copy_value": [
+   {
+    "name": "stropt_copy_value",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "stropt_expand_envvar": [
+   {
+    "name": "stropt_expand_envvar",
+    "role": "Deallocator",
+    "target": "arg2"
+   }
+  ],
+  "stropt_get_newval": [
+   {
+    "name": "stropt_get_newval",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "strup_save": [
+   {
+    "name": "strup_save",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "stuff_yank": [
+   {
+    "name": "stuff_yank",
+    "role": "Deallocator",
+    "target": "arg1"
+   }
+  ],
+  "syn_add_cluster": [
+   {
+    "name": "syn_add_cluster",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "tabstop_copy": [
+   {
+    "name": "tabstop_copy",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "tag_full_fname": [
+   {
+    "name": "tag_full_fname",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "trans_function_name": [
+   {
+    "name": "trans_function_name",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "trans_function_name_ext": [
+   {
+    "name": "trans_function_name_ext",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "translate_mnemonic_tag": [
+   {
+    "name": "translate_mnemonic_tag",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "transstr": [
+   {
+    "name": "transstr",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "tuple_alloc": [
+   {
+    "name": "tuple_alloc",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "tuple_alloc_with_items": [
+   {
+    "name": "tuple_alloc_with_items",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "tuple_copy": [
+   {
+    "name": "tuple_copy",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "tuple_free": [
+   {
+    "name": "tuple_free",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "tuple_free_list": [
+   {
+    "name": "tuple_free_list",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "tuple_slice": [
+   {
+    "name": "tuple_slice",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "tuple_typval2type": [
+   {
+    "name": "tuple_typval2type",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "tuple_unref": [
+   {
+    "name": "tuple_unref",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "typealias_free": [
+   {
+    "name": "typealias_free",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "typealias_unref": [
+   {
+    "name": "typealias_unref",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "typval2string": [
+   {
+    "name": "typval2string",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "typval2type": [
+   {
+    "name": "typval2type",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "typval2type_int": [
+   {
+    "name": "typval2type_int",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "typval2type_vimvar": [
+   {
+    "name": "typval2type_vimvar",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "typval_tostring": [
+   {
+    "name": "typval_tostring",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "u_free_uhp": [
+   {
+    "name": "u_free_uhp",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "u_freebranch": [
+   {
+    "name": "u_freebranch",
+    "role": "Deallocator",
+    "target": "arg1"
+   }
+  ],
+  "u_freeentries": [
+   {
+    "name": "u_freeentries",
+    "role": "Deallocator",
+    "target": "arg1"
+   }
+  ],
+  "u_freeentry": [
+   {
+    "name": "u_freeentry",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "u_freeheader": [
+   {
+    "name": "u_freeheader",
+    "role": "Deallocator",
+    "target": "arg1"
+   }
+  ],
+  "uc_add_command": [
+   {
+    "name": "uc_add_command",
+    "role": "Deallocator",
+    "target": "arg7"
+   }
+  ],
+  "uc_split_args": [
+   {
+    "name": "uc_split_args",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "unload_dummy_buffer": [
+   {
+    "name": "unload_dummy_buffer",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "unref_extmatch": [
+   {
+    "name": "unref_extmatch",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "unref_var_dict": [
+   {
+    "name": "unref_var_dict",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "unserialize_uep": [
+   {
+    "name": "unserialize_uep",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "unserialize_uhp": [
+   {
+    "name": "unserialize_uhp",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "uri_decode": [
+   {
+    "name": "uri_decode",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "uri_encode": [
+   {
+    "name": "uri_encode",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "utf16_to_enc": [
+   {
+    "name": "utf16_to_enc",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "vgr_load_dummy_buf": [
+   {
+    "name": "vgr_load_dummy_buf",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "vim_findfile_cleanup": [
+   {
+    "name": "vim_findfile_cleanup",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "vim_free": [
+   {
+    "name": "vim_free",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "vim_memsave": [
+   {
+    "name": "vim_memsave",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "vim_realloc": [
+   {
+    "name": "vim_realloc",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "vim_strnsave": [
+   {
+    "name": "vim_strnsave",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "vim_strnsave_up": [
+   {
+    "name": "vim_strnsave_up",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "vim_strsave": [
+   {
+    "name": "vim_strsave",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "vim_strsave_escape_csi": [
+   {
+    "name": "vim_strsave_escape_csi",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "vim_strsave_escaped": [
+   {
+    "name": "vim_strsave_escaped",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "vim_strsave_escaped_ext": [
+   {
+    "name": "vim_strsave_escaped_ext",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "vim_strsave_fnameescape": [
+   {
+    "name": "vim_strsave_fnameescape",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "vim_strsave_shellescape": [
+   {
+    "name": "vim_strsave_shellescape",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "vim_strsave_up": [
+   {
+    "name": "vim_strsave_up",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "vim_tempname": [
+   {
+    "name": "vim_tempname",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "vim_version_dir": [
+   {
+    "name": "vim_version_dir",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "viminfo_filename": [
+   {
+    "name": "viminfo_filename",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "viminfo_readstring": [
+   {
+    "name": "viminfo_readstring",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "vterm_malloc": [
+   {
+    "name": "vterm_malloc",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "vterm_memfree": [
+   {
+    "name": "vterm_memfree",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "vwl_connection_destroy": [
+   {
+    "name": "vwl_connection_destroy",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "vwl_connection_get_data_device_manager": [
+   {
+    "name": "vwl_connection_get_data_device_manager",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "vwl_connection_new": [
+   {
+    "name": "vwl_connection_new",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "vwl_data_device_manager_create_data_source": [
+   {
+    "name": "vwl_data_device_manager_create_data_source",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "vwl_data_device_manager_discard": [
+   {
+    "name": "vwl_data_device_manager_discard",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "vwl_data_device_manager_get_data_device": [
+   {
+    "name": "vwl_data_device_manager_get_data_device",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "vwl_data_device_wrap_offer_proxy": [
+   {
+    "name": "vwl_data_device_wrap_offer_proxy",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "vwl_seat_destroy": [
+   {
+    "name": "vwl_seat_destroy",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "win32_escape_arg": [
+   {
+    "name": "win32_escape_arg",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "win_alloc": [
+   {
+    "name": "win_alloc",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "win_alloc_popup_win": [
+   {
+    "name": "win_alloc_popup_win",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "win_close_othertab": [
+   {
+    "name": "win_close_othertab",
+    "role": "Deallocator",
+    "target": "arg0"
+   },
+   {
+    "name": "win_close_othertab",
+    "role": "Deallocator",
+    "target": "arg2"
+   }
+  ],
+  "win_free": [
+   {
+    "name": "win_free",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "win_free_mem": [
+   {
+    "name": "win_free_mem",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "win_free_popup": [
+   {
+    "name": "win_free_popup",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "wipe_buffer": [
+   {
+    "name": "wipe_buffer",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "wipe_dummy_buffer": [
+   {
+    "name": "wipe_dummy_buffer",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "xdl_alloc_grow_helper": [
+   {
+    "name": "xdl_alloc_grow_helper",
+    "role": "Allocator",
+    "target": "return"
+   },
+   {
+    "name": "xdl_alloc_grow_helper",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "xdl_calloc": [
+   {
+    "name": "xdl_calloc",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "xdl_free": [
+   {
+    "name": "xdl_free",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "xdl_free_script": [
+   {
+    "name": "xdl_free_script",
+    "role": "Deallocator",
+    "target": "arg0"
+   }
+  ],
+  "xdl_malloc": [
+   {
+    "name": "xdl_malloc",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ],
+  "xdl_realloc": [
+   {
+    "name": "xdl_realloc",
+    "role": "Allocator",
+    "target": "return"
+   }
+  ]
+ }
+}

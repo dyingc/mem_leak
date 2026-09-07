@@ -1,0 +1,1057 @@
+{
+ "fixes": [
+  {
+   "sha": "7ed37dc53409331cd9e7e0e10238651f7bca2672",
+   "patch": "7ed37dc5",
+   "subject": "patch memory leak in list_extend_func() in list.c",
+   "funcs": [
+    [
+     "src/list.c",
+     "list_extend_func"
+    ]
+   ]
+  },
+  {
+   "sha": "9c3279ddc39da31f3fe9c52d06cb8a9b3a06ca0e",
+   "patch": "9.2.0055",
+   "subject": "patch 9.2.0055: memory leak in ExpandFromContext()",
+   "funcs": [
+    [
+     "src/cmdexpand.c",
+     "ExpandFromContext"
+    ]
+   ]
+  },
+  {
+   "sha": "6a239a1905ea26eeb8f39604ab98ff374b2e0cd5",
+   "patch": "9.2.0056",
+   "subject": "patch 9.2.0056: memory leak in ex_substitute",
+   "funcs": [
+    [
+     "src/ex_cmds.c",
+     "ex_substitute"
+    ]
+   ]
+  },
+  {
+   "sha": "71ace8ba8c5cebb0f1480dc69ff940450eb70689",
+   "patch": "9.2.0057",
+   "subject": "patch 9.2.0057: memory leak in exe_newdict()",
+   "funcs": [
+    [
+     "src/vim9execute.c",
+     "exe_newdict"
+    ]
+   ]
+  },
+  {
+   "sha": "e8432bc5d5ab04b998908cc839a2e48db2e788e4",
+   "patch": "9.2.0059",
+   "subject": "patch 9.2.0059: memory leak in fill_assert_error",
+   "funcs": [
+    [
+     "src/testing.c",
+     "fill_assert_error"
+    ]
+   ]
+  },
+  {
+   "sha": "5aa0860d0a5188f35faed95088688708a749cc0c",
+   "patch": "9.2.0063",
+   "subject": "patch 9.2.0063: memory leak in type_name_list_or_dict()",
+   "funcs": [
+    [
+     "src/vim9type.c",
+     "type_name_list_or_dict"
+    ]
+   ]
+  },
+  {
+   "sha": "ac28237e620c9bbf750b4343507a2c2ac1acaace",
+   "patch": "9.2.0065",
+   "subject": "patch 9.2.0065: memory leak in invoke_sync_listeners()",
+   "funcs": [
+    [
+     "src/change.c",
+     "invoke_sync_listeners"
+    ]
+   ]
+  },
+  {
+   "sha": "c0740e046e936ccff4fb622b6a108e0e2306b04f",
+   "patch": "9.2.0066",
+   "subject": "patch 9.2.0066: memory leak in build_drop_cmd()",
+   "funcs": [
+    [
+     "src/clientserver.c",
+     "build_drop_cmd"
+    ]
+   ]
+  },
+  {
+   "sha": "8ba12766d1ceae6630eb2ecb6b75436391341d5f",
+   "patch": "9.2.0067",
+   "subject": "patch 9.2.0067: memory leak in dict_extend_func()",
+   "funcs": [
+    [
+     "src/dict.c",
+     "dict_extend_func"
+    ]
+   ]
+  },
+  {
+   "sha": "525d1d6a94de7c54fc30dc04ee630fef572702ef",
+   "patch": "9.2.0079",
+   "subject": "patch 9.2.0079: memory leak in eval_dict()",
+   "funcs": [
+    [
+     "src/dict.c",
+     "eval_dict"
+    ]
+   ]
+  },
+  {
+   "sha": "e352bb632ab17e5d7b83d43b78a1005507322402",
+   "patch": "9.2.0097",
+   "subject": "patch 9.2.0097: Memory leak in qf_push_dir()",
+   "funcs": [
+    [
+     "src/quickfix.c",
+     "qf_push_dir"
+    ]
+   ]
+  },
+  {
+   "sha": "5845741d69655a731288ab105c8fd9fe46e12df9",
+   "patch": "9.2.0102",
+   "subject": "patch 9.2.0102: 'listchars' \"leadtab\" not used in :list",
+   "funcs": [
+    [
+     "src/message.c",
+     "msg_prt_line"
+    ],
+    [
+     "src/screen.c",
+     "set_chars_option"
+    ]
+   ]
+  },
+  {
+   "sha": "7d1e0a783247598f6689b920b8a698df02bca382",
+   "patch": "9.2.0105",
+   "subject": "patch 9.2.0105: memory leak in heredoc_get() in src/evalvars.c",
+   "funcs": [
+    [
+     "src/evalvars.c",
+     "heredoc_get"
+    ]
+   ]
+  },
+  {
+   "sha": "648240fe9a0013354a0a15777d0d5c8eb203df3d",
+   "patch": "9.2.0106",
+   "subject": "patch 9.2.0106: memory leak in expand_findfunc()",
+   "funcs": [
+    [
+     "src/ex_docmd.c",
+     "expand_findfunc"
+    ]
+   ]
+  },
+  {
+   "sha": "d180f67a41a44ad227f87b3a89168f2a5fab1391",
+   "patch": "9.2.0118",
+   "subject": "patch 9.2.0118: memory leak in w_hl when reusing a popup window",
+   "funcs": [
+    [
+     "src/window.c",
+     "win_init_empty"
+    ]
+   ]
+  },
+  {
+   "sha": "248de84d869b40fe1e836c715f3f370a719621d3",
+   "patch": "9.2.0133",
+   "subject": "patch 9.2.0133: memory leak in netbeans_file_activated()",
+   "funcs": [
+    [
+     "src/netbeans.c",
+     "netbeans_file_activated"
+    ]
+   ]
+  },
+  {
+   "sha": "ede5252d897a125ef2d623fffa1fef60f4d91074",
+   "patch": "9.2.0134",
+   "subject": "patch 9.2.0134: memory leak in socket_server_send_reply()",
+   "funcs": [
+    [
+     "src/os_unix.c",
+     "socket_server_send_reply"
+    ]
+   ]
+  },
+  {
+   "sha": "e945350f11c7687638c3c596e66c39cfaef37e74",
+   "patch": "9.2.0135",
+   "subject": "patch 9.2.0135: memory leak in eval_tuple()",
+   "funcs": [
+    [
+     "src/tuple.c",
+     "eval_tuple"
+    ]
+   ]
+  },
+  {
+   "sha": "93a7855f01b61fafd2063481252ece7cb6fe6b0c",
+   "patch": "9.2.0136",
+   "subject": "patch 9.2.0136: memory leak in add_interface_from_super_class()",
+   "funcs": [
+    [
+     "src/vim9class.c",
+     "add_interface_from_super_class"
+    ]
+   ]
+  },
+  {
+   "sha": "1da42ee2710c7d3413e0656cbbc9067f23390615",
+   "patch": "9.2.0200",
+   "subject": "patch 9.2.0200: term: DECRQM codes are sent too early",
+   "funcs": [
+    [
+     "src/main.c",
+     "vim_main2"
+    ],
+    [
+     "src/term.c",
+     "starttermcap"
+    ],
+    [
+     "src/term.c",
+     "term_replace_keycodes"
+    ]
+   ]
+  },
+  {
+   "sha": "aeb716ea77d4fbb43cf3e2e787d4b1dd5ea8366a",
+   "patch": "9.2.0227",
+   "subject": "patch 9.2.0227: MS-Windows: CSI sequences may be written to screen",
+   "funcs": []
+  },
+  {
+   "sha": "a4c0119786daba999c7f74be5ef2f3363e137af5",
+   "patch": "9.2.0242",
+   "subject": "patch 9.2.0242: memory leak in check_for_cryptkey()",
+   "funcs": [
+    [
+     "src/fileio.c",
+     "check_for_cryptkey"
+    ]
+   ]
+  },
+  {
+   "sha": "0effd2faf9527d803e3cc86e2a250009c3b005ce",
+   "patch": "9.2.0243",
+   "subject": "patch 9.2.0243: memory leak in change_indent()",
+   "funcs": [
+    [
+     "src/indent.c",
+     "change_indent"
+    ]
+   ]
+  },
+  {
+   "sha": "e2cf84d0a0fb5d880e36a599ea9f2a3b95ed67a1",
+   "patch": "9.2.0244",
+   "subject": "patch 9.2.0244: memory leak in eval8()",
+   "funcs": [
+    [
+     "src/eval.c",
+     "eval8"
+    ]
+   ]
+  },
+  {
+   "sha": "418400075ac94eb4d1caaad1cd5251d994bf2a91",
+   "patch": "9.2.0246",
+   "subject": "patch 9.2.0246: memory leak in globpath()",
+   "funcs": [
+    [
+     "src/cmdexpand.c",
+     "globpath"
+    ]
+   ]
+  },
+  {
+   "sha": "b90145672d3978c023de65cce9d8dc7917a258e7",
+   "patch": "9.2.0258",
+   "subject": "patch 9.2.0258: memory leak in add_mark()",
+   "funcs": [
+    [
+     "src/mark.c",
+     "add_mark"
+    ]
+   ]
+  },
+  {
+   "sha": "30bac359dc50f7a1a710ddfa08d3f7e8849cb3dc",
+   "patch": "9.2.0268",
+   "subject": "patch 9.2.0268: memory leak in call_oc_method()",
+   "funcs": [
+    [
+     "src/vim9class.c",
+     "call_oc_method"
+    ]
+   ]
+  },
+  {
+   "sha": "b7205b64261e4a65cdba8aa3682c4ca295fb9e0f",
+   "patch": "9.2.0290",
+   "subject": "patch 9.2.0290: Amiga: no support for AmigaOS 3.x",
+   "funcs": [
+    [
+     "src/os_amiga.c",
+     "get_fib"
+    ],
+    [
+     "src/os_amiga.c",
+     "mch_FullName"
+    ],
+    [
+     "src/os_amiga.c",
+     "mch_delay"
+    ],
+    [
+     "src/os_amiga.c",
+     "mch_get_host_name"
+    ],
+    [
+     "src/os_amiga.c",
+     "mch_init"
+    ],
+    [
+     "src/os_amiga.c",
+     "sortcmp"
+    ]
+   ]
+  },
+  {
+   "sha": "6cb4173294d0a9612bf105f1c8e492f47a56a568",
+   "patch": "9.2.0409",
+   "subject": "patch 9.2.0409: memory leaks in copy_substring_from_pos()",
+   "funcs": [
+    [
+     "src/cmdexpand.c",
+     "copy_substring_from_pos"
+    ]
+   ]
+  },
+  {
+   "sha": "7b218ae98c0f9a26ade91f0950e5c43d3c3c5b2b",
+   "patch": "9.2.0427",
+   "subject": "patch 9.2.0427: popup: opacity blend may leaks white bg color",
+   "funcs": [
+    [
+     "src/highlight.c",
+     "blend_colors"
+    ],
+    [
+     "src/highlight.c",
+     "cterm_color_to_rgb"
+    ],
+    [
+     "src/highlight.c",
+     "hl_blend_attr"
+    ],
+    [
+     "src/highlight.c",
+     "hl_combine_attr"
+    ],
+    [
+     "src/highlight.c",
+     "hl_pum_blend_attr"
+    ]
+   ]
+  },
+  {
+   "sha": "8c7d824b73ff939890f13c3792e45833a651a840",
+   "patch": "9.2.0441",
+   "subject": "patch 9.2.0441: statusline: click handler not called on multi-line statusline",
+   "funcs": [
+    [
+     "src/screen.c",
+     "win_redr_custom"
+    ]
+   ]
+  },
+  {
+   "sha": "38237411e4e202a96b0efe41567505331114bfa8",
+   "patch": "9.2.0476",
+   "subject": "patch 9.2.0476: pattern completion leaks memory on alloc failures",
+   "funcs": [
+    [
+     "src/cmdexpand.c",
+     "copy_substring_from_pos"
+    ],
+    [
+     "src/cmdexpand.c",
+     "expand_pattern_in_buf"
+    ],
+    [
+     "src/fuzzy.c",
+     "fuzzy_match_str_with_pos"
+    ]
+   ]
+  },
+  {
+   "sha": "6c8e125395cc77a67c7ddb95422684ff84a54e58",
+   "patch": "9.2.0525",
+   "subject": "patch 9.2.0525: spell: memory leak in spell_read_dic()",
+   "funcs": [
+    [
+     "src/spellfile.c",
+     "spell_read_dic"
+    ]
+   ]
+  },
+  {
+   "sha": "81d42cf1aaba17ca3a0835d54ed2a17e849084e5",
+   "patch": "9.2.0554",
+   "subject": "patch 9.2.0554: GTK4: memory leak in free_menu()",
+   "funcs": [
+    [
+     "src/menu.c",
+     "free_menu"
+    ]
+   ]
+  },
+  {
+   "sha": "37089793b8343548d75b1c856d0606e7bac62387",
+   "patch": "9.2.0571",
+   "subject": "patch 9.2.0571: Vim9: memory leak in compile_nested_function() on failure",
+   "funcs": [
+    [
+     "src/vim9compile.c",
+     "compile_nested_function"
+    ]
+   ]
+  },
+  {
+   "sha": "63a9471e225ec8388f3d7f03ba6bc0a137533529",
+   "patch": "9.2.0578",
+   "subject": "patch 9.2.0578: GTK4: :unmenu does not remove entries from the menubar",
+   "funcs": [
+    [
+     "src/gui_gtk4.c",
+     "gui_mch_destroy_menu"
+    ],
+    [
+     "src/gui_gtk4.c",
+     "gui_mch_menu_set_tip"
+    ]
+   ]
+  },
+  {
+   "sha": "4a792c9cc5654d0b134c56b4b8acd61b081c83b9",
+   "patch": "9.2.0661",
+   "subject": "patch 9.2.0661: unintended wipe of Vim's temp dir, causes errors",
+   "funcs": [
+    [
+     "src/fileio.c",
+     "vim_closetempdir"
+    ],
+    [
+     "src/fileio.c",
+     "vim_tempname"
+    ]
+   ]
+  },
+  {
+   "sha": "98f5171ef6ba9aa6aea7223e833115e544199bd4",
+   "patch": "9.2.0708",
+   "subject": "patch 9.2.0708: Leaks in do_autocmd in error case",
+   "funcs": [
+    [
+     "src/autocmd.c",
+     "do_autocmd"
+    ]
+   ]
+  },
+  {
+   "sha": "fa3680c6fa93b6bb2c96ae536f56c56750477cfc",
+   "patch": "9.2.0711",
+   "subject": "patch 9.2.0711: leak in ins_compl_infercase_gettext() in error case",
+   "funcs": [
+    [
+     "src/insexpand.c",
+     "ins_compl_infercase_gettext"
+    ]
+   ]
+  },
+  {
+   "sha": "f3026d9bd8b6ecf5b7b7ad1f31abe12704da9da6",
+   "patch": "9.2.0747",
+   "subject": "patch 9.2.0747: cscope: connection leak when growing the array fails",
+   "funcs": [
+    [
+     "src/if_cscope.c",
+     "cs_insert_filelist"
+    ]
+   ]
+  },
+  {
+   "sha": "1f0f14bc2fbe278690c2b1510c9d0f3b5061020c",
+   "patch": "9.2.0750",
+   "subject": "patch 9.2.0750: completion: 'autocompletedelay' deferral leaks state",
+   "funcs": [
+    [
+     "src/getchar.c",
+     "vgetc"
+    ],
+    [
+     "src/insexpand.c",
+     "ins_compl_arm_autocomplete_delay"
+    ],
+    [
+     "src/insexpand.c",
+     "ins_compl_autocomplete_pending"
+    ],
+    [
+     "src/ui.c",
+     "inchar_loop"
+    ]
+   ]
+  },
+  {
+   "sha": "9dc4e0cbddb91009927bab762eb629a137c74632",
+   "patch": "9.2.0773",
+   "subject": "patch 9.2.0773: Memory leak in evalfunc.c on alloc failure",
+   "funcs": [
+    [
+     "src/evalfunc.c",
+     "f_getchangelist"
+    ],
+    [
+     "src/evalfunc.c",
+     "f_getjumplist"
+    ],
+    [
+     "src/evalfunc.c",
+     "get_matches_in_str"
+    ]
+   ]
+  },
+  {
+   "sha": "9082201cc218a787e794f74a432c72e70e898542",
+   "patch": "9.2.0774",
+   "subject": "patch 9.2.0774: Memory leak in f_getscriptinfo() on alloc failure",
+   "funcs": [
+    [
+     "src/scriptfile.c",
+     "f_getscriptinfo"
+    ]
+   ]
+  },
+  {
+   "sha": "a424f9846eaf1934d8ae9a9b30d99401970a9bc2",
+   "patch": "9.2.0775",
+   "subject": "patch 9.2.0775: Memory Leak in highlight_get_info() on alloc failure",
+   "funcs": [
+    [
+     "src/highlight.c",
+     "highlight_get_info"
+    ]
+   ]
+  },
+  {
+   "sha": "fe132bb249e79d03a47e85cb5112f5b2070f206a",
+   "patch": "9.2.0776",
+   "subject": "patch 9.2.0776: Memory leak in sign_getlist() on alloc failure",
+   "funcs": [
+    [
+     "src/sign.c",
+     "sign_getlist"
+    ]
+   ]
+  },
+  {
+   "sha": "e43064830d1b69fe1bac1653e070b13b1c2fef00",
+   "patch": "9.2.0777",
+   "subject": "patch 9.2.0777: Memory leak in add_defer() on alloc failure",
+   "funcs": [
+    [
+     "src/userfunc.c",
+     "add_defer"
+    ]
+   ]
+  },
+  {
+   "sha": "8bd30e8cb8507ed51f8a15470d601ebb284fe13b",
+   "patch": "9.2.0778",
+   "subject": "patch 9.2.0778: Memory Leak in compile_dict() on alloc failure",
+   "funcs": [
+    [
+     "src/vim9expr.c",
+     "compile_dict"
+    ]
+   ]
+  },
+  {
+   "sha": "eeeed2b294da499e63e331f40302ffe9dbf96baa",
+   "patch": "9.2.0779",
+   "subject": "patch 9.2.0779: Memory leak in type_name_func() on alloc failure",
+   "funcs": [
+    [
+     "src/vim9type.c",
+     "type_name_func"
+    ]
+   ]
+  },
+  {
+   "sha": "f2156161c52548af2a502858b59f48ea2fb33bb2",
+   "patch": "9.2.0780",
+   "subject": "patch 9.2.0780: Memory leak in evalvars.c on alloc failure",
+   "funcs": [
+    [
+     "src/evalvars.c",
+     "ex_let_vars"
+    ],
+    [
+     "src/tuple.c",
+     "tuple_append_tv"
+    ]
+   ]
+  },
+  {
+   "sha": "67304a7e10a007b84654129fb4640f03c4d9ac7d",
+   "patch": "9.2.0797",
+   "subject": "patch 9.2.0797: Memory leak in get_qfline_items() on alloc failure",
+   "funcs": [
+    [
+     "src/quickfix.c",
+     "get_qfline_items"
+    ]
+   ]
+  },
+  {
+   "sha": "4607659b1291d5a7b1a0a94cb4bb02fec33b2902",
+   "patch": "9.2.0798",
+   "subject": "patch 9.2.0798: Memory leak in compile_expr6() on alloc failure",
+   "funcs": [
+    [
+     "src/vim9expr.c",
+     "compile_expr6"
+    ]
+   ]
+  },
+  {
+   "sha": "304ccd74a502322ab8a01f8e62a595b93d6b9e6b",
+   "patch": "9.2.0799",
+   "subject": "patch 9.2.0799: Memory leak in compile_def_function_body() on alloc failure",
+   "funcs": [
+    [
+     "src/vim9compile.c",
+     "compile_def_function_body"
+    ]
+   ]
+  },
+  {
+   "sha": "59271381f3a12e988aa1603eb3013f171db1594c",
+   "patch": "9.2.0800",
+   "subject": "patch 9.2.0800: Memory leak in call_func() on alloc failure",
+   "funcs": [
+    [
+     "src/userfunc.c",
+     "call_func"
+    ]
+   ]
+  },
+  {
+   "sha": "8e54a347396fad8137afcf3a27e4f5e187d8513d",
+   "patch": "9.2.0801",
+   "subject": "patch 9.2.0801: Memory leak in f_getreginfo() on alloc failure",
+   "funcs": [
+    [
+     "src/evalfunc.c",
+     "f_getreginfo"
+    ]
+   ]
+  },
+  {
+   "sha": "74ddc96d412c5248a7bbfbf0a347143e7a44551f",
+   "patch": "9.2.0802",
+   "subject": "patch 9.2.0802: Memory leak with list_append_dict/dict_add_list on alloc failure",
+   "funcs": [
+    [
+     "src/cmdexpand.c",
+     "f_cmdcomplete_info"
+    ],
+    [
+     "src/diff.c",
+     "f_diff"
+    ],
+    [
+     "src/highlight.c",
+     "f_hlget"
+    ],
+    [
+     "src/insexpand.c",
+     "get_complete_info"
+    ],
+    [
+     "src/job.c",
+     "job_info"
+    ],
+    [
+     "src/match.c",
+     "f_getmatches"
+    ],
+    [
+     "src/menu.c",
+     "menuitem_getinfo"
+    ],
+    [
+     "src/popupwin.c",
+     "get_borderchars"
+    ],
+    [
+     "src/popupwin.c",
+     "get_borderhighlight"
+    ],
+    [
+     "src/popupwin.c",
+     "get_moved_list"
+    ],
+    [
+     "src/popupwin.c",
+     "get_padding_border"
+    ],
+    [
+     "src/register.c",
+     "put_do_autocmd"
+    ],
+    [
+     "src/register.c",
+     "yank_do_autocmd"
+    ],
+    [
+     "src/sign.c",
+     "get_buffer_signs"
+    ],
+    [
+     "src/sign.c",
+     "sign_get_placed_in_buf"
+    ],
+    [
+     "src/terminal.c",
+     "f_term_getcursor"
+    ],
+    [
+     "src/terminal.c",
+     "f_term_scrape"
+    ],
+    [
+     "src/textprop.c",
+     "get_props_in_line"
+    ]
+   ]
+  },
+  {
+   "sha": "aa8c663deb870464ee0da8de6d5a65c613038a1c",
+   "patch": "9.2.0803",
+   "subject": "patch 9.2.0803: Memory leak on alloc failure with taglist/gettagstack()",
+   "funcs": [
+    [
+     "src/tag.c",
+     "get_tags"
+    ],
+    [
+     "src/tag.c",
+     "get_tagstack"
+    ]
+   ]
+  },
+  {
+   "sha": "dd326ec1e8c8a7f734be79abed973871a298697b",
+   "patch": "9.2.0816",
+   "subject": "patch 9.2.0816: GTK4: Memory leak in gui_gtk_set_dnd_targets()",
+   "funcs": [
+    [
+     "src/gui_gtk4.c",
+     "gui_gtk_set_dnd_targets"
+    ]
+   ]
+  },
+  {
+   "sha": "5a7ce2733a2d9d9fccad4dd48047546000d9994d",
+   "patch": "9.2.0854",
+   "subject": "patch 9.2.0854: memory leak when reading a spell file with SN_SAL and SN_SOFO",
+   "funcs": [
+    [
+     "src/spell.c",
+     "slang_clear"
+    ],
+    [
+     "src/spell.c",
+     "slang_free"
+    ],
+    [
+     "src/spellfile.c",
+     "set_sofo"
+    ]
+   ]
+  },
+  {
+   "sha": "6d2f94baa38751fe1d42c2654c049b740a96b335",
+   "patch": "9.2.0902",
+   "subject": "patch 9.2.0902: Vim9: iterating over a tuple leaks memory",
+   "funcs": [
+    [
+     "src/eval.c",
+     "next_for_item"
+    ]
+   ]
+  },
+  {
+   "sha": "d03735e8d29a228e6a37300335983101edb69431",
+   "patch": "9.2.0933",
+   "subject": "patch 9.2.0933: u_read_undo() leaks the file name when the undo file owner differs",
+   "funcs": [
+    [
+     "src/undo.c",
+     "u_read_undo"
+    ]
+   ]
+  }
+ ],
+ "runs": {
+  "codeql": {
+   "reported": 42,
+   "matched": 27,
+   "fixes_hit": 24,
+   "fixes_hit_patches": [
+    "7ed37dc5",
+    "9.2.0055",
+    "9.2.0056",
+    "9.2.0057",
+    "9.2.0065",
+    "9.2.0066",
+    "9.2.0067",
+    "9.2.0079",
+    "9.2.0105",
+    "9.2.0106",
+    "9.2.0133",
+    "9.2.0134",
+    "9.2.0135",
+    "9.2.0136",
+    "9.2.0243",
+    "9.2.0244",
+    "9.2.0258",
+    "9.2.0476",
+    "9.2.0711",
+    "9.2.0774",
+    "9.2.0777",
+    "9.2.0778",
+    "9.2.0780",
+    "9.2.0933"
+   ],
+   "unmatched": [
+    [
+     "src/clipboard.c",
+     "clip_wl_init_buffer_store",
+     2410
+    ],
+    [
+     "src/clipboard.c",
+     "clip_wl_receive_data",
+     2996
+    ],
+    [
+     "src/ex_docmd.c",
+     "ex_redir",
+     8854
+    ],
+    [
+     "src/gui_gtk_x11.c",
+     "gui_gtk_draw_string",
+     5935
+    ],
+    [
+     "src/gui_gtk_x11.c",
+     "gui_mch_init",
+     3745
+    ],
+    [
+     "src/gui_gtk_x11.c",
+     "gui_mch_init",
+     3746
+    ],
+    [
+     "src/gui_gtk_x11.c",
+     "gui_mch_init",
+     3747
+    ],
+    [
+     "src/json.c",
+     "json_decode_item",
+     1127
+    ],
+    [
+     "src/match.c",
+     "f_setmatches",
+     1128
+    ],
+    [
+     "src/optionstr.c",
+     "did_set_pumborder",
+     3698
+    ],
+    [
+     "src/strings.c",
+     "string_reduce",
+     1039
+    ],
+    [
+     "src/vim9cmds.c",
+     "compile_catch",
+     1788
+    ],
+    [
+     "src/vim9cmds.c",
+     "compile_for",
+     992
+    ],
+    [
+     "src/vim9compile.c",
+     "compile_assign_index",
+     2466
+    ],
+    [
+     "src/viminfo.c",
+     "barline_parse",
+     1058
+    ]
+   ]
+  },
+  "codeql-vanilla": {
+   "reported": 31,
+   "matched": 15,
+   "fixes_hit": 14,
+   "fixes_hit_patches": [
+    "9.2.0055",
+    "9.2.0056",
+    "9.2.0057",
+    "9.2.0066",
+    "9.2.0133",
+    "9.2.0134",
+    "9.2.0136",
+    "9.2.0243",
+    "9.2.0476",
+    "9.2.0711",
+    "9.2.0774",
+    "9.2.0777",
+    "9.2.0778",
+    "9.2.0933"
+   ],
+   "unmatched": [
+    [
+     "src/clipboard.c",
+     "clip_wl_init_buffer_store",
+     2410
+    ],
+    [
+     "src/clipboard.c",
+     "clip_wl_receive_data",
+     2996
+    ],
+    [
+     "src/edit.c",
+     "ins_tab",
+     5122
+    ],
+    [
+     "src/filepath.c",
+     "findfilendir",
+     1022
+    ],
+    [
+     "src/gui_gtk_x11.c",
+     "gui_gtk_draw_string",
+     5935
+    ],
+    [
+     "src/gui_gtk_x11.c",
+     "gui_mch_init",
+     3745
+    ],
+    [
+     "src/gui_gtk_x11.c",
+     "gui_mch_init",
+     3746
+    ],
+    [
+     "src/gui_gtk_x11.c",
+     "gui_mch_init",
+     3747
+    ],
+    [
+     "src/if_xcmdsrv.c",
+     "serverRegisterName",
+     237
+    ],
+    [
+     "src/json.c",
+     "json_decode_item",
+     1127
+    ],
+    [
+     "src/ops.c",
+     "do_join",
+     2301
+    ],
+    [
+     "src/option.c",
+     "ExpandSettings",
+     8238
+    ],
+    [
+     "src/optionstr.c",
+     "did_set_pumborder",
+     3698
+    ],
+    [
+     "src/vim9class.c",
+     "ex_class",
+     2110
+    ],
+    [
+     "src/vim9compile.c",
+     "compile_assign_index",
+     2466
+    ],
+    [
+     "src/viminfo.c",
+     "barline_parse",
+     1058
+    ]
+   ]
+  },
+  "infer": {
+   "reported": 2,
+   "matched": 2,
+   "fixes_hit": 2,
+   "fixes_hit_patches": [
+    "9.2.0244",
+    "9.2.0711"
+   ],
+   "unmatched": []
+  },
+  "infer-vanilla": {
+   "reported": 0,
+   "matched": 0,
+   "fixes_hit": 0,
+   "fixes_hit_patches": [],
+   "unmatched": []
+  }
+ }
+}

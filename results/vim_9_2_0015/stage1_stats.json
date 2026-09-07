@@ -1,0 +1,22 @@
+{
+ "n_extracted": 11956,
+ "n_macros": 1345,
+ "n_candidates": 9318,
+ "n_files": 291,
+ "phase2_batches": 466,
+ "phase2_failed": 0,
+ "phase2_seconds": 705,
+ "phase2_llm": {
+  "calls": 466,
+  "cache_hits": 0,
+  "prompt_tokens": 6052055,
+  "cached_tokens": 0,
+  "completion_tokens": 409107,
+  "cost_usd": 1.7013
+ },
+ "n_summaries": 1270,
+ "n_summary_functions": 1232,
+ "phase3_seconds": 23,
+ "n_validated": 493,
+ "n_validated_functions": 487
+}

@@ -1,0 +1,24 @@
+{
+ "_note": "Manual review (2026-09-06) of reported bugs that did not match an upstream leak-fix commit. Keyed by file:function, shared by all runs. verdict TP = genuine leak, still present at upstream HEAD (FETCH_HEAD, Sep 2026); FP = not a leak.",
+ "verdicts": {
+  "src/clipboard.c:clip_wl_init_buffer_store": {"verdict": "TP", "note": "store = alloc(); if ftruncate() fails -> return NULL without vim_free(store). Unfixed upstream."},
+  "src/clipboard.c:clip_wl_receive_data": {"verdict": "TP", "note": "tmp = string_convert(); final = tmp; clip_yank_selection() copies; tmp never freed (ga_clear frees only buf). Unfixed upstream."},
+  "src/ex_docmd.c:ex_redir": {"verdict": "TP", "note": "fname = expand_env_save(); under FEAT_BROWSE a cancelled dialog returns without vim_free(fname). Unfixed upstream."},
+  "src/gui_gtk_x11.c:gui_gtk_draw_string": {"verdict": "TP", "note": "conv_buf = string_convert(); alloc(convlen+2) failure returns without vim_free(conv_buf). Same class as patches 9.2.0773-0803 (alloc-failure leaks). Unfixed upstream."},
+  "src/gui_gtk_x11.c:gui_mch_init": {"verdict": "FP", "note": "gui.fgcolor/bgcolor/spcolor are process-lifetime globals."},
+  "src/json.c:json_decode_item": {"verdict": "FP", "note": "dictitem freed on dict_add failure, owned by the dict on success."},
+  "src/optionstr.c:did_set_pumborder": {"verdict": "TP", "note": "token = vim_strnsave(); the custom: branch has three `goto error` without vim_free(token). User-triggerable via :set pumborder=custom:bad. Still present at upstream HEAD."},
+  "src/strings.c:string_reduce": {"verdict": "TP", "note": "fc = eval_expr_get_funccal(); `return` on eval error skips remove_funccal(). Still present at upstream HEAD (9.2.0960 fixed only a double-free here)."},
+  "src/vim9cmds.c:compile_catch": {"verdict": "FP", "note": "generate_PUSHS() frees *str on failure."},
+  "src/vim9cmds.c:compile_for": {"verdict": "FP", "note": "scope is linked into cctx->ctx_scope; compile_def_function() drops all scopes on failure."},
+  "src/viminfo.c:barline_parse": {"verdict": "TP", "note": "buf = alloc(len+1); `return TRUE; // syntax error` happens before value->bv_tofree = buf, leaking buf on a malformed viminfo file. Still present at upstream HEAD."},
+  "src/edit.c:ins_tab": {"verdict": "TP", "note": "saved_line = vim_strnsave(); later `newp = alloc()` failure returns FALSE without vim_free(saved_line). Still present at upstream HEAD."},
+  "src/filepath.c:findfilendir": {"verdict": "FP", "note": "each fresult is freed at the start of the next iteration; loop ends only when fresult == NULL."},
+  "src/ops.c:do_join": {"verdict": "FP", "note": "ml_replace_len(..., copy=FALSE) takes ownership of newp."},
+  "src/option.c:ExpandSettings": {"verdict": "TP", "note": "fuzmatch = ALLOC_MULT(); fuzzymatches_to_strmatches() returns FAIL on alloc failure without freeing fuzmatch (leak is in the callee's failure path). Unfixed upstream."},
+  "src/vim9class.c:ex_class": {"verdict": "TP", "note": "cl = ALLOC_CLEAR_ONE(class_T); class_name allocation failure -> goto cleanup, and cleanup never frees cl. Unfixed upstream."},
+  "src/vim9compile.c:compile_assign_index": {"verdict": "FP", "note": "generate_PUSHS() frees *str on failure."},
+  "src/match.c:f_setmatches": {"verdict": "TP", "note": "s = list_alloc(); a posN entry that is not a list hits `return;` inside the loop without list_free(s). User-triggerable via setmatches()."},
+  "src/if_xcmdsrv.c:serverRegisterName": {"verdict": "TP", "note": "p = alloc() inside a do-while; a registration failure on a later iteration returns FAIL without vim_free(p)."}
+ }
+}

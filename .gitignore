@@ -216,3 +216,8 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# MemHint reproduction artifacts
+output/
+tools/
+subjects/

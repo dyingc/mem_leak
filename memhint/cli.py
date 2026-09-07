@@ -1,0 +1,60 @@
+"""MemHint command line.
+
+  python -m memhint stage1 --project subjects/vim_9_2_0015 --out output/vim
+"""
+from __future__ import annotations
+
+import argparse
+import logging
+import sys
+from pathlib import Path
+
+
+def main(argv: list[str] | None = None) -> int:
+    ap = argparse.ArgumentParser(prog="memhint")
+    ap.add_argument("-v", "--verbose", action="store_true")
+    sub = ap.add_subparsers(dest="cmd", required=True)
+
+    s1 = sub.add_parser("stage1", help="extract + LLM summaries + Z3 validation")
+    s1.add_argument("--project", required=True, type=Path)
+    s1.add_argument("--out", required=True, type=Path)
+    s1.add_argument("--source-root", type=Path)
+    s1.add_argument("--workers", type=int, default=8)
+    s1.add_argument("--budget", type=float, default=20.0, help="max LLM spend in USD")
+    s1.add_argument("--force", action="store_true", help="ignore checkpoints")
+
+    for name, p in (("stage2", "run CodeQL/Infer with injected summaries"),
+                    ("stage3", "Z3 feasibility filter + LLM validation")):
+        s = sub.add_parser(name, help=p)
+        s.add_argument("--project", required=True, type=Path)
+        s.add_argument("--out", required=True, type=Path)
+        s.add_argument("--analyzer", choices=["codeql", "infer"], required=True)
+        s.add_argument("--vanilla", action="store_true", help="baseline: no summaries injected")
+        s.add_argument("--threads", type=int, default=8)
+        if name == "stage2":
+            s.add_argument("--tools", type=Path, default=Path("tools"))
+        else:
+            s.add_argument("--workers", type=int, default=8)
+            s.add_argument("--budget", type=float, default=20.0)
+            s.add_argument("--skip-llm", action="store_true", help="only run the Z3 filter")
+
+    args = ap.parse_args(argv)
+    logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO,
+                        format="%(asctime)s %(levelname)s %(name)s: %(message)s", datefmt="%H:%M:%S")
+    for noisy in ("httpx", "httpx2", "httpcore", "openai"):
+        logging.getLogger(noisy).setLevel(logging.WARNING)
+
+    if args.cmd == "stage1":
+        from .pipeline import Stage1
+        Stage1(args.project, args.out, args.source_root, args.workers, args.budget).run(args.force)
+    elif args.cmd == "stage2":
+        from .pipeline import Stage2
+        Stage2(args.project, args.out, args.analyzer, args.tools, args.vanilla, args.threads).run()
+    elif args.cmd == "stage3":
+        from .pipeline import Stage3
+        Stage3(args.project, args.out, args.analyzer, args.vanilla, args.workers, args.budget, args.skip_llm).run()
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

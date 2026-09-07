@@ -26,12 +26,12 @@ Paper baselines (Table II): vanilla CodeQL 10, vanilla Infer 3; MemHint 22 uniqu
 
 Upstream Vim commits after v9.2.0015 whose subject mentions *leak* are the oracle; a reported bug matches when (file, function) equals a changed function of such a commit. Unmatched bugs were reviewed manually (manual_review.json).
 
-| run | reported | matches upstream fix | distinct fixes hit | manual TP (unfixed upstream) | manual FP | not reviewed |
-|---|---|---|---|---|---|---|
-| codeql | 42 | 27 | 24 | 8 | 5 | 0 |
-| codeql-vanilla | 31 | 15 | 14 | 9 | 5 | 0 |
-| infer | 2 | 2 | 2 | 0 | 0 | 0 |
-| infer-vanilla | 0 | 0 | 0 | 0 | 0 | 0 |
+| run | reported | matches upstream fix | distinct fixes hit | manual TP (unfixed upstream) | manual TP (fixed by a non-'leak' commit) | manual FP | not reviewed |
+|---|---|---|---|---|---|---|---|
+| codeql | 42 | 27 | 24 | 5 | 3 | 5 | 0 |
+| codeql-vanilla | 31 | 15 | 14 | 5 | 4 | 5 | 0 |
+| infer | 2 | 2 | 2 | 0 | 0 | 0 | 0 |
+| infer-vanilla | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 
 ## Reported bugs — codeql (42)
 
@@ -39,8 +39,8 @@ Upstream Vim commits after v9.2.0015 whose subject mentions *leak* are the oracl
 |---|---|---|---|---|---|
 | src/change.c | `invoke_sync_listeners` | 552 | memory-may-not-be-freed | The list allocation is leaked when dict_alloc() fails because the function returns without releasing recorded_changes. | fixed upstream: 9.2.0065 |
 | src/clientserver.c | `build_drop_cmd` | 703 | memory-may-not-be-freed | cdp is not freed when a later filename allocation fails and the function returns early. | fixed upstream: 9.2.0066 |
-| src/clipboard.c | `clip_wl_init_buffer_store` | 2410 | memory-may-not-be-freed | The allocated store is not freed when ftruncate fails and the function returns NULL. | manual TP: store = alloc(); if ftruncate() fails -> return NULL without vim_free(store). Unfixed upstream. |
-| src/clipboard.c | `clip_wl_receive_data` | 2996 | memory-may-not-be-freed | The converted buffer returned by string_convert is assigned to final but is never freed after clip_yank_selection copies or consumes the data. | manual TP: tmp = string_convert(); final = tmp; clip_yank_selection() copies; tmp never freed (ga_clear frees only buf). Unfixed upstream. |
+| src/clipboard.c | `clip_wl_init_buffer_store` | 2410 | memory-may-not-be-freed | The allocated store is not freed when ftruncate fails and the function returns NULL. | manual TP-FIXED: In 9.2.0015: store = alloc(); ftruncate() failure returned NULL without vim_free(store). The wl_shm buffer-store code (mch_create_anon_file/ftruncate/wl_shm_create_pool) no longer exists at upstream HEAD, so the leak is gone with it. |
+| src/clipboard.c | `clip_wl_receive_data` | 2996 | memory-may-not-be-freed | The converted buffer returned by string_convert is assigned to final but is never freed after clip_yank_selection copies or consumes the data. | manual TP-FIXED: In 9.2.0015: tmp = string_convert(); final = tmp; clip_yank_selection() copies; tmp never freed. At upstream HEAD the conversion moved into clip_convert_data(..., &tofree) followed by vim_free(tofree), so the leak is gone (refactor commit, subject without 'leak'). |
 | src/cmdexpand.c | `ExpandFromContext` | 3507 | memory-may-not-be-freed | The allocated buffer is leaked when regular-expression compilation fails and returns early. | fixed upstream: 9.2.0055 |
 | src/cmdexpand.c | `expand_pattern_in_buf` | 5013 | memory-may-not-be-freed | If ga_grow fails, the newly allocated match is not added to ga and is not freed before cleanup returns. | fixed upstream: 9.2.0476 |
 | src/dict.c | `eval_dict` | 960 | memory-may-not-be-freed | The dictionary allocation leaks on the direct missing-bracket failure return, while allocated items are either inserted or freed. | fixed upstream: 9.2.0079 |
@@ -63,7 +63,7 @@ Upstream Vim commits after v9.2.0015 whose subject mentions *leak* are the oracl
 | src/mark.c | `add_mark` | 1475 | memory-may-not-be-freed | If adding the mark string fails, the allocated position list is neither freed nor transferred to the dictionary. | fixed upstream: 9.2.0258 |
 | src/match.c | `f_setmatches` | 1128 | memory-may-not-be-freed | The allocated list leaks when a positional entry has a non-list value and the function returns before releasing it. | manual TP: s = list_alloc(); a posN entry that is not a list hits `return;` inside the loop without list_free(s). User-triggerable via setmatches(). |
 | src/netbeans.c | `netbeans_file_activated` | 2605 | memory-may-not-be-freed | If bp is NULL after nb_quote succeeds, the function returns without freeing q. | fixed upstream: 9.2.0133 |
-| src/optionstr.c | `did_set_pumborder` | 3698 | memory-may-not-be-freed | Invalid custom border tokens jump to error without freeing the allocated token. | manual TP: token = vim_strnsave(); the custom: branch has three `goto error` without vim_free(token). User-triggerable via :set pumborder=custom:bad. Still present at upstream HEAD. |
+| src/optionstr.c | `did_set_pumborder` | 3698 | memory-may-not-be-freed | Invalid custom border tokens jump to error without freeing the allocated token. | manual TP-FIXED: In 9.2.0015: token = vim_strnsave(); the custom: branch has three `goto error` without vim_free(token) (user-triggerable via :set pumborder=custom:bad). Fixed upstream as a side effect of the 9.2.0318 refactor (logic moved to parse_pumopt_border(), which frees token on every failure path); the commit subject does not mention 'leak', so the ground-truth matcher missed it. |
 | src/os_unix.c | `socket_server_send_reply` | 9817 | memory-may-not-be-freed | The encoded buffer is not freed when socket_server_write fails. | fixed upstream: 9.2.0134 |
 | src/scriptfile.c | `f_getscriptinfo` | 2302 | memory-may-not-be-freed | The allocated pattern and compiled regular expression are not freed when later dictionary or list operations return early. | fixed upstream: 9.2.0774 |
 | src/strings.c | `string_reduce` | 1039 | memory-never-freed | The function returns on loop errors before removing the funccall created at the reported allocation site. | manual TP: fc = eval_expr_get_funccal(); `return` on eval error skips remove_funccal(). Still present at upstream HEAD (9.2.0960 fixed only a double-free here). |

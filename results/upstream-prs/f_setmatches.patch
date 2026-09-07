@@ -1,0 +1,27 @@
+From 2ef6ff2bdc1e6a53f02a10debaf68ccf32353b8a Mon Sep 17 00:00:00 2001
+From: dyingc <dyingc@hotmail.com>
+Date: Sun, 6 Sep 2026 20:20:47 -0700
+Subject: [PATCH] Fix memory leak in f_setmatches() in src/match.c
+
+---
+ src/match.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/src/match.c b/src/match.c
+index 6bd5ff8d..65f259af 100644
+--- a/src/match.c
++++ b/src/match.c
+@@ -1144,7 +1144,10 @@ f_setmatches(typval_T *argvars UNUSED, typval_T *rettv UNUSED)
+ 		    if ((di = dict_find(d, (char_u *)buf, -1)) != NULL)
+ 		    {
+ 			if (di->di_tv.v_type != VAR_LIST)
++			{
++			    list_free(s);
+ 			    return;
++			}
+ 
+ 			list_append_tv(s, &di->di_tv);
+ 			s->lv_refcount++;
+-- 
+2.47.2
+

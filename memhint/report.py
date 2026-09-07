@@ -74,14 +74,15 @@ def build(out: Path) -> str:
                "Upstream Vim commits after v9.2.0015 whose subject mentions *leak* are the oracle; a reported bug "
                "matches when (file, function) equals a changed function of such a commit. Unmatched bugs were reviewed "
                "manually (manual_review.json).", "",
-               "| run | reported | matches upstream fix | distinct fixes hit | manual TP (unfixed upstream) | manual FP | not reviewed |",
-               "|---|---|---|---|---|---|---|"]
+               "| run | reported | matches upstream fix | distinct fixes hit | manual TP (unfixed upstream) | manual TP (fixed by a non-'leak' commit) | manual FP | not reviewed |",
+               "|---|---|---|---|---|---|---|---|"]
         for name, r in gt.get("runs", {}).items():
             rv = review.get("verdicts", {})
             keys = {f"{f}:{fn}" for f, fn, _ in r["unmatched"]}
             tp = sum(1 for k in keys if rv.get(k, {}).get("verdict") == "TP")
+            tpf = sum(1 for k in keys if rv.get(k, {}).get("verdict") == "TP-FIXED")
             fp = sum(1 for k in keys if rv.get(k, {}).get("verdict") == "FP")
-            md.append(f"| {name} | {r['reported']} | {r['matched']} | {r['fixes_hit']} | {tp} | {fp} | {len(keys) - tp - fp} |")
+            md.append(f"| {name} | {r['reported']} | {r['matched']} | {r['fixes_hit']} | {tp} | {tpf} | {fp} | {len(keys) - tp - tpf - fp} |")
 
     # bug list
     for an in ("codeql", "infer"):

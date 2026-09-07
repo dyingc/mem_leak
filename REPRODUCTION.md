@@ -596,16 +596,30 @@ Pulse 的路径数随上限呈爆炸式增长。默认上限 20 存在的理由�
 
 ---
 
-## 8. 发现的 12 个上游未修复泄漏
+## 8. 发现的 12 个真实泄漏（其中 8 个上游至今未修复）
 
-这是复现的**额外产出**：这些泄漏在 Vim 9.2.0015 存在，经人工核对，
-**到 2026 年 9 月的上游 HEAD 仍然没有被修复**。
+这是复现的**额外产出**：这 12 个泄漏在 Vim 9.2.0015 都真实存在（人工读代码确认），
+且都没有对应的、标题含 "leak" 的上游修复提交——所以真值匹配器没有命中它们。
+
+**一个必须交代的更正**：起初我用 `git log -L :函数:文件` 检查"这个函数后来有没有被改过"，
+在 blobless clone 上这个命令会**静默返回空**，我误读为"没改过"，把 12 个全部标成了"上游未修复"。
+后来在准备补丁时逐个对照上游 HEAD 的**源码内容**重查，发现其中 **4 个已经被不以 "leak" 为题的重构顺手修掉了**：
+
+| 函数 | 上游怎么修掉的 |
+|---|---|
+| `did_set_pumborder` | patch 9.2.0318 把解析逻辑搬进新函数 `parse_pumopt_border()`，每条失败路径都 `vim_free(token)` |
+| `clip_wl_receive_data` | 转换逻辑重构为 `clip_convert_data(..., &tofree)` + `vim_free(tofree)` |
+| `clip_wl_init_buffer_store` | 整个 wl_shm buffer-store 机制（`ftruncate`/`wl_shm_create_pool`）在 HEAD 已不存在 |
+| `ExpandSettings` | `fuzzymatches_to_strmatches()` 的失败路径现在先 `fuzmatch_str_free()` 再 `return FAIL` |
+
+这 4 个在 `manual_review.json` 里标为 `TP-FIXED`。**剩下 8 个按 HEAD 源码内容逐一确认仍然存在。**
+教训：判断"是否已修复"必须看目标版本的源码内容，不能只看提交历史。
 
 按"是否可被用户输入触发"分组：
 
 ### 8.1 可由用户操作直接触发（3 个，优先级最高）
 
-**`src/optionstr.c: did_set_pumborder`** — 只要执行 `:set pumborder=custom:bad` 就泄漏。
+**`src/optionstr.c: did_set_pumborder`**（已于 9.2.0318 顺手修掉，见上表）— 在 9.2.0015 中只要执行 `:set pumborder=custom:bad` 就泄漏：
 
 ```c
 token = vim_strnsave(p, len);          // ← 分配
@@ -620,10 +634,9 @@ if (... STRNCMP(token, "custom:", 7) == 0) {
     if (*q != NUL && *q != ',') goto error;       // ← 泄漏
 }
 ```
-同一函数的其他分支（`have_border` 重复、未知 token）都正确地 `vim_free(token)` 后才 `goto error`，
-唯独 `custom:` 这个分支的三处漏了。用户每输错一次就漏一次。
+同一函数的其他分支都正确地 `vim_free(token)` 后才 `goto error`，唯独 `custom:` 这个分支的三处漏了。
 
-**`src/match.c: f_setmatches`** — 调用 `setmatches()` 传入 `posN` 字段不是 list 时泄漏。
+**`src/match.c: f_setmatches`**（**HEAD 仍存在**）— 调用 `setmatches()` 传入 `posN` 字段不是 list 时泄漏。
 
 ```c
 s = list_alloc();                       // ← 分配
@@ -637,7 +650,7 @@ for (i = 1; i < 9; i++) {
 }
 ```
 
-**`src/viminfo.c: barline_parse`** — 读取畸形的 viminfo 文件时泄漏。
+**`src/viminfo.c: barline_parse`**（**HEAD 仍存在**）— 读取畸形的 viminfo 文件时泄漏。
 
 ```c
 buf = alloc((int)(len + 1));            // ← 分配
@@ -656,22 +669,22 @@ viminfo 文件内容部分可被外部影响，这条相对更值得关注。
 这一类和上游 patch 9.2.0773–0803 那一批（「Memory leak in X on alloc failure」）**完全同类**，
 说明这个模式上游正在系统性清理，只是还没清到这几处。
 
-| 函数 | 机理 |
-|---|---|
-| `src/clipboard.c: clip_wl_init_buffer_store` | `store = alloc()` 后，`ftruncate()` 失败直接 `return NULL`，`store` 未释放 |
-| `src/gui_gtk_x11.c: gui_gtk_draw_string` | `conv_buf = string_convert()` 后，`alloc(convlen+2)` 失败 `return len`，`conv_buf` 未释放 |
-| `src/edit.c: ins_tab` | `saved_line = vim_strnsave()` 后，后续 `newp = alloc()` 失败 `return FALSE`，`saved_line` 未释放（其他路径有 `vim_free(saved_line)`） |
-| `src/vim9class.c: ex_class` | `cl = ALLOC_CLEAR_ONE(class_T)` 后，类名分配失败 `goto cleanup`，而 `cleanup:` 块释放了 `extends`/`intf_classes`/成员数组，**唯独没释放 `cl`** |
-| `src/option.c: ExpandSettings` | `fuzmatch = ALLOC_MULT()` 后传给 `fuzzymatches_to_strmatches()`，后者在分配失败时 `return FAIL` 且不释放 `fuzmatch`（泄漏实际在被调用者里） |
-| `src/if_xcmdsrv.c: serverRegisterName` | `p = alloc()` 在 do-while 循环内，后续迭代注册失败时 `return FAIL`，跳过了循环后的 `vim_free(p)` |
+| 函数 | HEAD 状态 | 机理 |
+|---|---|---|
+| `src/clipboard.c: clip_wl_init_buffer_store` | 已随重构消失 | `store = alloc()` 后，`ftruncate()` 失败直接 `return NULL`，`store` 未释放 |
+| `src/gui_gtk_x11.c: gui_gtk_draw_string` | **仍存在** | `conv_buf = string_convert()` 后，`alloc(convlen+2)` 失败 `return len`，`conv_buf` 未释放 |
+| `src/edit.c: ins_tab` | **仍存在** | `saved_line = vim_strnsave()` 后，后续 `newp = alloc()` 失败 `return FALSE`，`saved_line` 未释放（其他路径有 `vim_free(saved_line)`） |
+| `src/vim9class.c: ex_class` | **仍存在** | `cl = ALLOC_CLEAR_ONE(class_T)` 后，类名分配失败 `goto cleanup`，而 `cleanup:` 块释放了 `extends`/`intf_classes`/成员数组，**唯独没释放 `cl`** |
+| `src/option.c: ExpandSettings` | 已顺手修掉 | `fuzmatch = ALLOC_MULT()` 后传给 `fuzzymatches_to_strmatches()`，后者在分配失败时 `return FAIL` 且不释放 `fuzmatch`（泄漏实际在被调用者里） |
+| `src/if_xcmdsrv.c: serverRegisterName` | **仍存在** | `p = alloc()` 在 do-while 循环内，后续迭代注册失败时 `return FAIL`，跳过了循环后的 `vim_free(p)` |
 
 ### 8.3 所有权理解错误（3 个）
 
-| 函数 | 机理 |
-|---|---|
-| `src/clipboard.c: clip_wl_receive_data` | `tmp = string_convert(); final = tmp;` 之后 `clip_yank_selection()` 只是拷贝数据，`ga_clear(&buf)` 释放的是 `buf` 不是 `tmp`，`tmp` 永远泄漏 |
-| `src/ex_docmd.c: ex_redir` | `fname = expand_env_save()` 后，`FEAT_BROWSE` 下用户取消对话框 `return` ——跳过了后面的 `vim_free(fname)` |
-| `src/strings.c: string_reduce` | `fc = eval_expr_get_funccal()` 后，循环里求值出错 `return` 跳过了函数末尾的 `remove_funccal()`。注意 patch 9.2.0960 改过这个函数，但修的是一个 double-free，这条泄漏还在 |
+| 函数 | HEAD 状态 | 机理 |
+|---|---|---|
+| `src/clipboard.c: clip_wl_receive_data` | 已顺手修掉 | `tmp = string_convert(); final = tmp;` 之后 `clip_yank_selection()` 只是拷贝数据，`ga_clear(&buf)` 释放的是 `buf` 不是 `tmp`，`tmp` 永远泄漏 |
+| `src/ex_docmd.c: ex_redir` | **仍存在** | `fname = expand_env_save()` 后，`FEAT_BROWSE` 下用户取消对话框 `return` ——跳过了后面的 `vim_free(fname)` |
+| `src/strings.c: string_reduce` | **仍存在** | `fc = eval_expr_get_funccal()` 后，循环里求值出错 `return` 跳过了函数末尾的 `remove_funccal()`。patch 9.2.0960 改过这个函数，但修的是一个 double-free，这条泄漏还在；同文件的 `list_reduce()` 用的是 `break`，是正确写法 |
 
 ### 8.4 被判为误报的 7 个（说明 LLM 也会错）
 
@@ -829,7 +842,7 @@ CodeQL 自带查询会跟踪包装器返回链，报告的分配点可能是我�
 | 没有对比 LeakGuard / Semgrep | 论文的另外两个基线未纳入 |
 | 未使用增强 CodeQL 查询 | 见 3.3 节的表格。论文自己的数据表明它们不带来新 bug |
 | 真值是函数粒度 | 见 6.4 节 |
-| 12 个新发现未上报 | 等待你的决定 |
+| 8 个上游仍存在的泄漏未上报 | 前 3 个的补丁已起草（`results/upstream-prs/`），等待提交 |
 
 ### 11.2 不确定的地方（诚实标注）
 
@@ -889,10 +902,10 @@ Free `token` before jumping to `error` in those three places.
 **建议做法**：**提 PR 而不是 issue**——附上补丁的接受率明显更高（上面三个 PR 都是当天合并的）。
 另外建议分批提交（一次 3–4 个相关的），一次性提 12 个容易被当成刷 PR。
 
-优先顺序建议：
-1. 先提 8.1 节那 3 个用户可触发的（影响最直接，最容易说清楚）
-2. 再提 8.2 节那 6 个分配失败路径的（可以放在一个 PR 里，说明是 9.2.0773–0803 那批清理的延续）
-3. 最后提 8.3 节那 3 个所有权理解类的（需要更多解释）
+优先顺序建议（只针对 HEAD 仍存在的 8 个）：
+1. 先提用户可直接触发的 3 个：`f_setmatches`、`barline_parse`、`string_reduce`——**补丁已起草并验证（`barline_parse` 用 ASAN；另外两个泄漏对象仍被全局变量引用、LSAN 看不见，改用 gdb 附加读 `first_list`/`current_funccal`），见 `results/upstream-prs/README.md` 和 `VERIFICATION.md`**
+2. 再提分配失败路径的 4 个：`gui_gtk_draw_string`、`ins_tab`、`ex_class`、`serverRegisterName`（可放一个 PR，说明是 9.2.0773–0803 那批清理的延续）
+3. 最后提 `ex_redir`（仅 FEAT_BROWSE 下取消对话框触发，需要更多解释）
 
 ---
 
@@ -967,5 +980,5 @@ done
 用 `gpt-5.6-luna` 替换 Gemini、独立实现论文方法后，在 Vim 9.2.0015 上
 **以 $1.72 的成本复现了论文的核心主张**：注入 Z3 验证过的自定义内存管理函数摘要，
 使 CodeQL 命中的上游泄漏修复数从 7 个翻倍到 14 个（论文时间窗内 18 个中）。
-额外发现 12 个上游至今未修复的真实泄漏。Infer 那条线未能复现，原因已定位到 Pulse 的路径数上限：
+额外发现 12 个真实泄漏（其中 8 个在上游 HEAD 仍存在，前 3 个已起草补丁并经 ASAN 验证）。Infer 那条线未能复现，原因已定位到 Pulse 的路径数上限：
 默认值下丢弃 137 万个 disjunct，放宽后分析跑不完。

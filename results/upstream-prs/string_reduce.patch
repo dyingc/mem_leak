@@ -1,0 +1,25 @@
+From 7db41bd34e0801f89965546bd57d638b4c9c8301 Mon Sep 17 00:00:00 2001
+From: dyingc <dyingc@hotmail.com>
+Date: Sun, 6 Sep 2026 20:21:41 -0700
+Subject: [PATCH] Fix memory leak in string_reduce() in src/strings.c
+
+---
+ src/strings.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/strings.c b/src/strings.c
+index fa24586c..ff2b04ec 100644
+--- a/src/strings.c
++++ b/src/strings.c
+@@ -1057,7 +1057,7 @@ string_reduce(
+ 	clear_tv(&argv[0]);
+ 	clear_tv(&argv[1]);
+ 	if (r == FAIL || called_emsg != called_emsg_start)
+-	    return;
++	    break;
+     }
+ 
+     if (fc != NULL)
+-- 
+2.47.2
+

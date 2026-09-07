@@ -1,0 +1,4 @@
+# malformed viminfo: string continuation without closing quote
+|1,>5
+|<"abc
+|<x

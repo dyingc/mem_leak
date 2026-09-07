@@ -1,0 +1,14 @@
+
+Direct leak of 6 byte(s) in 1 object(s) allocated from:
+    #0 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:67
+    #1 in lalloc src/alloc.c:246
+    #2 in alloc src/alloc.c:151
+    #3 in barline_parse src/viminfo.c:1059
+    #4 in read_viminfo_barline src/viminfo.c:2812
+    #5 in read_viminfo_up_to_marks src/viminfo.c:2888
+    #6 in do_viminfo src/viminfo.c:2996
+    #7 in read_viminfo src/viminfo.c:3093
+    #8 in ex_viminfo src/viminfo.c:3392
+    #9 in do_one_cmd src/ex_docmd.c:2629
+    #10 in do_cmdline src/ex_docmd.c:1041
+    #11 in do_source_ext src/scriptfile.c:1953

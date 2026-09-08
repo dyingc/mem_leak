@@ -1,0 +1,31 @@
+From bc1ecfd302a16b86c62ce8a3ba5f5602bd844651 Mon Sep 17 00:00:00 2001
+From: dyingc <dyingc@hotmail.com>
+Date: Tue, 8 Sep 2026 12:01:28 -0700
+Subject: [PATCH] patch 9.2.xxxx: Memory leak in parse_generic_func_type_args()
+ on alloc failure
+
+Problem:  Memory leak in parse_generic_func_type_args() when allocating the
+          type name fails.
+Solution: Free the name returned by type_name() before returning.
+---
+ src/vim9generics.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/src/vim9generics.c b/src/vim9generics.c
+index 86802c20..c324bcf7 100644
+--- a/src/vim9generics.c
++++ b/src/vim9generics.c
+@@ -325,7 +325,10 @@ parse_generic_func_type_args(
+ 	// copy the type name
+ 	generic_arg->gt_name = alloc(STRLEN(ret_name) + 1);
+ 	if (generic_arg->gt_name == NULL)
++	{
++	    vim_free(ret_free);
+ 	    return NULL;
++	}
+ 	STRCPY(generic_arg->gt_name, ret_name);
+ 	vim_free(ret_free);
+ 
+-- 
+2.47.2
+

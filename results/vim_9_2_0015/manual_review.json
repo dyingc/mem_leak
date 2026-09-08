@@ -79,7 +79,7 @@
   },
   "src/json.c:json_encode_lsp_msg": {
    "verdict": "TP",
-   "note": "json_encode_gap() can FAIL after appending to ga (e.g. a funcref inside the value); the early `return NULL` skips ga_clear(&ga). Still present at upstream a96c3bc1 (json.c:104-105). Found by Infer (run with corrected patterns).",
+   "note": "On failure json_encode_gap() clears the growarray and replaces its data with an allocated empty string (json.c:33-34); json_encode_lsp_msg() then returns NULL without clearing ga, so that string leaks. json_encode() returns ga.ga_data on the same path, so only the LSP variant leaks. Triggered from Vim script via ch_sendexpr() on an LSP-mode channel with a Funcref in the message. Verified with LeakSanitizer (results/upstream-prs/json_lsp_asan.txt); patch drafted.",
    "source": "infer-refA"
   },
   "src/vim9compile.c:reserve_local": {
@@ -109,7 +109,7 @@
   },
   "src/vim9generics.c:parse_generic_func_type_args": {
    "verdict": "TP",
-   "note": "If alloc() for gt_name fails the function returns NULL without vim_free(ret_free) (the name buffer returned by type_name()). Allocation-failure path only; still present at upstream a96c3bc1 (vim9generics.c:326-328).",
+   "note": "When alloc() for gt_name fails the function returns without vim_free(ret_free), the composite type name returned by type_name(); the neighbouring ga_grow() failure path does free it. Needs a composite type argument (for <number> type_name() returns a static string). Verified with LeakSanitizer plus a forced allocation failure (results/upstream-prs/generics_asan.txt); patch drafted.",
    "source": "infer-refE"
   }
  }

@@ -1,18 +1,22 @@
 # Draft upstream PRs for vim/vim
 
-Three leaks found by the MemHint reproduction that are still present on `master`
+Five leaks found by the MemHint reproduction that are still present on `master`
 (a96c3bc1, 2026-09). Patches are `git format-patch` output against that commit; the
 branches live in `subjects/vim_master` (a worktree of upstream master):
-`memhint/f_setmatches-leak`, `memhint/barline_parse-leak`, `memhint/string_reduce-leak`.
+`memhint/f_setmatches-leak`, `memhint/barline_parse-leak`, `memhint/string_reduce-leak`,
+`memhint/json_encode_lsp_msg-leak`, `memhint/parse_generic_func_type_args-leak`.
+
+PRs 1-3 come from the CodeQL run; PRs 4-5 were found only by Infer, after its pattern
+syntax was corrected (see `COMPARISON.md`).
 
 Format follows the PRs the MemHint authors had merged (e.g. vim/vim#19516, #19531):
 title `Fix memory leak in \`func()\` in \`src/file.c\``, a **Problem** section quoting the
 code, a **Solution** section. No `version.c` change — the maintainer adds the patch number.
 
 Verification: builds of master with and without the patches, driven by the trigger
-scripts in `triggers/` — LeakSanitizer for `barline_parse()`, gdb reading `first_list` /
-`current_funccal` for the other two (they stay reachable, so LSAN cannot see them).
-See `VERIFICATION.md`.
+scripts in `triggers/` — LeakSanitizer for `barline_parse()`, `json_encode_lsp_msg()` and
+`parse_generic_func_type_args()`, gdb reading `first_list` / `current_funccal` for the
+other two (they stay reachable, so LSAN cannot see them). See `VERIFICATION.md`.
 
 ---
 
@@ -147,3 +151,84 @@ After this call `current_funccal` still points at the lambda's funccall (see VER
 ### Solution
 
 Use `break` instead of `return`, as `list_reduce()` does, so the funccall is removed.
+
+---
+
+## PR 4 — `Fix memory leak in json_encode_lsp_msg() in src/json.c`
+
+Patch: `json_encode_lsp_msg.patch`
+
+### Problem
+
+`json_encode_lsp_msg()` gives up when the value cannot be encoded:
+
+```c
+    ga_init2(&ga, 1, 4000);
+    if (json_encode_gap(&ga, val, 0) == FAIL)
+	return NULL;
+```
+
+On failure `json_encode_gap()` does not leave the growarray empty — it clears what was
+encoded so far and puts an allocated empty string in its place:
+
+```c
+    if (json_encode_item(gap, val, get_copyID(), options) == FAIL)
+    {
+	ga_clear(gap);
+	gap->ga_data = vim_strsave((char_u *)"");
+	return FAIL;
+    }
+```
+
+That string is never released, because the caller returns without touching `ga`.
+`json_encode()` returns `ga.ga_data` to its caller on this path, so only the LSP variant
+leaks. Encoding fails for a Funcref, so the leak is reachable from Vim script whenever a
+channel is in LSP mode:
+
+```vim
+let job = job_start(['cat'], {'in_mode': 'lsp', 'out_mode': 'lsp'})
+call ch_sendexpr(job_getchannel(job), {'method': 'test', 'params': function('tr')})
+```
+
+### Solution
+
+Clear the growarray before returning.
+
+---
+
+## PR 5 — `Fix memory leak in parse_generic_func_type_args() in src/vim9generics.c`
+
+Patch: `parse_generic_func_type_args.patch`
+
+### Problem
+
+When the type argument is a composite type, `type_name()` builds the name in allocated
+memory and hands ownership to the caller through its second argument:
+
+```c
+	char	*ret_free = NULL;
+	char	*ret_name = type_name(type_arg, &ret_free);
+
+	// create space for the name and the new type
+	if (ga_grow(&gfatab->gfat_args, 1) == FAIL)
+	{
+	    vim_free(ret_free);
+	    return NULL;
+	}
+	...
+	generic_arg->gt_name = alloc(STRLEN(ret_name) + 1);
+	if (generic_arg->gt_name == NULL)
+	    return NULL;
+	STRCPY(generic_arg->gt_name, ret_name);
+	vim_free(ret_free);
+```
+
+The `ga_grow()` failure path frees `ret_free`, but the `alloc()` failure path a few lines
+below returns without freeing it. Reaching it needs both an allocation failure and a
+composite type argument, e.g. `Identity<list<number>>([1])`.
+
+This is the same pattern as the batch of fixes in patches 9.2.0773-9.2.0803.
+
+### Solution
+
+Free the name before returning, as the neighbouring failure path already does.

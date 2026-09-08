@@ -750,8 +750,8 @@ viminfo 文件内容部分可被外部影响，这条相对更值得关注。
 
 | 函数 | 结论 | 机理 |
 |---|---|---|
-| `src/json.c: json_encode_lsp_msg` | **真泄漏，仍存在** | `json_encode_gap(&ga, ...)` 在已向 `ga` 追加内容后可能 FAIL（值里含 funcref 等），`return NULL` 跳过了 `ga_clear(&ga)`。可由 `ch_sendexpr()` 的 LSP 模式触发。CodeQL 没报它（`ga_grow` 系不在摘要里） |
-| `src/vim9generics.c: parse_generic_func_type_args` | **真泄漏，仍存在**（分配失败路径） | `alloc()` 给 `gt_name` 失败时 `return NULL`，没有 `vim_free(ret_free)`（`type_name()` 返回的名字缓冲）。与 8.2 同类 |
+| `src/json.c: json_encode_lsp_msg` | **真泄漏，仍存在**（已起草补丁，LSAN 验证） | `json_encode_gap()` 失败时会清空 growarray 并把一个新分配的空字符串放回去（json.c:33-34），而 `json_encode_lsp_msg()` 直接 `return NULL`，那个字符串就丢了。同路径上 `json_encode()` 会把 `ga.ga_data` 返回给调用者，所以只有 LSP 这个变体泄漏。用 `ch_sendexpr()` 向 LSP 模式通道发一个含 funcref 的字典即可触发。CodeQL 没报它 |
+| `src/vim9generics.c: parse_generic_func_type_args` | **真泄漏，仍存在**（分配失败路径，已起草补丁，LSAN 验证） | `alloc()` 给 `gt_name` 失败时 `return NULL`，没有 `vim_free(ret_free)`——即 `type_name()` 返回的复合类型名；紧邻的 `ga_grow()` 失败路径是释放了的。需要复合类型实参才会泄漏（`<number>` 的类型名是静态串）。与 8.2 同类 |
 | `src/beval.c: general_beval_cb` | 真泄漏，上游已顺手修掉 | `get_beval_info(getword=TRUE)` 返回分配的 `text`，缓冲区没有 `'balloonexpr'` 时直接落空；上游 HEAD 已加 `vim_free(text)` |
 | `src/evalvars.c: set_internal_string_var` | 误报 | `alloc_string_tv()` 失败时自己释放参数 |
 | `src/ex_docmd.c: expand_sfile` | 误报（官方式模型的副作用） | `eval_vars()` 被建模为"永不返回 NULL 的分配器"，而它在出错路径返回 NULL |
@@ -900,7 +900,7 @@ CodeQL 自带查询会跟踪包装器返回链，报告的分配点可能是我�
 | 没有对比 LeakGuard / Semgrep | 论文的另外两个基线未纳入 |
 | 未使用增强 CodeQL 查询 | 见 3.3 节的表格。论文自己的数据表明它们不带来新 bug |
 | 真值是函数粒度 | 见 6.4 节 |
-| 8 个上游仍存在的泄漏未上报 | 前 3 个的补丁已起草（`results/upstream-prs/`），等待提交 |
+| 10 个上游仍存在的泄漏未上报 | 5 个的补丁已起草并验证（`results/upstream-prs/`），等待提交 |
 
 ### 11.2 不确定的地方（诚实标注）
 
@@ -1043,6 +1043,6 @@ done
 **以 $1.72 的成本复现了论文的核心主张**：注入 Z3 验证过的自定义内存管理函数摘要，
 使 CodeQL 命中的上游泄漏修复数从 7 个翻倍到 14 个（论文时间窗内 19 个中）。
 Infer 线在修正正则写法（OCaml `Str` 语法，论文附录印错了）后同样复现：从 0 到时间窗内 8/19。
-额外发现 14 个真实泄漏（其中 10 个在上游 HEAD 仍存在，前 3 个已起草补丁并经 ASAN 验证）。
+额外发现 14 个真实泄漏（其中 10 个在上游 HEAD 仍存在，5 个已起草补丁并经 ASAN/LSAN 验证）。
 与官方仓库的逐阶段对照见 `COMPARISON.md`：抽取、提示词、CodeQL 注入、LLM 验证与官方等价；
 Stage 1/3 的 Z3 部分我们按论文公式实现，官方代码是启发式。

@@ -1,0 +1,18 @@
+==1507442==ERROR: LeakSanitizer: detected memory leaks
+
+Direct leak of 3 byte(s) in 3 object(s) allocated from:
+    #0 0x7fd5a7f1a0ab in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:67
+    #1 0x5579677093b2 in lalloc /home/edong/VSCode/papers/mem_leak/subjects/vim_master/src/alloc.c:246
+    #2 0x557967709469 in alloc /home/edong/VSCode/papers/mem_leak/subjects/vim_master/src/alloc.c:151
+    #3 0x557967b8891b in vim_strsave /home/edong/VSCode/papers/mem_leak/subjects/vim_master/src/strings.c:27
+    #4 0x557967d81e0c in json_encode_gap /home/edong/VSCode/papers/mem_leak/subjects/vim_master/src/json.c:34
+    #5 0x557967d8549b in json_encode_lsp_msg /home/edong/VSCode/papers/mem_leak/subjects/vim_master/src/json.c:104
+    #6 0x557967d64da0 in ch_expr_common /home/edong/VSCode/papers/mem_leak/subjects/vim_master/src/channel.c:5176
+    #7 0x557967d657ca in f_ch_sendexpr /home/edong/VSCode/papers/mem_leak/subjects/vim_master/src/channel.c:5915
+    #8 0x5579678237fa in call_internal_func /home/edong/VSCode/papers/mem_leak/subjects/vim_master/src/evalfunc.c:3516
+    #9 0x557967c5fa5e in call_func /home/edong/VSCode/papers/mem_leak/subjects/vim_master/src/userfunc.c:4176
+    #10 0x557967c60205 in get_func_tv /home/edong/VSCode/papers/mem_leak/subjects/vim_master/src/userfunc.c:2183
+    #11 0x557967c62ea2 in ex_call_inner /home/edong/VSCode/papers/mem_leak/subjects/vim_master/src/userfunc.c:6527
+    #12 0x557967c62ea2 in ex_call /home/edong/VSCode/papers/mem_leak/subjects/vim_master/src/userfunc.c:6891
+    #13 0x55796787f644 in do_one_cmd /home/edong/VSCode/papers/mem_leak/subjects/vim_master/src/ex_docmd.c:2629
+    #14 0x55796787f644 in do_cmdline /home/edong/VSCode/papers/mem_leak/subjects/vim_master/src/ex_docmd.c:1041

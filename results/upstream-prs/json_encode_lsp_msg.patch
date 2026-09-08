@@ -1,0 +1,29 @@
+From 1dfa62f5f0b18db56ad9a78b71f90a18d847390e Mon Sep 17 00:00:00 2001
+From: dyingc <dyingc@hotmail.com>
+Date: Tue, 8 Sep 2026 12:01:19 -0700
+Subject: [PATCH] patch 9.2.xxxx: Memory leak in json_encode_lsp_msg()
+
+Problem:  Memory leak in json_encode_lsp_msg() when JSON encoding fails.
+Solution: Clear the growarray before returning.
+---
+ src/json.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/src/json.c b/src/json.c
+index fb7755d0..b52216df 100644
+--- a/src/json.c
++++ b/src/json.c
+@@ -102,7 +102,10 @@ json_encode_lsp_msg(typval_T *val)
+ 
+     ga_init2(&ga, 1, 4000);
+     if (json_encode_gap(&ga, val, 0) == FAIL)
++    {
++	ga_clear(&ga);
+ 	return NULL;
++    }
+     ga_append(&ga, NUL);
+ 
+     ga_init2(&lspga, 1, 4000);
+-- 
+2.47.2
+

@@ -1,7 +1,7 @@
-# Verification of the three patches (upstream master a96c3bc1, 2026-09-06)
+# Verification of the five patches (upstream master a96c3bc1, 2026-09-06/08)
 
-Two builds of `subjects/vim_master` (a worktree of upstream master), each once with the
-three patches applied ("fixed") and once without ("orig"):
+Builds of `subjects/vim_master` (a worktree of upstream master), each once with the
+patches applied ("fixed") and once without ("orig"):
 
 * ASAN: `CFLAGS="-O1 -g -fsanitize=address -fno-omit-frame-pointer" LDFLAGS=-fsanitize=address ./configure --with-features=huge --enable-gui=no --with-x=no`
 * debug: `CFLAGS="-O0 -g"` (same configure), used for gdb probes.
@@ -83,3 +83,48 @@ ASAN_OPTIONS=detect_leaks=1 ../../../subjects/vim_master/vim_orig --not-a-term -
 ../../../subjects/vim_master/vim_dbg_orig --not-a-term -u NONE -i NONE -es -S a_setmatches.vim </dev/null &>/dev/null & sleep 2
 gdb -nx -q -batch -x attach.gdb -p $!
 ```
+
+## 4. json_encode_lsp_msg() — LeakSanitizer
+
+Binaries `vim_n_orig` / `vim_n_fixed` (ASAN, master with and without the json.c patch).
+Trigger: `triggers/t_lsp_json.vim` — a channel in LSP mode, sending a Dict that contains a
+Funcref, three times. JSON encoding rejects the Funcref, and `json_encode_gap()` leaves an
+allocated empty string behind that the caller drops.
+
+```
+$ cd results/upstream-prs/triggers
+$ ASAN_OPTIONS=detect_leaks=1 ../../../subjects/vim_master/vim_n_orig --not-a-term -u NONE -i NONE -es -S t_lsp_json.vim
+```
+
+orig (`json_lsp_asan.txt`): `Direct leak of 3 byte(s) in 3 object(s)` — one byte per call,
+allocated in `vim_strsave` at `json.c:34`, called from `json_encode_gap` and
+`json_encode_lsp_msg` at `json.c:104`, reached through `ch_expr_common` / `f_ch_sendexpr`.
+
+fixed: no leak reported.
+
+## 5. parse_generic_func_type_args() — LeakSanitizer with a forced allocation failure
+
+This leak is on an allocation-failure path, so it needs the allocation to fail. Vim's
+`test_alloc_fail()` can only target call sites that carry an allocation id, and this one
+does not, so the two verification binaries (`vim_g_orig` / `vim_g_fixed`, built by
+`subjects/vim_master/build_verify_generic.sh`) add one:
+
+* `alloc.h` gains `aid_generic_name` (value 35) before `aid_last`;
+* the call becomes `alloc_id(STRLEN(ret_name) + 1, aid_generic_name)`.
+
+**Neither change is part of the submitted patch** — they exist only to make the failure
+reachable from a test.
+
+The type argument must be a composite type: for `<number>` the name is a static string and
+`type_name()` sets `tofree` to NULL, so there is nothing to leak. `triggers/t_gen9.vim`
+uses `Identity<list<number>>([1])` and `triggers/t_generic_allocfail.vim` arms the failure:
+
+```vim
+call test_alloc_fail(35, 0, 1)
+source t_gen9.vim
+```
+
+orig (`generics_asan.txt`): `Direct leak of 13 byte(s) in 1 object(s)`, allocated in
+`type_name` at `vim9type.c:2767` — that is `ret_free`, the composite type name.
+
+fixed: no leak reported.

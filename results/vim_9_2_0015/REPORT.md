@@ -16,8 +16,10 @@ LLM (gpt-5.6-luna) summary generation: 466 calls, 6,052,055 prompt + 409,107 com
 | codeql | ours | 455 | 361 (20.7% ↓) | 37 | 42 |
 | codeql-vanilla | ours | 268 | 233 (13.1% ↓) | 28 | 31 |
 | codeql | paper | 1011 | 86 (91.5% ↓) | 24 | 18 confirmed |
-| infer | ours | 102 | 50 (51.0% ↓) | 2 | 2 |
-| infer-vanilla | ours | 21 | 21 (0.0% ↓) | 0 | 0 |
+| infer-refA | ours | 332 | 289 (13.0% ↓) | 24 | 32 |
+| infer-refE | ours | 395 | 358 (9.4% ↓) | 28 | 34 |
+| infer-refF | ours | 298 | 267 (10.4% ↓) | 24 | 29 |
+| infer-vanilla | ours | 26 | 25 (3.8% ↓) | 0 | 0 |
 | infer | paper | 1032 | 147 (85.8% ↓) | 25 | 15 confirmed |
 
 Paper baselines (Table II): vanilla CodeQL 10, vanilla Infer 3; MemHint 22 unique bugs.
@@ -30,7 +32,9 @@ Upstream Vim commits after v9.2.0015 whose subject mentions *leak* are the oracl
 |---|---|---|---|---|---|---|---|
 | codeql | 42 | 27 | 24 | 5 | 3 | 5 | 0 |
 | codeql-vanilla | 31 | 15 | 14 | 5 | 4 | 5 | 0 |
-| infer | 2 | 2 | 2 | 0 | 0 | 0 | 0 |
+| infer-refA | 32 | 24 | 16 | 3 | 1 | 4 | 0 |
+| infer-refE | 34 | 23 | 17 | 4 | 2 | 5 | 0 |
+| infer-refF | 29 | 21 | 16 | 3 | 2 | 3 | 0 |
 | infer-vanilla | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 
 ## Reported bugs — codeql (42)
@@ -80,10 +84,113 @@ Upstream Vim commits after v9.2.0015 whose subject mentions *leak* are the oracl
 | src/vim9expr.c | `compile_dict` | 1966 | memory-may-not-be-freed | Direct error returns bypass dict_unref, leaking the dictionary and inserted dict items; the literal key is transferred to the generated instruction. | fixed upstream: 9.2.0778 |
 | src/viminfo.c | `barline_parse` | 1058 | memory-may-not-be-freed | The allocated buffer leaks when parsing the reconstructed string exits early on malformed or unterminated input before ownership is transferred. | manual TP: buf = alloc(len+1); `return TRUE; // syntax error` happens before value->bv_tofree = buf, leaking buf on a malformed viminfo file. Still present at upstream HEAD. |
 
-## Reported bugs — infer (2)
+## Reported bugs — infer-refA (32)
 
 | file | function | line | rule | LLM reason | validation |
 |---|---|---|---|---|---|
-| src/eval.c | `eval8` | 4841 | MEMORY_LEAK_C | When parse_type() fails during non-evaluating parsing, allocated entries can remain in type_list because cleanup is skipped when want_type is NULL. | fixed upstream: 9.2.0244 |
-| src/insexpand.c | `ins_compl_infercase_gettext` | 702 | MEMORY_LEAK_C | The grow failure at line 702 returns after clearing the gap without freeing wca, while the other paths free it. | fixed upstream: 9.2.0711 |
+| src/clipboard.c | `clip_wl_init_buffer_store` | 2425 | MEMORY_LEAK_C | The allocated store is returned without being freed when ftruncate fails. | manual TP-FIXED: In 9.2.0015: store = alloc(); ftruncate() failure returned NULL without vim_free(store). The wl_shm buffer-store code (mch_create_anon_file/ftruncate/wl_shm_create_pool) no longer exists at upstream HEAD, so the leak is gone with it. |
+| src/cmdexpand.c | `f_cmdcomplete_info` | 4722 | MEMORY_LEAK_C | The list is transferred only when dict_add_list succeeds, so a failure leaves the allocated list unreachable and unfreed. | fixed upstream: 9.2.0802 |
+| src/cmdexpand.c | `f_cmdcomplete_info` | 4722 | MEMORY_LEAK_C | The list is transferred only when dict_add_list succeeds, so a failure leaves the allocated list unreachable and unfreed. | fixed upstream: 9.2.0802 |
+| src/dict.c | `dict_extend_func` | 1371 | MEMORY_LEAK_C | When is_new is true, a failed type check returns without releasing the dictionary copy. | fixed upstream: 9.2.0067 |
+| src/eval.c | `eval8` | 4794 | MEMORY_LEAK_C | The type list is not cleared when evaluation is disabled, leaving parse_type allocations without ownership transfer. | fixed upstream: 9.2.0244 |
+| src/eval.c | `eval8` | 4809 | MEMORY_LEAK_C | The type list is not cleared when evaluation is disabled, leaving parse_type allocations without ownership transfer. | fixed upstream: 9.2.0244 |
+| src/evalfunc.c | `get_matches_in_str` | 9347 | MEMORY_LEAK_C | If dict_add_list fails, ownership of the newly allocated submatch list is not transferred and it is never freed. | fixed upstream: 9.2.0773 |
+| src/evalvars.c | `heredoc_get` | 948 | MEMORY_LEAK_C | The early failure return after expression compilation does not free or transfer ownership of the allocated list. | fixed upstream: 9.2.0105 |
+| src/ex_docmd.c | `expand_findfunc` | 7082 | MEMORY_LEAK_C | The list returned by call_findfunc is not freed when it is empty and the function returns early. | fixed upstream: 9.2.0106 |
+| src/indent.c | `change_indent` | 1506 | MEMORY_LEAK_C | orig_line is leaked when the subsequent new_line allocation fails before orig_line is transferred to ml_replace. | fixed upstream: 9.2.0243 |
+| src/json.c | `json_encode_lsp_msg` | 114 | MEMORY_LEAK_C | If json_encode_gap fails after populating ga, the early return skips ga_clear and leaks its allocated buffer. | manual TP: json_encode_gap() can FAIL after appending to ga (e.g. a funcref inside the value); the early `return NULL` skips ga_clear(&ga). Still present at upstream a96c3bc1 (json.c:104-105). Found by Infer (run with corrected patterns). |
+| src/list.c | `list_extend_func` | 2976 | MEMORY_LEAK_C | The copied list is orphaned on both early-return paths before ownership is transferred to the return value. | fixed upstream: 7ed37dc5 |
+| src/list.c | `list_extend_func` | 2993 | MEMORY_LEAK_C | The copied list is orphaned on both early-return paths before ownership is transferred to the return value. | fixed upstream: 7ed37dc5 |
+| src/netbeans.c | `netbeans_file_activated` | 2606 | MEMORY_LEAK_C | If nb_quote succeeds but bp is NULL, the function returns without freeing q. | fixed upstream: 9.2.0133 |
+| src/os_unix.c | `socket_server_send_reply` | 9820 | MEMORY_LEAK_C | The failure path after a successful encoding does not free the allocated final buffer. | fixed upstream: 9.2.0134 |
+| src/strings.c | `string_reduce` | 1056 | MEMORY_LEAK_C | The funccall context is not cleaned up on the loop's early return paths, while the string in rettv remains caller-owned. | manual TP: fc = eval_expr_get_funccal(); `return` on eval error skips remove_funccal(). Still present at upstream HEAD (9.2.0960 fixed only a double-free here). |
+| src/undo.c | `u_read_undo` | 1873 | MEMORY_LEAK_C | When the undo-file owner differs, the function returns without freeing the allocated file name. | fixed upstream: 9.2.0933 |
+| src/undo.c | `u_read_undo` | 1876 | MEMORY_LEAK_C | When the undo-file owner differs, the function returns without freeing the allocated file name. | fixed upstream: 9.2.0933 |
+| src/userfunc.c | `add_defer` | 6670 | MEMORY_LEAK_C | The name is leaked when ga_grow fails, but it is ownership-transferred to dr_name on the normal path. | fixed upstream: 9.2.0777 |
+| src/vim9class.c | `add_interface_from_super_class` | 920 | MEMORY_LEAK_C | The allocated interface name is not freed when growing impl_gap fails. | fixed upstream: 9.2.0136 |
+| src/vim9cmds.c | `compile_for` | 995 | MEMORY_LEAK_C | The scope allocated before the maximum-depth check is not dropped on that error path; the other allocations remain owned by the scope and are cleaned up by drop_scope. | manual FP: scope is linked into cctx->ctx_scope; compile_def_function() drops all scopes on failure. |
+| src/vim9cmds.c | `compile_catch` | 1793 | MEMORY_LEAK_C | The pattern remains caller-owned if generate_PUSHS fails, while new_scope transfers ownership on success and allocates nothing on failure. | manual FP: generate_PUSHS() frees *str on failure. |
+| src/vim9compile.c | `reserve_local` | 674 | MEMORY_LEAK_C | The first allocation can remain owned by a partially initialized local when the variable-name array growth fails, while the second allocation is stored in that array. | manual FP: When GA_GROW_FAILS(&dfunc->df_var_names) the lvar with lv_name already sits in cctx->ctx_locals (ga_len incremented), so lv_name is released with the locals; OOM-only path anyway. |
+| src/vim9compile.c | `compile_def_function_body` | 4309 | MEMORY_LEAK_C | If adding to the growarray fails, the newly duplicated line is not transferred to the cleanup array or freed. | fixed upstream: 9.2.0799 |
+| src/vim9execute.c | `exe_newdict` | 290 | MEMORY_LEAK_C | Issue 1 is a real leak because a failed dict_add can leave the allocated item unowned, while issue 2 transfers ownership to the stack value. | fixed upstream: 9.2.0057 |
+| src/vim9execute.c | `exec_unpack_tuple` | 3557 | MEMORY_LEAK_C | The list is assigned to the stack typval but its initial allocation reference is never released after the extra reference increment. | manual FP: list_alloc_with_items() returns a list with lv_refcount 0; the ++lv_refcount after storing it in the stack typval is the single owning reference. Not a leak. |
+| src/vim9expr.c | `compile_dict` | 1921 | MEMORY_LEAK_C | Each reported direct failure return bypasses dict_unref(d), leaking the allocated dictionary. | fixed upstream: 9.2.0778 |
+| src/vim9expr.c | `compile_dict` | 1976 | MEMORY_LEAK_C | Each reported direct failure return bypasses dict_unref(d), leaking the allocated dictionary. | fixed upstream: 9.2.0778 |
+| src/vim9expr.c | `compile_dict` | 1985 | MEMORY_LEAK_C | Each reported direct failure return bypasses dict_unref(d), leaking the allocated dictionary. | fixed upstream: 9.2.0778 |
+| src/vim9expr.c | `compile_dict` | 1997 | MEMORY_LEAK_C | Each reported direct failure return bypasses dict_unref(d), leaking the allocated dictionary. | fixed upstream: 9.2.0778 |
+| src/vim9expr.c | `compile_dict` | 2016 | MEMORY_LEAK_C | Each reported direct failure return bypasses dict_unref(d), leaking the allocated dictionary. | fixed upstream: 9.2.0778 |
+| src/viminfo.c | `barline_parse` | 1171 | MEMORY_LEAK_C | The allocated buffer can be abandoned on malformed input before it is transferred to a parsed value or freed. | manual TP: buf = alloc(len+1); `return TRUE; // syntax error` happens before value->bv_tofree = buf, leaking buf on a malformed viminfo file. Still present at upstream HEAD. |
+
+## Reported bugs — infer-refE (34)
+
+| file | function | line | rule | LLM reason | validation |
+|---|---|---|---|---|---|
+| src/beval.c | `general_beval_cb` | 346 | MEMORY_LEAK_C | The text allocated by get_beval_info is not freed on paths where balloon expression evaluation is skipped. | manual TP-FIXED: get_beval_info(getword=TRUE) returns an allocated `text`; when the buffer has no 'balloonexpr' (*bexpr == NUL) the function falls through without freeing it. Upstream master now has `vim_free(text)` on that path (beval.c:339). |
+| src/clipboard.c | `clip_wl_init_buffer_store` | 2425 | MEMORY_LEAK_C | The allocated store is returned without being freed when ftruncate fails. | manual TP-FIXED: In 9.2.0015: store = alloc(); ftruncate() failure returned NULL without vim_free(store). The wl_shm buffer-store code (mch_create_anon_file/ftruncate/wl_shm_create_pool) no longer exists at upstream HEAD, so the leak is gone with it. |
+| src/cmdexpand.c | `f_cmdcomplete_info` | 4722 | MEMORY_LEAK_C | The list is transferred only when dict_add_list succeeds, so a failure leaves the allocated list unreachable and unfreed. | fixed upstream: 9.2.0802 |
+| src/cmdexpand.c | `f_cmdcomplete_info` | 4722 | MEMORY_LEAK_C | The list is transferred only when dict_add_list succeeds, so a failure leaves the allocated list unreachable and unfreed. | fixed upstream: 9.2.0802 |
+| src/dict.c | `dict_extend_func` | 1371 | MEMORY_LEAK_C | The copied dictionary is not released when type validation fails, while the action-error paths correctly unreference it. | fixed upstream: 9.2.0067 |
+| src/eval.c | `eval8` | 4794 | MEMORY_LEAK_C | The type list is not cleared when evaluation is disabled, leaving parse_type allocations without ownership transfer. | fixed upstream: 9.2.0244 |
+| src/eval.c | `eval8` | 4809 | MEMORY_LEAK_C | The type list is not cleared when evaluation is disabled, leaving parse_type allocations without ownership transfer. | fixed upstream: 9.2.0244 |
+| src/evalfunc.c | `get_matches_in_str` | 9347 | MEMORY_LEAK_C | If dict_add_list fails, ownership of the newly allocated submatch list is not transferred and it is never freed. | fixed upstream: 9.2.0773 |
+| src/evalvars.c | `set_internal_string_var` | 380 | MEMORY_LEAK_C | If alloc_string_tv fails, the string allocated by vim_strsave is not freed or transferred. | manual FP: alloc_string_tv() frees its argument itself when alloc_tv() fails (typval.c:44-45). |
+| src/evalvars.c | `heredoc_get` | 948 | MEMORY_LEAK_C | The early failure return after expression compilation does not free or transfer ownership of the allocated list. | fixed upstream: 9.2.0105 |
+| src/ex_docmd.c | `expand_findfunc` | 7082 | MEMORY_LEAK_C | The empty-list path returns without freeing the list allocated by call_findfunc; list_free itself correctly releases the list. | fixed upstream: 9.2.0106 |
+| src/ex_docmd.c | `expand_sfile` | 10174 | MEMORY_LEAK_C | The error path reports and returns without freeing the dynamically allocated errormsg buffer. | manual FP: Artifact of the unanchored/official-validated model: eval_vars() modelled as a never-NULL allocator, but on the errormsg path it returns NULL; errormsg itself is a static string. |
+| src/fileio.c | `check_for_cryptkey` | 3020 | MEMORY_LEAK_C | When a newly allocated key is returned by crypt_get_key and the header is too short, the function returns NULL without freeing or transferring ownership of that key. | fixed upstream: 9.2.0242 |
+| src/indent.c | `change_indent` | 1506 | MEMORY_LEAK_C | The original line leaks when allocating new_line fails before ownership is transferred to ml_replace. | fixed upstream: 9.2.0243 |
+| src/json.c | `json_encode_lsp_msg` | 101 | MEMORY_LEAK_C | If json_encode_gap fails after allocating ga storage, the early return omits ga_clear, leaving that allocation leaked. | manual TP: json_encode_gap() can FAIL after appending to ga (e.g. a funcref inside the value); the early `return NULL` skips ga_clear(&ga). Still present at upstream a96c3bc1 (json.c:104-105). Found by Infer (run with corrected patterns). |
+| src/list.c | `list_extend_func` | 2976 | MEMORY_LEAK_C | The copied list is orphaned on both early-return paths before ownership is transferred to the return value. | fixed upstream: 7ed37dc5 |
+| src/list.c | `list_extend_func` | 2993 | MEMORY_LEAK_C | The copied list is orphaned on both early-return paths before ownership is transferred to the return value. | fixed upstream: 7ed37dc5 |
+| src/netbeans.c | `netbeans_file_activated` | 2606 | MEMORY_LEAK_C | If nb_quote succeeds but bp is NULL, the function returns without freeing q. | fixed upstream: 9.2.0133 |
+| src/os_unix.c | `socket_server_send_reply` | 9820 | MEMORY_LEAK_C | The failure path after a successful encoding does not free the allocated final buffer. | fixed upstream: 9.2.0134 |
+| src/strings.c | `string_reduce` | 1056 | MEMORY_LEAK_C | Early returns inside the loop bypass remove_funccal(), leaving the funccall allocation unreleased. | manual TP: fc = eval_expr_get_funccal(); `return` on eval error skips remove_funccal(). Still present at upstream HEAD (9.2.0960 fixed only a double-free here). |
+| src/undo.c | `u_read_undo` | 1873 | MEMORY_LEAK_C | The allocated undo filename is returned without being freed when the owner differs. | fixed upstream: 9.2.0933 |
+| src/undo.c | `u_read_undo` | 1876 | MEMORY_LEAK_C | The allocated undo filename is returned without being freed when the owner differs. | fixed upstream: 9.2.0933 |
+| src/userfunc.c | `add_defer` | 6670 | MEMORY_LEAK_C | saved_name leaks when ga_grow fails, while other paths transfer ownership to the defer machinery. | fixed upstream: 9.2.0777 |
+| src/vim9class.c | `add_interface_from_super_class` | 920 | MEMORY_LEAK_C | The allocated interface name is not freed when growing impl_gap fails. | fixed upstream: 9.2.0136 |
+| src/vim9cmds.c | `compile_for` | 995 | MEMORY_LEAK_C | The scope allocated before the maximum-depth check is not dropped on that error path; the other allocations remain owned by the scope and are cleaned up by drop_scope. | manual FP: scope is linked into cctx->ctx_scope; compile_def_function() drops all scopes on failure. |
+| src/vim9cmds.c | `compile_catch` | 1793 | MEMORY_LEAK_C | The pattern remains caller-owned if generate_PUSHS fails, while new_scope transfers ownership on success and allocates nothing on failure. | manual FP: generate_PUSHS() frees *str on failure. |
+| src/vim9compile.c | `reserve_local` | 674 | MEMORY_LEAK_C | The first allocation can remain owned by a partially initialized local when the variable-name array growth fails, while the second allocation is stored in that array. | manual FP: When GA_GROW_FAILS(&dfunc->df_var_names) the lvar with lv_name already sits in cctx->ctx_locals (ga_len incremented), so lv_name is released with the locals; OOM-only path anyway. |
+| src/vim9compile.c | `compile_def_function_body` | 4309 | MEMORY_LEAK_C | If adding to the growarray fails, the newly duplicated line is not transferred to the cleanup array or freed. | fixed upstream: 9.2.0799 |
+| src/vim9expr.c | `compile_dict` | 1921 | MEMORY_LEAK_C | Direct failure returns bypass dict_unref and leak d, while the other reported allocations are explicitly freed or transferred to instruction ownership. | fixed upstream: 9.2.0778 |
+| src/vim9expr.c | `compile_dict` | 1935 | MEMORY_LEAK_C | Direct failure returns bypass dict_unref and leak d, while the other reported allocations are explicitly freed or transferred to instruction ownership. | fixed upstream: 9.2.0778 |
+| src/vim9expr.c | `compile_dict` | 1985 | MEMORY_LEAK_C | Direct failure returns bypass dict_unref and leak d, while the other reported allocations are explicitly freed or transferred to instruction ownership. | fixed upstream: 9.2.0778 |
+| src/vim9generics.c | `parse_generic_func_type_args` | 329 | MEMORY_LEAK_C | Issue 3 is real because ret_free is not released when allocating gt_name fails; issue 1 is table-owned and issue 2 explicitly frees it. | manual TP: If alloc() for gt_name fails the function returns NULL without vim_free(ret_free) (the name buffer returned by type_name()). Allocation-failure path only; still present at upstream a96c3bc1 (vim9generics.c:326-328). |
+| src/vim9type.c | `type_name_func` | 2719 | MEMORY_LEAK_C | The return type name is leaked when the subsequent ga_grow call fails and control reaches failed without freeing ret_free. | fixed upstream: 9.2.0779 |
+| src/viminfo.c | `barline_parse` | 1171 | MEMORY_LEAK_C | The allocated buffer can be abandoned on malformed input before it is transferred to a parsed value or freed. | manual TP: buf = alloc(len+1); `return TRUE; // syntax error` happens before value->bv_tofree = buf, leaking buf on a malformed viminfo file. Still present at upstream HEAD. |
+
+## Reported bugs — infer-refF (29)
+
+| file | function | line | rule | LLM reason | validation |
+|---|---|---|---|---|---|
+| src/beval.c | `general_beval_cb` | 346 | MEMORY_LEAK_C | The no-expression path drops the allocated text, while bexpr_eval handles it on the expression path. | manual TP-FIXED: get_beval_info(getword=TRUE) returns an allocated `text`; when the buffer has no 'balloonexpr' (*bexpr == NUL) the function falls through without freeing it. Upstream master now has `vim_free(text)` on that path (beval.c:339). |
+| src/clipboard.c | `clip_wl_init_buffer_store` | 2425 | MEMORY_LEAK_C | The allocated store is returned without being freed when ftruncate fails. | manual TP-FIXED: In 9.2.0015: store = alloc(); ftruncate() failure returned NULL without vim_free(store). The wl_shm buffer-store code (mch_create_anon_file/ftruncate/wl_shm_create_pool) no longer exists at upstream HEAD, so the leak is gone with it. |
+| src/cmdexpand.c | `f_cmdcomplete_info` | 4722 | MEMORY_LEAK_C | The list is transferred only when dict_add_list succeeds, so a failure leaves the allocated list unreachable and unfreed. | fixed upstream: 9.2.0802 |
+| src/cmdexpand.c | `f_cmdcomplete_info` | 4722 | MEMORY_LEAK_C | The list is transferred only when dict_add_list succeeds, so a failure leaves the allocated list unreachable and unfreed. | fixed upstream: 9.2.0802 |
+| src/dict.c | `dict_extend_func` | 1371 | MEMORY_LEAK_C | When is_new is true, a failed type check returns without releasing the dictionary copy. | fixed upstream: 9.2.0067 |
+| src/eval.c | `eval8` | 4794 | MEMORY_LEAK_C | The type list is not cleared when evaluation is disabled, leaving parse_type allocations without ownership transfer. | fixed upstream: 9.2.0244 |
+| src/eval.c | `eval8` | 4809 | MEMORY_LEAK_C | The type list is not cleared when evaluation is disabled, leaving parse_type allocations without ownership transfer. | fixed upstream: 9.2.0244 |
+| src/evalfunc.c | `get_matches_in_str` | 9347 | MEMORY_LEAK_C | If dict_add_list fails, ownership of the newly allocated submatch list is not transferred and it is never freed. | fixed upstream: 9.2.0773 |
+| src/evalvars.c | `heredoc_get` | 948 | MEMORY_LEAK_C | The early failure return after expression compilation does not free or transfer ownership of the allocated list. | fixed upstream: 9.2.0105 |
+| src/ex_docmd.c | `expand_findfunc` | 7082 | MEMORY_LEAK_C | The list returned by call_findfunc is not freed when it is empty and the function returns early. | fixed upstream: 9.2.0106 |
+| src/indent.c | `change_indent` | 1506 | MEMORY_LEAK_C | orig_line is leaked when the subsequent new_line allocation fails before orig_line is transferred to ml_replace. | fixed upstream: 9.2.0243 |
+| src/json.c | `json_encode_lsp_msg` | 114 | MEMORY_LEAK_C | If json_encode_gap fails after populating ga, the early return skips ga_clear and leaks its allocated buffer. | manual TP: json_encode_gap() can FAIL after appending to ga (e.g. a funcref inside the value); the early `return NULL` skips ga_clear(&ga). Still present at upstream a96c3bc1 (json.c:104-105). Found by Infer (run with corrected patterns). |
+| src/list.c | `list_extend_func` | 2976 | MEMORY_LEAK_C | The copied list is orphaned on both early-return paths before ownership is transferred to the return value. | fixed upstream: 7ed37dc5 |
+| src/list.c | `list_extend_func` | 2993 | MEMORY_LEAK_C | The copied list is orphaned on both early-return paths before ownership is transferred to the return value. | fixed upstream: 7ed37dc5 |
+| src/netbeans.c | `netbeans_file_activated` | 2606 | MEMORY_LEAK_C | If nb_quote succeeds but bp is NULL, the function returns without freeing q. | fixed upstream: 9.2.0133 |
+| src/os_unix.c | `socket_server_send_reply` | 9820 | MEMORY_LEAK_C | The failure path after a successful encoding does not free the allocated final buffer. | fixed upstream: 9.2.0134 |
+| src/strings.c | `string_reduce` | 1056 | MEMORY_LEAK_C | Early returns inside the loop bypass remove_funccal(), leaving the funccall allocation unreleased. | manual TP: fc = eval_expr_get_funccal(); `return` on eval error skips remove_funccal(). Still present at upstream HEAD (9.2.0960 fixed only a double-free here). |
+| src/undo.c | `u_read_undo` | 1873 | MEMORY_LEAK_C | When the undo-file owner differs, the function returns without freeing the allocated file name. | fixed upstream: 9.2.0933 |
+| src/undo.c | `u_read_undo` | 1876 | MEMORY_LEAK_C | When the undo-file owner differs, the function returns without freeing the allocated file name. | fixed upstream: 9.2.0933 |
+| src/userfunc.c | `add_defer` | 6670 | MEMORY_LEAK_C | The name is leaked when ga_grow fails, but it is ownership-transferred to dr_name on the normal path. | fixed upstream: 9.2.0777 |
+| src/vim9class.c | `add_interface_from_super_class` | 920 | MEMORY_LEAK_C | The allocated interface name is not freed when growing impl_gap fails. | fixed upstream: 9.2.0136 |
+| src/vim9cmds.c | `compile_for` | 995 | MEMORY_LEAK_C | The scope allocated before the maximum-depth check is not dropped on that error path; the other allocations remain owned by the scope and are cleaned up by drop_scope. | manual FP: scope is linked into cctx->ctx_scope; compile_def_function() drops all scopes on failure. |
+| src/vim9cmds.c | `compile_catch` | 1793 | MEMORY_LEAK_C | The pattern remains caller-owned if generate_PUSHS fails, while new_scope transfers ownership on success and allocates nothing on failure. | manual FP: generate_PUSHS() frees *str on failure. |
+| src/vim9compile.c | `reserve_local` | 674 | MEMORY_LEAK_C | The first allocation can remain owned by a partially initialized local when the variable-name array growth fails, while the second allocation is stored in that array. | manual FP: When GA_GROW_FAILS(&dfunc->df_var_names) the lvar with lv_name already sits in cctx->ctx_locals (ga_len incremented), so lv_name is released with the locals; OOM-only path anyway. |
+| src/vim9compile.c | `compile_def_function_body` | 4309 | MEMORY_LEAK_C | If adding to the growarray fails, the newly duplicated line is not transferred to the cleanup array or freed. | fixed upstream: 9.2.0799 |
+| src/vim9execute.c | `exe_newdict` | 290 | MEMORY_LEAK_C | Issue 1 is a real leak because a failed dict_add can leave the allocated item unowned, while issue 2 transfers ownership to the stack value. | fixed upstream: 9.2.0057 |
+| src/vim9expr.c | `compile_dict` | 1921 | MEMORY_LEAK_C | The dictionary allocation is leaked on the direct failure returns at issues 1 and 2, while the string allocation is transferred to the instruction for cleanup. | fixed upstream: 9.2.0778 |
+| src/vim9expr.c | `compile_dict` | 1935 | MEMORY_LEAK_C | The dictionary allocation is leaked on the direct failure returns at issues 1 and 2, while the string allocation is transferred to the instruction for cleanup. | fixed upstream: 9.2.0778 |
+| src/viminfo.c | `barline_parse` | 1171 | MEMORY_LEAK_C | The allocated buffer can be abandoned on malformed input before it is transferred to a parsed value or freed. | manual TP: buf = alloc(len+1); `return TRUE; // syntax error` happens before value->bv_tofree = buf, leaking buf on a malformed viminfo file. Still present at upstream HEAD. |
 

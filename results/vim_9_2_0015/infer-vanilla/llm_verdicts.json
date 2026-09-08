@@ -1,0 +1,1633 @@
+[
+ {
+  "function": "do_arglist",
+  "file": "src/arglist.c",
+  "verdict": false,
+  "confidence": 0.98,
+  "reason": "All allocated buffers are either cleared locally, freed, or transferred to the argument-list ownership functions.",
+  "bug_indices": [],
+  "warnings": [
+   {
+    "warning": {
+     "analyzer": "infer",
+     "rule": "MEMORY_LEAK_C",
+     "file": "src/arglist.c",
+     "line": 503,
+     "function": "do_arglist",
+     "message": "Memory dynamically allocated by `realloc`, indirectly via call to `get_arglist()` on line 475 is not freed after the last access at line 503, column 1.",
+     "allocation_site": "src/arglist.c:475:get_arglist",
+     "trace": [
+      {
+       "file": "src/arglist.c",
+       "line": 475,
+       "message": "allocation part of the trace starts here"
+      },
+      {
+       "file": "src/arglist.c",
+       "line": 475,
+       "message": "when calling `get_arglist` here"
+      },
+      {
+       "file": "src/arglist.c",
+       "line": 285,
+       "message": "when calling `ga_grow` here"
+      },
+      {
+       "file": "src/alloc.c",
+       "line": 713,
+       "message": "when calling `ga_grow_inner` here"
+      },
+      {
+       "file": "src/alloc.c",
+       "line": 748,
+       "message": "macro expanded here"
+      },
+      {
+       "file": "src/vim.h",
+       "line": 2623,
+       "message": "allocated by `realloc` here"
+      },
+      {
+       "file": "src/arglist.c",
+       "line": 503,
+       "message": "memory becomes unreachable here"
+      }
+     ],
+     "extra": {
+      "severity": "ERROR",
+      "hash": "23da479b60c8dc44beb42f24ca7812d1"
+     }
+    },
+    "function": "do_arglist",
+    "feasible": true,
+    "reason": "no recognised allocation in function; kept for LLM",
+    "path_lines": []
+   }
+  ]
+ },
+ {
+  "function": "ex_script_ni",
+  "file": "src/ex_docmd.c",
+  "verdict": false,
+  "confidence": 0.99,
+  "reason": "The memory returned by script_get is immediately passed to vim_free, so it is released rather than leaked.",
+  "bug_indices": [],
+  "warnings": [
+   {
+    "warning": {
+     "analyzer": "infer",
+     "rule": "MEMORY_LEAK_C",
+     "file": "src/ex_docmd.c",
+     "line": 4843,
+     "function": "ex_script_ni",
+     "message": "Memory dynamically allocated by `realloc`, indirectly via call to `script_get()` on line 4843 is not freed after the last access at line 4843, column 2.",
+     "allocation_site": "src/ex_docmd.c:4843:script_get",
+     "trace": [
+      {
+       "file": "src/ex_docmd.c",
+       "line": 4843,
+       "message": "allocation part of the trace starts here"
+      },
+      {
+       "file": "src/ex_docmd.c",
+       "line": 4843,
+       "message": "when calling `script_get` here"
+      },
+      {
+       "file": "src/ex_getln.c",
+       "line": 5057,
+       "message": "when calling `ga_append` here"
+      },
+      {
+       "file": "src/alloc.c",
+       "line": 873,
+       "message": "when calling `ga_grow` here"
+      },
+      {
+       "file": "src/alloc.c",
+       "line": 713,
+       "message": "when calling `ga_grow_inner` here"
+      },
+      {
+       "file": "src/alloc.c",
+       "line": 748,
+       "message": "macro expanded here"
+      },
+      {
+       "file": "src/vim.h",
+       "line": 2623,
+       "message": "allocated by `realloc` here"
+      },
+      {
+       "file": "src/ex_docmd.c",
+       "line": 4843,
+       "message": "memory becomes unreachable here"
+      }
+     ],
+     "extra": {
+      "severity": "ERROR",
+      "hash": "32a19de9bcc244a3c157f227e0be4444"
+     }
+    },
+    "function": "ex_script_ni",
+    "feasible": true,
+    "reason": "no recognised allocation in function; kept for LLM",
+    "path_lines": []
+   }
+  ]
+ },
+ {
+  "function": "foldSplit",
+  "file": "src/fold.c",
+  "verdict": false,
+  "confidence": 0.99,
+  "reason": "The reallocated buffer remains owned through gap2->ga_data and is later managed as the new fold's nested-fold array.",
+  "bug_indices": [],
+  "warnings": [
+   {
+    "warning": {
+     "analyzer": "infer",
+     "rule": "MEMORY_LEAK_C",
+     "file": "src/fold.c",
+     "line": 2947,
+     "function": "foldSplit",
+     "message": "Memory dynamically allocated by `realloc`, indirectly via call to `ga_grow()` on line 2935 is not freed after the last access at line 2947, column 5.",
+     "allocation_site": "src/fold.c:2935:ga_grow",
+     "trace": [
+      {
+       "file": "src/fold.c",
+       "line": 2935,
+       "message": "allocation part of the trace starts here"
+      },
+      {
+       "file": "src/fold.c",
+       "line": 2935,
+       "message": "when calling `ga_grow` here"
+      },
+      {
+       "file": "src/alloc.c",
+       "line": 713,
+       "message": "when calling `ga_grow_inner` here"
+      },
+      {
+       "file": "src/alloc.c",
+       "line": 748,
+       "message": "macro expanded here"
+      },
+      {
+       "file": "src/vim.h",
+       "line": 2623,
+       "message": "allocated by `realloc` here"
+      },
+      {
+       "file": "src/fold.c",
+       "line": 2947,
+       "message": "memory becomes unreachable here"
+      }
+     ],
+     "extra": {
+      "severity": "ERROR",
+      "hash": "9bee836403c9f580111189e72109b448"
+     }
+    },
+    "function": "foldSplit",
+    "feasible": true,
+    "reason": "no recognised allocation in function; kept for LLM",
+    "path_lines": []
+   }
+  ]
+ },
+ {
+  "function": "json_encode_lsp_msg",
+  "file": "src/json.c",
+  "verdict": false,
+  "confidence": 0.99,
+  "reason": "The buffer allocated for ga is freed by ga_clear, while lspga.ga_data is intentionally transferred to the caller.",
+  "bug_indices": [],
+  "warnings": [
+   {
+    "warning": {
+     "analyzer": "infer",
+     "rule": "MEMORY_LEAK_C",
+     "file": "src/json.c",
+     "line": 114,
+     "function": "json_encode_lsp_msg",
+     "message": "Memory dynamically allocated by `realloc`, indirectly via call to `ga_append()` on line 103 is not freed after the last access at line 114, column 1.",
+     "allocation_site": "src/json.c:103:ga_append",
+     "trace": [
+      {
+       "file": "src/json.c",
+       "line": 103,
+       "message": "allocation part of the trace starts here"
+      },
+      {
+       "file": "src/json.c",
+       "line": 103,
+       "message": "when calling `ga_append` here"
+      },
+      {
+       "file": "src/alloc.c",
+       "line": 873,
+       "message": "when calling `ga_grow` here"
+      },
+      {
+       "file": "src/alloc.c",
+       "line": 713,
+       "message": "when calling `ga_grow_inner` here"
+      },
+      {
+       "file": "src/alloc.c",
+       "line": 748,
+       "message": "macro expanded here"
+      },
+      {
+       "file": "src/vim.h",
+       "line": 2623,
+       "message": "allocated by `realloc` here"
+      },
+      {
+       "file": "src/json.c",
+       "line": 114,
+       "message": "memory becomes unreachable here"
+      }
+     ],
+     "extra": {
+      "severity": "ERROR",
+      "hash": "504d038cb6ed22827c5e208e13035b37"
+     }
+    },
+    "function": "json_encode_lsp_msg",
+    "feasible": true,
+    "reason": "no recognised allocation in function; kept for LLM",
+    "path_lines": []
+   }
+  ]
+ },
+ {
+  "function": "socket_server_decode_cmd",
+  "file": "src/os_unix.c",
+  "verdict": false,
+  "confidence": 0.99,
+  "reason": "The reallocated buffer is explicitly freed on both the successful exit and failure paths.",
+  "bug_indices": [],
+  "warnings": [
+   {
+    "warning": {
+     "analyzer": "infer",
+     "rule": "MEMORY_LEAK_C",
+     "file": "src/os_unix.c",
+     "line": 10177,
+     "function": "socket_server_decode_cmd",
+     "message": "Memory dynamically allocated by `realloc` on line 10122 is not freed after the last access at line 10177, column 5.",
+     "allocation_site": "src/os_unix.c:10122:realloc",
+     "trace": [
+      {
+       "file": "src/os_unix.c",
+       "line": 10122,
+       "message": "macro expanded here"
+      },
+      {
+       "file": "src/vim.h",
+       "line": 2623,
+       "message": "allocation part of the trace starts here"
+      },
+      {
+       "file": "src/os_unix.c",
+       "line": 10122,
+       "message": "macro expanded here"
+      },
+      {
+       "file": "src/vim.h",
+       "line": 2623,
+       "message": "allocated by `realloc` here"
+      },
+      {
+       "file": "src/os_unix.c",
+       "line": 10177,
+       "message": "memory becomes unreachable here"
+      }
+     ],
+     "extra": {
+      "severity": "ERROR",
+      "hash": "6775537fbca38ddf1f602f4e2fb1d8e6"
+     }
+    },
+    "function": "socket_server_decode_cmd",
+    "feasible": true,
+    "reason": "no recognised allocation in function; kept for LLM",
+    "path_lines": []
+   },
+   {
+    "warning": {
+     "analyzer": "infer",
+     "rule": "MEMORY_LEAK_C",
+     "file": "src/os_unix.c",
+     "line": 10181,
+     "function": "socket_server_decode_cmd",
+     "message": "Memory dynamically allocated by `realloc` on line 10122 is not freed after the last access at line 10181, column 5.",
+     "allocation_site": "src/os_unix.c:10122:realloc",
+     "trace": [
+      {
+       "file": "src/os_unix.c",
+       "line": 10122,
+       "message": "macro expanded here"
+      },
+      {
+       "file": "src/vim.h",
+       "line": 2623,
+       "message": "allocation part of the trace starts here"
+      },
+      {
+       "file": "src/os_unix.c",
+       "line": 10122,
+       "message": "macro expanded here"
+      },
+      {
+       "file": "src/vim.h",
+       "line": 2623,
+       "message": "allocated by `realloc` here"
+      },
+      {
+       "file": "src/os_unix.c",
+       "line": 10181,
+       "message": "memory becomes unreachable here"
+      }
+     ],
+     "extra": {
+      "severity": "ERROR",
+      "hash": "6775537fbca38ddf1f602f4e2fb1d8e6"
+     }
+    },
+    "function": "socket_server_decode_cmd",
+    "feasible": true,
+    "reason": "no recognised allocation in function; kept for LLM",
+    "path_lines": []
+   }
+  ]
+ },
+ {
+  "function": "qf_add_entry",
+  "file": "src/quickfix.c",
+  "verdict": false,
+  "confidence": 0.98,
+  "reason": "The allocated qfline_T object is freed on the reported failure path, so the finding incorrectly identifies it as leaked.",
+  "bug_indices": [],
+  "warnings": [
+   {
+    "warning": {
+     "analyzer": "infer",
+     "rule": "MEMORY_LEAK_C",
+     "file": "src/quickfix.c",
+     "line": 2281,
+     "function": "qf_add_entry",
+     "message": "Memory dynamically allocated by `malloc`, indirectly via call to `alloc_id()` on line 2249 is not freed after the last access at line 2281, column 2.",
+     "allocation_site": "src/quickfix.c:2249:alloc_id",
+     "trace": [
+      {
+       "file": "src/quickfix.c",
+       "line": 2249,
+       "message": "macro expanded here"
+      },
+      {
+       "file": "src/vim.h",
+       "line": 1778,
+       "message": "allocation part of the trace starts here"
+      },
+      {
+       "file": "src/quickfix.c",
+       "line": 2249,
+       "message": "macro expanded here"
+      },
+      {
+       "file": "src/vim.h",
+       "line": 1778,
+       "message": "when calling `alloc_id` here"
+      },
+      {
+       "file": "src/alloc.c",
+       "line": 165,
+       "message": "when calling `lalloc` here"
+      },
+      {
+       "file": "src/alloc.c",
+       "line": 246,
+       "message": "allocated by `malloc` here"
+      },
+      {
+       "file": "src/quickfix.c",
+       "line": 2281,
+       "message": "memory becomes unreachable here"
+      }
+     ],
+     "extra": {
+      "severity": "ERROR",
+      "hash": "cd9bc9868eb220d1fbc591443a32ca19"
+     }
+    },
+    "function": "qf_add_entry",
+    "feasible": true,
+    "reason": "no recognised allocation in function; kept for LLM",
+    "path_lines": []
+   }
+  ]
+ },
+ {
+  "function": "qf_init_ext",
+  "file": "src/quickfix.c",
+  "verdict": false,
+  "confidence": 0.99,
+  "reason": "The allocated fields are consistently released by the cleanup call on every exit path.",
+  "bug_indices": [],
+  "warnings": [
+   {
+    "warning": {
+     "analyzer": "infer",
+     "rule": "MEMORY_LEAK_C",
+     "file": "src/quickfix.c",
+     "line": 1895,
+     "function": "qf_init_ext",
+     "message": "Memory dynamically allocated by `malloc`, indirectly via call to `qf_alloc_fields()` on line 1800 is not freed after the last access at line 1895, column 5.",
+     "allocation_site": "src/quickfix.c:1800:qf_alloc_fields",
+     "trace": [
+      {
+       "file": "src/quickfix.c",
+       "line": 1800,
+       "message": "allocation part of the trace starts here"
+      },
+      {
+       "file": "src/quickfix.c",
+       "line": 1800,
+       "message": "when calling `qf_alloc_fields` here"
+      },
+      {
+       "file": "src/quickfix.c",
+       "line": 1642,
+       "message": "when calling `alloc_id` here"
+      },
+      {
+       "file": "src/alloc.c",
+       "line": 165,
+       "message": "when calling `lalloc` here"
+      },
+      {
+       "file": "src/alloc.c",
+       "line": 246,
+       "message": "allocated by `malloc` here"
+      },
+      {
+       "file": "src/quickfix.c",
+       "line": 1895,
+       "message": "memory becomes unreachable here"
+      }
+     ],
+     "extra": {
+      "severity": "ERROR",
+      "hash": "178a0e800e472b24c6aba3a77c2f9130"
+     }
+    },
+    "function": "qf_init_ext",
+    "feasible": true,
+    "reason": "no recognised allocation in function; kept for LLM",
+    "path_lines": []
+   }
+  ]
+ },
+ {
+  "function": "qf_push_dir",
+  "file": "src/quickfix.c",
+  "verdict": false,
+  "confidence": 0.98,
+  "reason": "The allocated stack node is freed on the NULL-directory path, while any non-NULL directory string is retained and ownership-transferred through the stack or return value.",
+  "bug_indices": [],
+  "warnings": [
+   {
+    "warning": {
+     "analyzer": "infer",
+     "rule": "MEMORY_LEAK_C",
+     "file": "src/quickfix.c",
+     "line": 2855,
+     "function": "qf_push_dir",
+     "message": "Memory dynamically allocated by `malloc`, indirectly via call to `alloc_id()` on line 2802 is not freed after the last access at line 2855, column 2.",
+     "allocation_site": "src/quickfix.c:2802:alloc_id",
+     "trace": [
+      {
+       "file": "src/quickfix.c",
+       "line": 2802,
+       "message": "macro expanded here"
+      },
+      {
+       "file": "src/vim.h",
+       "line": 1778,
+       "message": "allocation part of the trace starts here"
+      },
+      {
+       "file": "src/quickfix.c",
+       "line": 2802,
+       "message": "macro expanded here"
+      },
+      {
+       "file": "src/vim.h",
+       "line": 1778,
+       "message": "when calling `alloc_id` here"
+      },
+      {
+       "file": "src/alloc.c",
+       "line": 165,
+       "message": "when calling `lalloc` here"
+      },
+      {
+       "file": "src/alloc.c",
+       "line": 246,
+       "message": "allocated by `malloc` here"
+      },
+      {
+       "file": "src/quickfix.c",
+       "line": 2855,
+       "message": "memory becomes unreachable here"
+      }
+     ],
+     "extra": {
+      "severity": "ERROR",
+      "hash": "a5714ae67eb48a228bcebd3331873b3a"
+     }
+    },
+    "function": "qf_push_dir",
+    "feasible": true,
+    "reason": "no recognised allocation in function; kept for LLM",
+    "path_lines": []
+   }
+  ]
+ },
+ {
+  "function": "vgr_process_files",
+  "file": "src/quickfix.c",
+  "verdict": false,
+  "confidence": 0.99,
+  "reason": "Both allocated directory buffers are freed at the common exit, including safely when either allocation fails.",
+  "bug_indices": [],
+  "warnings": [
+   {
+    "warning": {
+     "analyzer": "infer",
+     "rule": "MEMORY_LEAK_C",
+     "file": "src/quickfix.c",
+     "line": 6808,
+     "function": "vgr_process_files",
+     "message": "Memory dynamically allocated by `malloc`, indirectly via call to `alloc_id()` on line 6681 is not freed after the last access at line 6808, column 5.",
+     "allocation_site": "src/quickfix.c:6681:alloc_id",
+     "trace": [
+      {
+       "file": "src/quickfix.c",
+       "line": 6681,
+       "message": "allocation part of the trace starts here"
+      },
+      {
+       "file": "src/quickfix.c",
+       "line": 6681,
+       "message": "when calling `alloc_id` here"
+      },
+      {
+       "file": "src/alloc.c",
+       "line": 165,
+       "message": "when calling `lalloc` here"
+      },
+      {
+       "file": "src/alloc.c",
+       "line": 246,
+       "message": "allocated by `malloc` here"
+      },
+      {
+       "file": "src/quickfix.c",
+       "line": 6808,
+       "message": "memory becomes unreachable here"
+      }
+     ],
+     "extra": {
+      "severity": "ERROR",
+      "hash": "069dddc01faaab2aba38fe4b304a6a70"
+     }
+    },
+    "function": "vgr_process_files",
+    "feasible": true,
+    "reason": "alloc_id() at L24 -> ['buf', 'dirname_now', 'dirname_start'] reaches exit unfreed",
+    "path_lines": [
+     10,
+     11,
+     12,
+     13,
+     14,
+     15,
+     16,
+     17,
+     18,
+     19,
+     20,
+     21,
+     23,
+     24,
+     25,
+     25,
+     30,
+     32,
+     33,
+     33,
+     33,
+     148,
+     150,
+     151,
+     152,
+     153
+    ]
+   },
+   {
+    "warning": {
+     "analyzer": "infer",
+     "rule": "MEMORY_LEAK_C",
+     "file": "src/quickfix.c",
+     "line": 6809,
+     "function": "vgr_process_files",
+     "message": "Memory dynamically allocated by `malloc`, indirectly via call to `alloc_id()` on line 6680 is not freed after the last access at line 6809, column 5.",
+     "allocation_site": "src/quickfix.c:6680:alloc_id",
+     "trace": [
+      {
+       "file": "src/quickfix.c",
+       "line": 6680,
+       "message": "allocation part of the trace starts here"
+      },
+      {
+       "file": "src/quickfix.c",
+       "line": 6680,
+       "message": "when calling `alloc_id` here"
+      },
+      {
+       "file": "src/alloc.c",
+       "line": 165,
+       "message": "when calling `lalloc` here"
+      },
+      {
+       "file": "src/alloc.c",
+       "line": 246,
+       "message": "allocated by `malloc` here"
+      },
+      {
+       "file": "src/quickfix.c",
+       "line": 6809,
+       "message": "memory becomes unreachable here"
+      }
+     ],
+     "extra": {
+      "severity": "ERROR",
+      "hash": "069dddc01faaab2aba38fe4b304a6a70"
+     }
+    },
+    "function": "vgr_process_files",
+    "feasible": true,
+    "reason": "alloc_id() at L23 -> ['buf', 'dirname_now', 'dirname_start'] reaches exit unfreed",
+    "path_lines": [
+     10,
+     11,
+     12,
+     13,
+     14,
+     15,
+     16,
+     17,
+     18,
+     19,
+     20,
+     21,
+     23,
+     24,
+     25,
+     25,
+     30,
+     32,
+     33,
+     33,
+     33,
+     148,
+     150,
+     151,
+     152,
+     153
+    ]
+   }
+  ]
+ },
+ {
+  "function": "insert_sign",
+  "file": "src/sign.c",
+  "verdict": false,
+  "confidence": 0.99,
+  "reason": "The allocation is freed on group-reference failure and otherwise transferred to the sign list.",
+  "bug_indices": [],
+  "warnings": [
+   {
+    "warning": {
+     "analyzer": "infer",
+     "rule": "MEMORY_LEAK_C",
+     "file": "src/sign.c",
+     "line": 228,
+     "function": "insert_sign",
+     "message": "Memory dynamically allocated by `malloc`, indirectly via call to `lalloc_id()` on line 215 is not freed after the last access at line 228, column 13.",
+     "allocation_site": "src/sign.c:215:lalloc_id",
+     "trace": [
+      {
+       "file": "src/sign.c",
+       "line": 215,
+       "message": "allocation part of the trace starts here"
+      },
+      {
+       "file": "src/sign.c",
+       "line": 215,
+       "message": "when calling `lalloc_id` here"
+      },
+      {
+       "file": "src/alloc.c",
+       "line": 304,
+       "message": "when calling `lalloc` here"
+      },
+      {
+       "file": "src/alloc.c",
+       "line": 246,
+       "message": "allocated by `malloc` here"
+      },
+      {
+       "file": "src/sign.c",
+       "line": 228,
+       "message": "memory becomes unreachable here"
+      }
+     ],
+     "extra": {
+      "severity": "ERROR",
+      "hash": "b1ebabc21f5496312cb700a260c83c14"
+     }
+    },
+    "function": "insert_sign",
+    "feasible": true,
+    "reason": "no recognised allocation in function; kept for LLM",
+    "path_lines": []
+   }
+  ]
+ },
+ {
+  "function": "string_from_blob",
+  "file": "src/strings.c",
+  "verdict": false,
+  "confidence": 0.99,
+  "reason": "The dynamic array allocated by ga_append is released by ga_clear before the function returns.",
+  "bug_indices": [],
+  "warnings": [
+   {
+    "warning": {
+     "analyzer": "infer",
+     "rule": "MEMORY_LEAK_C",
+     "file": "src/strings.c",
+     "line": 1276,
+     "function": "string_from_blob",
+     "message": "Memory dynamically allocated by `realloc`, indirectly via call to `ga_append()` on line 1265 is not freed after the last access at line 1276, column 1.",
+     "allocation_site": "src/strings.c:1265:ga_append",
+     "trace": [
+      {
+       "file": "src/strings.c",
+       "line": 1265,
+       "message": "allocation part of the trace starts here"
+      },
+      {
+       "file": "src/strings.c",
+       "line": 1265,
+       "message": "when calling `ga_append` here"
+      },
+      {
+       "file": "src/alloc.c",
+       "line": 873,
+       "message": "when calling `ga_grow` here"
+      },
+      {
+       "file": "src/alloc.c",
+       "line": 713,
+       "message": "when calling `ga_grow_inner` here"
+      },
+      {
+       "file": "src/alloc.c",
+       "line": 748,
+       "message": "macro expanded here"
+      },
+      {
+       "file": "src/vim.h",
+       "line": 2623,
+       "message": "allocated by `realloc` here"
+      },
+      {
+       "file": "src/strings.c",
+       "line": 1276,
+       "message": "memory becomes unreachable here"
+      }
+     ],
+     "extra": {
+      "severity": "ERROR",
+      "hash": "2c9f927823e78f1314708fa432298f9e"
+     }
+    },
+    "function": "string_from_blob",
+    "feasible": true,
+    "reason": "no recognised allocation in function; kept for LLM",
+    "path_lines": []
+   }
+  ]
+ },
+ {
+  "function": "tuple2string",
+  "file": "src/tuple.c",
+  "verdict": false,
+  "confidence": 0.99,
+  "reason": "The allocated buffer is freed on the failure path or transferred to the caller on success.",
+  "bug_indices": [],
+  "warnings": [
+   {
+    "warning": {
+     "analyzer": "infer",
+     "rule": "MEMORY_LEAK_C",
+     "file": "src/tuple.c",
+     "line": 780,
+     "function": "tuple2string",
+     "message": "Memory dynamically allocated by `realloc`, indirectly via call to `ga_append()` on line 776 is not freed after the last access at line 780, column 2.",
+     "allocation_site": "src/tuple.c:776:ga_append",
+     "trace": [
+      {
+       "file": "src/tuple.c",
+       "line": 776,
+       "message": "allocation part of the trace starts here"
+      },
+      {
+       "file": "src/tuple.c",
+       "line": 776,
+       "message": "when calling `ga_append` here"
+      },
+      {
+       "file": "src/alloc.c",
+       "line": 873,
+       "message": "when calling `ga_grow` here"
+      },
+      {
+       "file": "src/alloc.c",
+       "line": 713,
+       "message": "when calling `ga_grow_inner` here"
+      },
+      {
+       "file": "src/alloc.c",
+       "line": 748,
+       "message": "macro expanded here"
+      },
+      {
+       "file": "src/vim.h",
+       "line": 2623,
+       "message": "allocated by `realloc` here"
+      },
+      {
+       "file": "src/tuple.c",
+       "line": 780,
+       "message": "memory becomes unreachable here"
+      }
+     ],
+     "extra": {
+      "severity": "ERROR",
+      "hash": "719b2c0f6f3f04289e160e46d08136f6"
+     }
+    },
+    "function": "tuple2string",
+    "feasible": true,
+    "reason": "no recognised allocation in function; kept for LLM",
+    "path_lines": []
+   }
+  ]
+ },
+ {
+  "function": "may_get_cmd_block",
+  "file": "src/usercmd.c",
+  "verdict": false,
+  "confidence": 0.98,
+  "reason": "The concatenated allocation is transferred through tofree, while ga_clear_strings releases the growarray contents and storage.",
+  "bug_indices": [],
+  "warnings": [
+   {
+    "warning": {
+     "analyzer": "infer",
+     "rule": "MEMORY_LEAK_C",
+     "file": "src/usercmd.c",
+     "line": 1247,
+     "function": "may_get_cmd_block",
+     "message": "Memory dynamically allocated by `realloc`, indirectly via call to `ga_copy_string()` on line 1219 is not freed after the last access at line 1247, column 1.",
+     "allocation_site": "src/usercmd.c:1219:ga_copy_string",
+     "trace": [
+      {
+       "file": "src/usercmd.c",
+       "line": 1219,
+       "message": "allocation part of the trace starts here"
+      },
+      {
+       "file": "src/usercmd.c",
+       "line": 1219,
+       "message": "when calling `ga_copy_string` here"
+      },
+      {
+       "file": "src/alloc.c",
+       "line": 809,
+       "message": "when calling `ga_grow` here"
+      },
+      {
+       "file": "src/alloc.c",
+       "line": 713,
+       "message": "when calling `ga_grow_inner` here"
+      },
+      {
+       "file": "src/alloc.c",
+       "line": 748,
+       "message": "macro expanded here"
+      },
+      {
+       "file": "src/vim.h",
+       "line": 2623,
+       "message": "allocated by `realloc` here"
+      },
+      {
+       "file": "src/usercmd.c",
+       "line": 1247,
+       "message": "memory becomes unreachable here"
+      }
+     ],
+     "extra": {
+      "severity": "ERROR",
+      "hash": "4491a734d801b34f99dfd3bcc62a6991"
+     }
+    },
+    "function": "may_get_cmd_block",
+    "feasible": true,
+    "reason": "no recognised allocation in function; kept for LLM",
+    "path_lines": []
+   }
+  ]
+ },
+ {
+  "function": "copy_lambda_to_global_func",
+  "file": "src/userfunc.c",
+  "verdict": false,
+  "confidence": 0.98,
+  "reason": "The copied arrays are owned by fp and are released by func_clear_free on failure or when the function is destroyed.",
+  "bug_indices": [],
+  "warnings": [
+   {
+    "warning": {
+     "analyzer": "infer",
+     "rule": "MEMORY_LEAK_C",
+     "file": "src/userfunc.c",
+     "line": 2880,
+     "function": "copy_lambda_to_global_func",
+     "message": "Memory dynamically allocated by `realloc`, indirectly via call to `ga_copy_strings()` on line 2849 is not freed after the last access at line 2880, column 10.",
+     "allocation_site": "src/userfunc.c:2849:ga_copy_strings",
+     "trace": [
+      {
+       "file": "src/userfunc.c",
+       "line": 2849,
+       "message": "allocation part of the trace starts here"
+      },
+      {
+       "file": "src/userfunc.c",
+       "line": 2849,
+       "message": "when calling `ga_copy_strings` here"
+      },
+      {
+       "file": "src/alloc.c",
+       "line": 658,
+       "message": "when calling `ga_grow` here"
+      },
+      {
+       "file": "src/alloc.c",
+       "line": 713,
+       "message": "when calling `ga_grow_inner` here"
+      },
+      {
+       "file": "src/alloc.c",
+       "line": 748,
+       "message": "macro expanded here"
+      },
+      {
+       "file": "src/vim.h",
+       "line": 2623,
+       "message": "allocated by `realloc` here"
+      },
+      {
+       "file": "src/userfunc.c",
+       "line": 2880,
+       "message": "memory becomes unreachable here"
+      }
+     ],
+     "extra": {
+      "severity": "ERROR",
+      "hash": "da68931621b44b30a231ab087c4e9682"
+     }
+    },
+    "function": "copy_lambda_to_global_func",
+    "feasible": true,
+    "reason": "no recognised allocation in function; kept for LLM",
+    "path_lines": []
+   },
+   {
+    "warning": {
+     "analyzer": "infer",
+     "rule": "MEMORY_LEAK_C",
+     "file": "src/userfunc.c",
+     "line": 2880,
+     "function": "copy_lambda_to_global_func",
+     "message": "Memory dynamically allocated by `realloc`, indirectly via call to `ga_copy_strings()` on line 2849 is not freed after the last access at line 2880, column 43.",
+     "allocation_site": "src/userfunc.c:2849:ga_copy_strings",
+     "trace": [
+      {
+       "file": "src/userfunc.c",
+       "line": 2849,
+       "message": "allocation part of the trace starts here"
+      },
+      {
+       "file": "src/userfunc.c",
+       "line": 2849,
+       "message": "when calling `ga_copy_strings` here"
+      },
+      {
+       "file": "src/alloc.c",
+       "line": 658,
+       "message": "when calling `ga_grow` here"
+      },
+      {
+       "file": "src/alloc.c",
+       "line": 713,
+       "message": "when calling `ga_grow_inner` here"
+      },
+      {
+       "file": "src/alloc.c",
+       "line": 748,
+       "message": "macro expanded here"
+      },
+      {
+       "file": "src/vim.h",
+       "line": 2623,
+       "message": "allocated by `realloc` here"
+      },
+      {
+       "file": "src/userfunc.c",
+       "line": 2880,
+       "message": "memory becomes unreachable here"
+      }
+     ],
+     "extra": {
+      "severity": "ERROR",
+      "hash": "da68931621b44b30a231ab087c4e9682"
+     }
+    },
+    "function": "copy_lambda_to_global_func",
+    "feasible": true,
+    "reason": "no recognised allocation in function; kept for LLM",
+    "path_lines": []
+   },
+   {
+    "warning": {
+     "analyzer": "infer",
+     "rule": "MEMORY_LEAK_C",
+     "file": "src/userfunc.c",
+     "line": 2886,
+     "function": "copy_lambda_to_global_func",
+     "message": "Memory dynamically allocated by `realloc`, indirectly via call to `ga_copy_strings()` on line 2849 is not freed after the last access at line 2886, column 6.",
+     "allocation_site": "src/userfunc.c:2849:ga_copy_strings",
+     "trace": [
+      {
+       "file": "src/userfunc.c",
+       "line": 2849,
+       "message": "allocation part of the trace starts here"
+      },
+      {
+       "file": "src/userfunc.c",
+       "line": 2849,
+       "message": "when calling `ga_copy_strings` here"
+      },
+      {
+       "file": "src/alloc.c",
+       "line": 658,
+       "message": "when calling `ga_grow` here"
+      },
+      {
+       "file": "src/alloc.c",
+       "line": 713,
+       "message": "when calling `ga_grow_inner` here"
+      },
+      {
+       "file": "src/alloc.c",
+       "line": 748,
+       "message": "macro expanded here"
+      },
+      {
+       "file": "src/vim.h",
+       "line": 2623,
+       "message": "allocated by `realloc` here"
+      },
+      {
+       "file": "src/userfunc.c",
+       "line": 2886,
+       "message": "memory becomes unreachable here"
+      }
+     ],
+     "extra": {
+      "severity": "ERROR",
+      "hash": "da68931621b44b30a231ab087c4e9682"
+     }
+    },
+    "function": "copy_lambda_to_global_func",
+    "feasible": true,
+    "reason": "no recognised allocation in function; kept for LLM",
+    "path_lines": []
+   }
+  ]
+ },
+ {
+  "function": "obj_method_prologue",
+  "file": "src/vim9compile.c",
+  "verdict": false,
+  "confidence": 0.99,
+  "reason": "The reallocated array remains owned by dfunc->df_var_names and is not leaked at the length increment.",
+  "bug_indices": [],
+  "warnings": [
+   {
+    "warning": {
+     "analyzer": "infer",
+     "rule": "MEMORY_LEAK_C",
+     "file": "src/vim9compile.c",
+     "line": 4166,
+     "function": "obj_method_prologue",
+     "message": "Memory dynamically allocated by `realloc`, indirectly via call to `ga_grow_inner()` on line 4161 is not freed after the last access at line 4166, column 5.",
+     "allocation_site": "src/vim9compile.c:4161:ga_grow_inner",
+     "trace": [
+      {
+       "file": "src/vim9compile.c",
+       "line": 4161,
+       "message": "macro expanded here"
+      },
+      {
+       "file": "src/macros.h",
+       "line": 424,
+       "message": "allocation part of the trace starts here"
+      },
+      {
+       "file": "src/vim9compile.c",
+       "line": 4161,
+       "message": "macro expanded here"
+      },
+      {
+       "file": "src/macros.h",
+       "line": 424,
+       "message": "when calling `ga_grow_inner` here"
+      },
+      {
+       "file": "src/alloc.c",
+       "line": 748,
+       "message": "macro expanded here"
+      },
+      {
+       "file": "src/vim.h",
+       "line": 2623,
+       "message": "allocated by `realloc` here"
+      },
+      {
+       "file": "src/vim9compile.c",
+       "line": 4166,
+       "message": "memory becomes unreachable here"
+      }
+     ],
+     "extra": {
+      "severity": "ERROR",
+      "hash": "fb8405549c28f75a1a9d689d9b30e536"
+     }
+    },
+    "function": "obj_method_prologue",
+    "feasible": true,
+    "reason": "no recognised allocation in function; kept for LLM",
+    "path_lines": []
+   }
+  ]
+ },
+ {
+  "function": "call_def_function",
+  "file": "src/vim9execute.c",
+  "verdict": false,
+  "confidence": 0.99,
+  "reason": "The growable stack allocation is explicitly freed during cleanup, so freeing the outer reference does not leave it leaked.",
+  "bug_indices": [],
+  "warnings": [
+   {
+    "warning": {
+     "analyzer": "infer",
+     "rule": "MEMORY_LEAK_C",
+     "file": "src/vim9execute.c",
+     "line": 6942,
+     "function": "call_def_function",
+     "message": "Memory dynamically allocated by `realloc`, indirectly via call to `ga_grow_inner()` on line 6635 is not freed after the last access at line 6942, column 2.",
+     "allocation_site": "src/vim9execute.c:6635:ga_grow_inner",
+     "trace": [
+      {
+       "file": "src/vim9execute.c",
+       "line": 6635,
+       "message": "macro expanded here"
+      },
+      {
+       "file": "src/macros.h",
+       "line": 424,
+       "message": "allocation part of the trace starts here"
+      },
+      {
+       "file": "src/vim9execute.c",
+       "line": 6635,
+       "message": "macro expanded here"
+      },
+      {
+       "file": "src/macros.h",
+       "line": 424,
+       "message": "when calling `ga_grow_inner` here"
+      },
+      {
+       "file": "src/alloc.c",
+       "line": 748,
+       "message": "macro expanded here"
+      },
+      {
+       "file": "src/vim.h",
+       "line": 2623,
+       "message": "allocated by `realloc` here"
+      },
+      {
+       "file": "src/vim9execute.c",
+       "line": 6942,
+       "message": "memory becomes unreachable here"
+      }
+     ],
+     "extra": {
+      "severity": "ERROR",
+      "hash": "ce732228b35799e564e7e7c68b17857a"
+     }
+    },
+    "function": "call_def_function",
+    "feasible": true,
+    "reason": "no recognised allocation in function; kept for LLM",
+    "path_lines": []
+   }
+  ]
+ },
+ {
+  "function": "do_2string",
+  "file": "src/vim9execute.c",
+  "verdict": false,
+  "confidence": 0.99,
+  "reason": "The allocated string is explicitly freed, while the generated garray data is transferred to the typval as its new string value.",
+  "bug_indices": [],
+  "warnings": [
+   {
+    "warning": {
+     "analyzer": "infer",
+     "rule": "MEMORY_LEAK_C",
+     "file": "src/vim9execute.c",
+     "line": 1772,
+     "function": "do_2string",
+     "message": "Memory dynamically allocated by `realloc`, indirectly via call to `typval2string()` on line 1755 is not freed after the last access at line 1772, column 9.",
+     "allocation_site": "src/vim9execute.c:1755:typval2string",
+     "trace": [
+      {
+       "file": "src/vim9execute.c",
+       "line": 1755,
+       "message": "allocation part of the trace starts here"
+      },
+      {
+       "file": "src/vim9execute.c",
+       "line": 1755,
+       "message": "when calling `typval2string` here"
+      },
+      {
+       "file": "src/eval.c",
+       "line": 646,
+       "message": "when calling `ga_append` here"
+      },
+      {
+       "file": "src/alloc.c",
+       "line": 873,
+       "message": "when calling `ga_grow` here"
+      },
+      {
+       "file": "src/alloc.c",
+       "line": 713,
+       "message": "when calling `ga_grow_inner` here"
+      },
+      {
+       "file": "src/alloc.c",
+       "line": 748,
+       "message": "macro expanded here"
+      },
+      {
+       "file": "src/vim.h",
+       "line": 2623,
+       "message": "allocated by `realloc` here"
+      },
+      {
+       "file": "src/vim9execute.c",
+       "line": 1772,
+       "message": "memory becomes unreachable here"
+      }
+     ],
+     "extra": {
+      "severity": "ERROR",
+      "hash": "ee94a988ab1bdd33612d9d1d195e3c96"
+     }
+    },
+    "function": "do_2string",
+    "feasible": true,
+    "reason": "typval2string() at L31 -> ['s', 'str'] reaches exit unfreed",
+    "path_lines": [
+     4,
+     4,
+     7,
+     9,
+     9,
+     9,
+     11,
+     11,
+     20,
+     21,
+     21,
+     21,
+     23,
+     24,
+     26,
+     31,
+     32,
+     32,
+     34,
+     35,
+     35,
+     48,
+     49,
+     50,
+     51,
+     52
+    ]
+   }
+  ]
+ },
+ {
+  "function": "handle_debug",
+  "file": "src/vim9execute.c",
+  "verdict": false,
+  "confidence": 0.99,
+  "reason": "The growarray storage is explicitly freed, while the concatenated string is separately freed after debugging.",
+  "bug_indices": [],
+  "warnings": [
+   {
+    "warning": {
+     "analyzer": "infer",
+     "rule": "MEMORY_LEAK_C",
+     "file": "src/vim9execute.c",
+     "line": 2295,
+     "function": "handle_debug",
+     "message": "Memory dynamically allocated by `realloc`, indirectly via call to `ga_grow_inner()` on line 2289 is not freed after the last access at line 2295, column 2.",
+     "allocation_site": "src/vim9execute.c:2289:ga_grow_inner",
+     "trace": [
+      {
+       "file": "src/vim9execute.c",
+       "line": 2289,
+       "message": "macro expanded here"
+      },
+      {
+       "file": "src/macros.h",
+       "line": 426,
+       "message": "allocation part of the trace starts here"
+      },
+      {
+       "file": "src/vim9execute.c",
+       "line": 2289,
+       "message": "macro expanded here"
+      },
+      {
+       "file": "src/macros.h",
+       "line": 426,
+       "message": "when calling `ga_grow_inner` here"
+      },
+      {
+       "file": "src/alloc.c",
+       "line": 748,
+       "message": "macro expanded here"
+      },
+      {
+       "file": "src/vim.h",
+       "line": 2623,
+       "message": "allocated by `realloc` here"
+      },
+      {
+       "file": "src/vim9execute.c",
+       "line": 2295,
+       "message": "memory becomes unreachable here"
+      }
+     ],
+     "extra": {
+      "severity": "ERROR",
+      "hash": "0bde29930a0d8e0866a1c207be0370cd"
+     }
+    },
+    "function": "handle_debug",
+    "feasible": true,
+    "reason": "no recognised allocation in function; kept for LLM",
+    "path_lines": []
+   }
+  ]
+ },
+ {
+  "function": "set_tuple_union_type_on_stack",
+  "file": "src/vim9instr.c",
+  "verdict": false,
+  "confidence": 0.99,
+  "reason": "The dynamically allocated garray storage is explicitly released by ga_clear before the function returns.",
+  "bug_indices": [],
+  "warnings": [
+   {
+    "warning": {
+     "analyzer": "infer",
+     "rule": "MEMORY_LEAK_C",
+     "file": "src/vim9instr.c",
+     "line": 329,
+     "function": "set_tuple_union_type_on_stack",
+     "message": "Memory dynamically allocated by `realloc`, indirectly via call to `ga_append_tuple_types()` on line 313 is not freed after the last access at line 329, column 1.",
+     "allocation_site": "src/vim9instr.c:313:ga_append_tuple_types",
+     "trace": [
+      {
+       "file": "src/vim9instr.c",
+       "line": 313,
+       "message": "allocation part of the trace starts here"
+      },
+      {
+       "file": "src/vim9instr.c",
+       "line": 313,
+       "message": "when calling `ga_append_tuple_types` here"
+      },
+      {
+       "file": "src/vim9instr.c",
+       "line": 287,
+       "message": "when calling `ga_grow` here"
+      },
+      {
+       "file": "src/alloc.c",
+       "line": 713,
+       "message": "when calling `ga_grow_inner` here"
+      },
+      {
+       "file": "src/alloc.c",
+       "line": 748,
+       "message": "macro expanded here"
+      },
+      {
+       "file": "src/vim.h",
+       "line": 2623,
+       "message": "allocated by `realloc` here"
+      },
+      {
+       "file": "src/vim9instr.c",
+       "line": 329,
+       "message": "memory becomes unreachable here"
+      }
+     ],
+     "extra": {
+      "severity": "ERROR",
+      "hash": "4c6dd92371e1b882316e20bdddc57043"
+     }
+    },
+    "function": "set_tuple_union_type_on_stack",
+    "feasible": true,
+    "reason": "no recognised allocation in function; kept for LLM",
+    "path_lines": []
+   }
+  ]
+ },
+ {
+  "function": "find_longest_common_sequence",
+  "file": "src/xdiff/xpatience.c",
+  "verdict": false,
+  "confidence": 0.99,
+  "reason": "The allocated sequence array is explicitly freed on every return path, so neither report is a real leak.",
+  "bug_indices": [],
+  "warnings": [
+   {
+    "warning": {
+     "analyzer": "infer",
+     "rule": "MEMORY_LEAK_C",
+     "file": "src/xdiff/xpatience.c",
+     "line": 231,
+     "function": "find_longest_common_sequence",
+     "message": "Memory dynamically allocated by `malloc`, indirectly via call to `lalloc()` on line 208 is not freed after the last access at line 231, column 3.",
+     "allocation_site": "src/xdiff/xpatience.c:208:lalloc",
+     "trace": [
+      {
+       "file": "src/xdiff/xpatience.c",
+       "line": 208,
+       "message": "macro expanded here"
+      },
+      {
+       "file": "src/xdiff/xdiff.h",
+       "line": 129,
+       "message": "allocation part of the trace starts here"
+      },
+      {
+       "file": "src/xdiff/xpatience.c",
+       "line": 208,
+       "message": "macro expanded here"
+      },
+      {
+       "file": "src/xdiff/xdiff.h",
+       "line": 129,
+       "message": "when calling `lalloc` here"
+      },
+      {
+       "file": "src/alloc.c",
+       "line": 246,
+       "message": "allocated by `malloc` here"
+      },
+      {
+       "file": "src/xdiff/xpatience.c",
+       "line": 231,
+       "message": "macro expanded here"
+      },
+      {
+       "file": "src/xdiff/xdiff.h",
+       "line": 131,
+       "message": "memory becomes unreachable here"
+      }
+     ],
+     "extra": {
+      "severity": "ERROR",
+      "hash": "e274ece3b334533d4b069ee2351b4c67"
+     }
+    },
+    "function": "find_longest_common_sequence",
+    "feasible": true,
+    "reason": "no recognised allocation in function; kept for LLM",
+    "path_lines": []
+   },
+   {
+    "warning": {
+     "analyzer": "infer",
+     "rule": "MEMORY_LEAK_C",
+     "file": "src/xdiff/xpatience.c",
+     "line": 243,
+     "function": "find_longest_common_sequence",
+     "message": "Memory dynamically allocated by `malloc`, indirectly via call to `lalloc()` on line 208 is not freed after the last access at line 243, column 2.",
+     "allocation_site": "src/xdiff/xpatience.c:208:lalloc",
+     "trace": [
+      {
+       "file": "src/xdiff/xpatience.c",
+       "line": 208,
+       "message": "macro expanded here"
+      },
+      {
+       "file": "src/xdiff/xdiff.h",
+       "line": 129,
+       "message": "allocation part of the trace starts here"
+      },
+      {
+       "file": "src/xdiff/xpatience.c",
+       "line": 208,
+       "message": "macro expanded here"
+      },
+      {
+       "file": "src/xdiff/xdiff.h",
+       "line": 129,
+       "message": "when calling `lalloc` here"
+      },
+      {
+       "file": "src/alloc.c",
+       "line": 246,
+       "message": "allocated by `malloc` here"
+      },
+      {
+       "file": "src/xdiff/xpatience.c",
+       "line": 243,
+       "message": "macro expanded here"
+      },
+      {
+       "file": "src/xdiff/xdiff.h",
+       "line": 131,
+       "message": "memory becomes unreachable here"
+      }
+     ],
+     "extra": {
+      "severity": "ERROR",
+      "hash": "e274ece3b334533d4b069ee2351b4c67"
+     }
+    },
+    "function": "find_longest_common_sequence",
+    "feasible": true,
+    "reason": "no recognised allocation in function; kept for LLM",
+    "path_lines": []
+   }
+  ]
+ }
+]

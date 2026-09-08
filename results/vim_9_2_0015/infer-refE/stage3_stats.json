@@ -1,0 +1,16 @@
+{
+ "n_warnings": 395,
+ "n_z3_feasible": 358,
+ "z3_seconds": 82,
+ "n_llm_functions": 255,
+ "n_llm_confirmed_functions": 28,
+ "n_bugs": 34,
+ "llm": {
+  "calls": 96,
+  "cache_hits": 159,
+  "prompt_tokens": 121893,
+  "cached_tokens": 0,
+  "completion_tokens": 49689,
+  "cost_usd": 0.084
+ }
+}

@@ -48,10 +48,10 @@ def build(out: Path) -> str:
     md += ["", "## Stages 2-3: warnings → Z3 → LLM → bugs (paper Table V)", "",
            "| analyzer | | #Warn. | #Z3 | #LLM-valid. | #bugs reported |", "|---|---|---|---|---|---|"]
     for an in ("codeql", "infer"):
-        for suffix in ("", "-vanilla"):
-            d = out / (an + suffix)
+        for d in sorted(out.glob(an + "*")):
+            suffix = d.name[len(an):]
             s2, s3 = _load(d / "stage2_stats.json") or {}, _load(d / "stage3_stats.json") or {}
-            if not s2:
+            if not s2 or not d.is_dir():
                 continue
             w = s2.get("n_warnings", 0)
             z = s3.get("n_z3_feasible")
@@ -85,8 +85,9 @@ def build(out: Path) -> str:
             md.append(f"| {name} | {r['reported']} | {r['matched']} | {r['fixes_hit']} | {tp} | {tpf} | {fp} | {len(keys) - tp - tpf - fp} |")
 
     # bug list
-    for an in ("codeql", "infer"):
-        bugs = _load(out / an / "bugs.json")
+    for d in sorted(p for p in out.iterdir() if p.is_dir() and (p / "bugs.json").exists() and not p.name.endswith("-vanilla")):
+        an = d.name
+        bugs = _load(d / "bugs.json")
         if bugs:
             rv = review.get("verdicts", {})
             matched_funcs = {}

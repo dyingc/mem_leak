@@ -31,8 +31,13 @@ def main(argv: list[str] | None = None) -> int:
         s.add_argument("--analyzer", choices=["codeql", "infer"], required=True)
         s.add_argument("--vanilla", action="store_true", help="baseline: no summaries injected")
         s.add_argument("--threads", type=int, default=8)
+        s.add_argument("--tag", help="suffix for the run directory: <analyzer>[-vanilla][-TAG]")
+        s.add_argument("--hints", type=Path, help="use this hints.json instead of <out>/hints.json")
         if name == "stage2":
             s.add_argument("--tools", type=Path, default=Path("tools"))
+            s.add_argument("--infer-report", type=Path, help="replay an existing Infer report.json instead of running Infer")
+            s.add_argument("--infer-pattern-mode", choices=["anchored", "official"], default="anchored")
+            s.add_argument("--infer-debug-level", type=int)
         else:
             s.add_argument("--workers", type=int, default=8)
             s.add_argument("--budget", type=float, default=20.0)
@@ -49,10 +54,12 @@ def main(argv: list[str] | None = None) -> int:
         Stage1(args.project, args.out, args.source_root, args.workers, args.budget).run(args.force)
     elif args.cmd == "stage2":
         from .pipeline import Stage2
-        Stage2(args.project, args.out, args.analyzer, args.tools, args.vanilla, args.threads).run()
+        Stage2(args.project, args.out, args.analyzer, args.tools, args.vanilla, args.threads, args.tag, args.hints,
+               args.infer_report, args.infer_pattern_mode, args.infer_debug_level).run()
     elif args.cmd == "stage3":
         from .pipeline import Stage3
-        Stage3(args.project, args.out, args.analyzer, args.vanilla, args.workers, args.budget, args.skip_llm).run()
+        Stage3(args.project, args.out, args.analyzer, args.vanilla, args.workers, args.budget, args.skip_llm,
+               args.tag, args.hints).run()
     return 0
 
 

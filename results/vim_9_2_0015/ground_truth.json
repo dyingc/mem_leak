@@ -1036,15 +1036,216 @@
     ]
    ]
   },
-  "infer": {
-   "reported": 2,
-   "matched": 2,
-   "fixes_hit": 2,
+  "infer-refA": {
+   "reported": 32,
+   "matched": 24,
+   "fixes_hit": 16,
    "fixes_hit_patches": [
+    "7ed37dc5",
+    "9.2.0057",
+    "9.2.0067",
+    "9.2.0105",
+    "9.2.0106",
+    "9.2.0133",
+    "9.2.0134",
+    "9.2.0136",
+    "9.2.0243",
     "9.2.0244",
-    "9.2.0711"
+    "9.2.0773",
+    "9.2.0777",
+    "9.2.0778",
+    "9.2.0799",
+    "9.2.0802",
+    "9.2.0933"
    ],
-   "unmatched": []
+   "unmatched": [
+    [
+     "src/clipboard.c",
+     "clip_wl_init_buffer_store",
+     2425
+    ],
+    [
+     "src/json.c",
+     "json_encode_lsp_msg",
+     114
+    ],
+    [
+     "src/strings.c",
+     "string_reduce",
+     1056
+    ],
+    [
+     "src/vim9cmds.c",
+     "compile_catch",
+     1793
+    ],
+    [
+     "src/vim9cmds.c",
+     "compile_for",
+     995
+    ],
+    [
+     "src/vim9compile.c",
+     "reserve_local",
+     674
+    ],
+    [
+     "src/vim9execute.c",
+     "exec_unpack_tuple",
+     3557
+    ],
+    [
+     "src/viminfo.c",
+     "barline_parse",
+     1171
+    ]
+   ]
+  },
+  "infer-refE": {
+   "reported": 34,
+   "matched": 23,
+   "fixes_hit": 17,
+   "fixes_hit_patches": [
+    "7ed37dc5",
+    "9.2.0067",
+    "9.2.0105",
+    "9.2.0106",
+    "9.2.0133",
+    "9.2.0134",
+    "9.2.0136",
+    "9.2.0242",
+    "9.2.0243",
+    "9.2.0244",
+    "9.2.0773",
+    "9.2.0777",
+    "9.2.0778",
+    "9.2.0779",
+    "9.2.0799",
+    "9.2.0802",
+    "9.2.0933"
+   ],
+   "unmatched": [
+    [
+     "src/beval.c",
+     "general_beval_cb",
+     346
+    ],
+    [
+     "src/clipboard.c",
+     "clip_wl_init_buffer_store",
+     2425
+    ],
+    [
+     "src/evalvars.c",
+     "set_internal_string_var",
+     380
+    ],
+    [
+     "src/ex_docmd.c",
+     "expand_sfile",
+     10174
+    ],
+    [
+     "src/json.c",
+     "json_encode_lsp_msg",
+     101
+    ],
+    [
+     "src/strings.c",
+     "string_reduce",
+     1056
+    ],
+    [
+     "src/vim9cmds.c",
+     "compile_catch",
+     1793
+    ],
+    [
+     "src/vim9cmds.c",
+     "compile_for",
+     995
+    ],
+    [
+     "src/vim9compile.c",
+     "reserve_local",
+     674
+    ],
+    [
+     "src/vim9generics.c",
+     "parse_generic_func_type_args",
+     329
+    ],
+    [
+     "src/viminfo.c",
+     "barline_parse",
+     1171
+    ]
+   ]
+  },
+  "infer-refF": {
+   "reported": 29,
+   "matched": 21,
+   "fixes_hit": 16,
+   "fixes_hit_patches": [
+    "7ed37dc5",
+    "9.2.0057",
+    "9.2.0067",
+    "9.2.0105",
+    "9.2.0106",
+    "9.2.0133",
+    "9.2.0134",
+    "9.2.0136",
+    "9.2.0243",
+    "9.2.0244",
+    "9.2.0773",
+    "9.2.0777",
+    "9.2.0778",
+    "9.2.0799",
+    "9.2.0802",
+    "9.2.0933"
+   ],
+   "unmatched": [
+    [
+     "src/beval.c",
+     "general_beval_cb",
+     346
+    ],
+    [
+     "src/clipboard.c",
+     "clip_wl_init_buffer_store",
+     2425
+    ],
+    [
+     "src/json.c",
+     "json_encode_lsp_msg",
+     114
+    ],
+    [
+     "src/strings.c",
+     "string_reduce",
+     1056
+    ],
+    [
+     "src/vim9cmds.c",
+     "compile_catch",
+     1793
+    ],
+    [
+     "src/vim9cmds.c",
+     "compile_for",
+     995
+    ],
+    [
+     "src/vim9compile.c",
+     "reserve_local",
+     674
+    ],
+    [
+     "src/viminfo.c",
+     "barline_parse",
+     1171
+    ]
+   ]
   },
   "infer-vanilla": {
    "reported": 0,

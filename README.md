@@ -21,9 +21,11 @@ Booleans — shared between branch nodes only when every variable in the conditi
 the function, so `if (x) … if (!x)` correlate but `item = f(); if (item) … item = g(); if (item)` do not;
 `p == NULL` after `p = alloc()` clears `alloc`).
 
-Deviations from the paper worth knowing: warnings are deduplicated across the two CodeQL queries (the paper's
-#Warn. counts appear to include duplicates from its extra enhanced queries), Infer runs with default Pulse limits
-(`--pulse-max-disjuncts 20`, which drops >1M disjuncts on Vim), and the LLM is gpt-5.6-luna for both phases.
+Deviations from the paper worth knowing: the LLM is gpt-5.6-luna for both phases; the Infer patterns use OCaml
+`Str` syntax (`^\(a\|b\)$`, anchored) because that is what Infer actually compiles — the paper's appendix prints
+`^(a|b)$`, which matches nothing (`--infer-pattern-mode official` reproduces the reference repo's unanchored form).
+Warnings are counted per analyzer result, without deduplication, as in the reference implementation.
+See `COMPARISON.md` for the stage-by-stage comparison with the official jiekeshi/MemHint code.
 
 ## Setup
 

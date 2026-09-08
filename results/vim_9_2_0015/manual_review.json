@@ -76,6 +76,41 @@
   "src/if_xcmdsrv.c:serverRegisterName": {
    "verdict": "TP",
    "note": "p = alloc() inside a do-while; a registration failure on a later iteration returns FAIL without vim_free(p)."
+  },
+  "src/json.c:json_encode_lsp_msg": {
+   "verdict": "TP",
+   "note": "json_encode_gap() can FAIL after appending to ga (e.g. a funcref inside the value); the early `return NULL` skips ga_clear(&ga). Still present at upstream a96c3bc1 (json.c:104-105). Found by Infer (run with corrected patterns).",
+   "source": "infer-refA"
+  },
+  "src/vim9compile.c:reserve_local": {
+   "verdict": "FP",
+   "note": "When GA_GROW_FAILS(&dfunc->df_var_names) the lvar with lv_name already sits in cctx->ctx_locals (ga_len incremented), so lv_name is released with the locals; OOM-only path anyway.",
+   "source": "infer-refA"
+  },
+  "src/vim9execute.c:exec_unpack_tuple": {
+   "verdict": "FP",
+   "note": "list_alloc_with_items() returns a list with lv_refcount 0; the ++lv_refcount after storing it in the stack typval is the single owning reference. Not a leak.",
+   "source": "infer-refA"
+  },
+  "src/beval.c:general_beval_cb": {
+   "verdict": "TP-FIXED",
+   "note": "get_beval_info(getword=TRUE) returns an allocated `text`; when the buffer has no 'balloonexpr' (*bexpr == NUL) the function falls through without freeing it. Upstream master now has `vim_free(text)` on that path (beval.c:339).",
+   "source": "infer-refE"
+  },
+  "src/evalvars.c:set_internal_string_var": {
+   "verdict": "FP",
+   "note": "alloc_string_tv() frees its argument itself when alloc_tv() fails (typval.c:44-45).",
+   "source": "infer-refE"
+  },
+  "src/ex_docmd.c:expand_sfile": {
+   "verdict": "FP",
+   "note": "Artifact of the unanchored/official-validated model: eval_vars() modelled as a never-NULL allocator, but on the errormsg path it returns NULL; errormsg itself is a static string.",
+   "source": "infer-refE"
+  },
+  "src/vim9generics.c:parse_generic_func_type_args": {
+   "verdict": "TP",
+   "note": "If alloc() for gt_name fails the function returns NULL without vim_free(ret_free) (the name buffer returned by type_name()). Allocation-failure path only; still present at upstream a96c3bc1 (vim9generics.c:326-328).",
+   "source": "infer-refE"
   }
  }
 }

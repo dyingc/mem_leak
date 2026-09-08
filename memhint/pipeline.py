@@ -111,10 +111,14 @@ class Stage1:
         return valid
 
 
-def load_hints(out: Path, vanilla: bool = False) -> list[Summary]:
+def load_hints(out: Path, vanilla: bool = False, hints_file: Path | None = None) -> list[Summary]:
     if vanilla:
         return []
-    return hints_from_json(json.loads((out / "hints.json").read_text()))
+    return hints_from_json(json.loads((hints_file or out / "hints.json").read_text()))
+
+
+def run_dir(out: Path, analyzer: str, vanilla: bool = False, tag: str | None = None) -> Path:
+    return out / (analyzer + ("-vanilla" if vanilla else "") + (f"-{tag}" if tag else ""))
 
 
 class Stage2:
@@ -125,15 +129,19 @@ class Stage2:
       warnings.json                 normalised warnings (Stage 3 input)
     """
 
-    def __init__(self, project: Path, out: Path, analyzer: str, tools: Path, vanilla: bool = False, threads: int = 8):
+    def __init__(self, project: Path, out: Path, analyzer: str, tools: Path, vanilla: bool = False, threads: int = 8,
+                 tag: str | None = None, hints_file: Path | None = None, infer_report: Path | None = None,
+                 infer_pattern_mode: str = "anchored", infer_debug_level: int | None = None):
         self.project, self.out, self.analyzer, self.vanilla, self.threads = project, out, analyzer, vanilla, threads
         self.tools = tools
-        self.dir = out / (analyzer + ("-vanilla" if vanilla else ""))
+        self.hints_file, self.infer_report = hints_file, infer_report
+        self.infer_pattern_mode, self.infer_debug_level = infer_pattern_mode, infer_debug_level
+        self.dir = run_dir(out, analyzer, vanilla, tag)
         self.dir.mkdir(parents=True, exist_ok=True)
 
     def run(self) -> list:
         from .models import Warning
-        summaries = load_hints(self.out, self.vanilla)
+        summaries = load_hints(self.out, self.vanilla, self.hints_file)
         t0 = time.time()
         if self.analyzer == "codeql":
             from .analyzers.codeql import CodeQL, write_model_pack, parse_sarif
@@ -143,9 +151,13 @@ class Stage2:
             warnings = parse_sarif(sarif)
         elif self.analyzer == "infer":
             from .analyzers.infer import Infer, parse_report
-            inf = Infer(self.tools / "infer" / "bin" / "infer", self.threads)
-            report = inf.analyze(self.out / "infer-out", summaries)
-            (self.dir / "report.json").write_text(report.read_text())
+            if self.infer_report:  # replay an existing Infer report.json
+                report = self.infer_report
+            else:
+                inf = Infer(self.tools / "infer" / "bin" / "infer", self.threads, self.infer_pattern_mode, self.infer_debug_level)
+                report = inf.analyze(self.out / "infer-out", summaries)
+            if report.resolve() != (self.dir / "report.json").resolve():
+                (self.dir / "report.json").write_text(report.read_text())
             warnings = parse_report(self.dir / "report.json")
         else:
             raise ValueError(self.analyzer)
@@ -168,9 +180,11 @@ class Stage3:
     """
 
     def __init__(self, project: Path, out: Path, analyzer: str, vanilla: bool = False,
-                 workers: int = 8, budget_usd: float | None = 20.0, skip_llm: bool = False):
+                 workers: int = 8, budget_usd: float | None = 20.0, skip_llm: bool = False,
+                 tag: str | None = None, hints_file: Path | None = None):
         self.project, self.out, self.analyzer, self.vanilla = project, out, analyzer, vanilla
-        self.dir = out / (analyzer + ("-vanilla" if vanilla else ""))
+        self.hints_file = hints_file
+        self.dir = run_dir(out, analyzer, vanilla, tag)
         self.workers, self.skip_llm = workers, skip_llm
         self.llm = None if skip_llm else LLM(cache_dir=out / "llm_cache", budget_usd=budget_usd)
 
@@ -178,7 +192,7 @@ class Stage3:
         from .models import Warning
         from .verify import FunctionLocator, z3_filter, llm_verify
         warnings = [Warning.from_dict(d) for d in json.loads((self.dir / "warnings.json").read_text())]
-        summaries = load_hints(self.out, self.vanilla)
+        summaries = load_hints(self.out, self.vanilla, self.hints_file)
         loc = FunctionLocator(self.project)
         t0 = time.time()
         z3r = z3_filter(warnings, loc, summaries)

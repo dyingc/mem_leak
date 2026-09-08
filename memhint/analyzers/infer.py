@@ -14,7 +14,9 @@ Infer compiles these patterns with OCaml's ``Str`` module and matches them with
 names are modelled and, since Infer's free model always releases the first
 argument, only ``arg0`` deallocators are injected.  ``mode="official"`` reproduces
 the reference implementation (jiekeshi/MemHint ``adapters.py``): unanchored names,
-every allocator and every deallocator regardless of target.
+every allocator and every deallocator regardless of target.  ``mode="anchored-argn"``
+is ``anchored`` plus, for deallocators that release argument N >= 1, our Infer patch's
+``--pulse-model-free-arg-pattern N:regex`` (see notes/infer-free-arg-patch.md).
 """
 from __future__ import annotations
 
@@ -36,16 +38,30 @@ def _str_escape(name: str) -> str:
     return "".join("\\" + c if c in _STR_SPECIAL else c for c in name)
 
 
+def _anchored(names) -> str | None:
+    return "^\\(" + "\\|".join(_str_escape(n) for n in sorted(names)) + "\\)$" if names else None
+
+
 def patterns(summaries: list[Summary], mode: str = "anchored") -> tuple[str | None, str | None]:
     skip = {"main", "_main", ""}
     allocs = sorted({s.name for s in summaries if s.role is Role.ALLOCATOR and s.name not in skip})
     if mode == "official":
         frees = sorted({s.name for s in summaries if s.role is Role.DEALLOCATOR and s.name not in skip})
         mk = lambda names: "\\|".join(_str_escape(n) for n in names) if names else None
-    else:
-        frees = sorted({s.name for s in summaries if s.role is Role.DEALLOCATOR and s.arg_index == 0})
-        mk = lambda names: "^\\(" + "\\|".join(_str_escape(n) for n in names) + "\\)$" if names else None
-    return mk(allocs), mk(frees)
+        return mk(allocs), mk(frees)
+    frees = {s.name for s in summaries if s.role is Role.DEALLOCATOR and s.arg_index == 0}
+    return _anchored(allocs), _anchored(frees)
+
+
+def free_arg_patterns(summaries: list[Summary]) -> list[str]:
+    """``N:regex`` values for ``--pulse-model-free-arg-pattern`` (our Infer patch): one entry per
+    argument position N >= 1 that some validated deallocator releases.  Functions that release
+    several arguments get one entry per position."""
+    by_pos: dict[int, set[str]] = {}
+    for s in summaries:
+        if s.role is Role.DEALLOCATOR and s.arg_index is not None and s.arg_index >= 1:
+            by_pos.setdefault(s.arg_index, set()).add(s.name)
+    return [f"{n}:{_anchored(names)}" for n, names in sorted(by_pos.items())]
 
 
 class Infer:
@@ -77,6 +93,9 @@ class Infer:
                 args += ["--pulse-model-alloc-pattern", ap]
             if fp:
                 args += ["--pulse-model-free-pattern", fp]
+            if self.pattern_mode == "anchored-argn":  # needs the patched Infer (tools/infer-src)
+                for spec in free_arg_patterns(summaries):
+                    args += ["--pulse-model-free-arg-pattern", spec]
         t0 = time.time()
         r = self.run(args)
         if r.returncode:

@@ -111,6 +111,21 @@
    "verdict": "TP",
    "note": "When alloc() for gt_name fails the function returns without vim_free(ret_free), the composite type name returned by type_name(); the neighbouring ga_grow() failure path does free it. Needs a composite type argument (for <number> type_name() returns a static string). Verified with LeakSanitizer plus a forced allocation failure (results/upstream-prs/generics_asan.txt); patch drafted.",
    "source": "infer-refE"
+  },
+  "src/change.c:f_listener_add": {
+   "verdict": "FP",
+   "note": "get_callback() returns cb_name == NULL only on its FAIL path, which is taken before anything is allocated (evalvars.c:5231-5256); the early return on a NULL name therefore frees nothing that was allocated. The empty-name case is a static literal. Reported only in the compile-DB control run, absent in the F and patched-Infer runs: run-to-run noise.",
+   "source": "infer-cdb"
+  },
+  "src/option.c:option_set_callback_func": {
+   "verdict": "FP",
+   "note": "get_callback() returns cb_name == NULL only on its FAIL path, which is taken before anything is allocated (evalvars.c:5231-5256); the early return on a NULL name therefore frees nothing that was allocated. The empty-name case is a static literal. Reported only in the compile-DB control run, absent in the F and patched-Infer runs: run-to-run noise.",
+   "source": "infer-cdb"
+  },
+  "src/quickfix.c:qf_setprop_qftf": {
+   "verdict": "FP",
+   "note": "get_callback() returns cb_name == NULL only on its FAIL path, which is taken before anything is allocated (evalvars.c:5231-5256); the early return on a NULL name therefore frees nothing that was allocated. The empty-name case is a static literal. Reported only in the compile-DB control run, absent in the F and patched-Infer runs: run-to-run noise.",
+   "source": "infer-cdb"
   }
  }
 }

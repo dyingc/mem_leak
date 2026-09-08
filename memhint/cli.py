@@ -36,7 +36,7 @@ def main(argv: list[str] | None = None) -> int:
         if name == "stage2":
             s.add_argument("--tools", type=Path, default=Path("tools"))
             s.add_argument("--infer-report", type=Path, help="replay an existing Infer report.json instead of running Infer")
-            s.add_argument("--infer-pattern-mode", choices=["anchored", "official"], default="anchored")
+            s.add_argument("--infer-pattern-mode", choices=["anchored", "official", "anchored-argn"], default="anchored")
             s.add_argument("--infer-debug-level", type=int)
         else:
             s.add_argument("--workers", type=int, default=8)

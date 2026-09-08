@@ -1,0 +1,25 @@
+# Toy test for --pulse-model-free-arg-pattern (patched Infer v1.2.0)
+
+#include <stdlib.h>
+struct ctx;
+extern void *my_alloc(int n);                     /* opaque allocator */
+extern void my_free2(struct ctx *c, void *p);     /* opaque: frees 2nd argument */
+extern void my_free3(struct ctx *c, int flags, void *p);  /* frees 3rd argument */
+void leak_none(struct ctx *c) { void *p = my_alloc(4); (void)p; }
+void ok_free2(struct ctx *c) { void *p = my_alloc(4); my_free2(c, p); }
+void ok_free3(struct ctx *c) { void *p = my_alloc(4); my_free3(c, 0, p); }
+void use_ctx_after(struct ctx *c) { void *p = my_alloc(4); my_free2(c, p); my_free2(c, my_alloc(2)); }
+
+== infer run --pulse-only --pulse-model-alloc-pattern ^\(my_alloc\)$
+   MEMORY_LEAK_C leak_none line 6
+
+== infer run --pulse-only --pulse-model-alloc-pattern ^\(my_alloc\)$ --pulse-model-free-pattern ^\(my_free2\|my_free3\)$
+   MEMORY_LEAK_C leak_none line 6
+   MEMORY_LEAK_C ok_free2 line 7
+   MEMORY_LEAK_C ok_free3 line 8
+   MEMORY_LEAK_C use_ctx_after line 9
+   USE_AFTER_FREE use_ctx_after line 9
+
+== infer run --pulse-only --pulse-model-alloc-pattern ^\(my_alloc\)$ --pulse-model-free-arg-pattern 1:^\(my_free2\)$ --pulse-model-free-arg-pattern 2:^\(my_free3\)$
+   MEMORY_LEAK_C leak_none line 6
+

@@ -98,14 +98,14 @@ Infer 1.2.0 用 `Str.regexp` 编译、`Str.string_match … 0` 匹配：`|`、`(
 
 Stage 3（Z3 + gpt-5.6-luna）与上游真值对照：
 
-| 组 | #告警 | Z3 后 | LLM 确认函数 | 报出条数 | 命中上游修复 | 不同补丁数 | 论文窗口(18) | 未命中人工复核 |
+| 组 | #告警 | Z3 后 | LLM 确认函数 | 报出条数 | 命中上游修复 | 不同补丁数 | 论文窗口(19) | 未命中人工复核 |
 |---|---|---|---|---|---|---|---|---|
-| A (`infer-refA`) | 332 | 289 | 24 | 32 | 24 | 16 | 8 | 8：TP 2（`string_reduce`、`barline_parse`）+ TP 1 新（`json_encode_lsp_msg`）+ TP-FIXED 1 + FP 4 |
-| E (`infer-refE`) | 395 | 358 | 28 | 34 | 23 | 17 | 7 | 11：TP 3（`string_reduce`、`barline_parse`、`parse_generic_func_type_args` 新，OOM 路径）+ TP-FIXED 2（`clip_wl_init_buffer_store`、`general_beval_cb` 新）+ FP 6 |
-| F (`infer-refF`) | 298 | 267 | 24 | 29 | 21 | 16 | 8 | 8：TP 3（同上）+ TP-FIXED 2 + FP 3 |
+| A (`infer-refA`) | 332 | 289 | 24 | 32 | 24 | 16 | 8/19 | 8：TP 2（`string_reduce`、`barline_parse`）+ TP 1 新（`json_encode_lsp_msg`）+ TP-FIXED 1 + FP 4 |
+| E (`infer-refE`) | 395 | 358 | 28 | 34 | 23 | 17 | 7/19 | 11：TP 3（`string_reduce`、`barline_parse`、`parse_generic_func_type_args` 新，OOM 路径）+ TP-FIXED 2（`clip_wl_init_buffer_store`、`general_beval_cb` 新）+ FP 6 |
+| F (`infer-refF`) | 298 | 267 | 24 | 29 | 21 | 16 | 8/19 | 8：TP 3（同上）+ TP-FIXED 2 + FP 3 |
 | 论文 Infer | 1,032 | 147 | 25 | 15 确认 | | | | |
 
-"论文窗口"一列把无编号的提交 `7ed37dc5`（list_extend_func 泄漏）算在窗口内，与 REPRODUCTION.md 7.1 的口径一致。三组精确率（(命中 patch 数 + 人工判真) / 报告函数数）：A 83.3%、E 82.1%、F 87.5%。加锚点的 F 组告警最少、精确率最高、召回与 A 相同，所以本仓库默认用 `anchored` 模式。三组 Stage 3 的 LLM 费用合计 $0.28（大量缓存命中）。
+"论文窗口"的分母是 19：patch 9.2.0055–9.2.0136 这段日期内的 18 个带编号泄漏修复，加上维护者漏写编号的 `7ed37dc5`（list_extend_func）。与 REPRODUCTION.md 7.1 同一口径。三组精确率（(命中 patch 数 + 人工判真) / 报告函数数）：A 83.3%、E 82.1%、F 87.5%。加锚点的 F 组告警最少、精确率最高、召回与 A 相同，所以本仓库默认用 `anchored` 模式。三组 Stage 3 的 LLM 费用合计 $0.28（大量缓存命中）。
 
 新发现：`json_encode_lsp_msg()`（src/json.c）——`json_encode_gap()` 在已向 `ga` 追加内容后可能 FAIL（例如值里含 funcref），提前 `return NULL` 跳过了 `ga_clear(&ga)`。上游 a96c3bc1 仍存在。CodeQL 没报它（`ga_grow` 系列不在摘要里）。
 

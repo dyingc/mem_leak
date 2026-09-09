@@ -1,0 +1,4 @@
+# a good one: string then more values
+|1,>5
+|<"abc"
+|<x

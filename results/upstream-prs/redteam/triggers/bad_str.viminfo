@@ -1,0 +1,4 @@
+# unterminated quoted long string
+|1,>5
+|<"abc
+|<x

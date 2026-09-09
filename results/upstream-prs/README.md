@@ -1,3 +1,7 @@
+**Superseded (2026-09-08/09): the current patch set is `tip-9.2.1054/` (nine diffs against
+5d934b1b, PR texts in `tip-9.2.1054/PR_DESCRIPTIONS.md`, red-team review in
+`CHALLENGE_RESPONSE.md`). This file documents the earlier five against a96c3bc1.**
+
 # Draft upstream PRs for vim/vim
 
 Five leaks found by the MemHint reproduction that are still present on `master`

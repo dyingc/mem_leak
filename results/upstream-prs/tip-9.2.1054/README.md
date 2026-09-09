@@ -82,8 +82,9 @@ Two claims in the review did not survive and have been struck from the PR texts:
   `reduce()` in an **inner** script that returns, then call `qall!` from the outer script,
   whose frames are still very much alive: "poisoned slot" predicts a use-after-return, and
   "`restore_funccal()` dropped it" predicts a leak with no use-after-return. Result: leak,
-  no use-after-return. Chain-depth probe agrees: 0 before the failing call, 1 after it, 0
-  once the script ends.
+  no use-after-return. Chain-depth probe agrees: 0 in the outer script, 1 in the inner one
+  after the failing call, 0 in the outer script once the source returns. Recorded as case G
+  in `../redteam/logs/t3-exit-path-matrix.txt`.
 
   Consequence worth putting in the PR: the wrong function context lasts only for the rest of
   the script that ran the failing `reduce()`. The reproduction command must put `qall!` in

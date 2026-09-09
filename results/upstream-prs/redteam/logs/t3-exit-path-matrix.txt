@@ -15,16 +15,21 @@ E) rt_funccal_depth read from -c after the script: 0     (restore_funccal() ran)
 F) rt_funccal_depth read inside the script after reduce: 1 (stale frame on chain)
 Patched: A-D all clean.
 
---- appended by the reviewer, 2026-09-09 ---
-G) failing reduce() in an INNER script that RETURNS, qall! from the OUTER script
-   (t3_uar_inner_returns.vim sourced by t3_uar_outer_qall.vim)
+
+--- case G, added 2026-09-09 (proposed by the reviewer, run by both sides) ---
+G) failing reduce() in an INNER sourced script that returns; qall! from the OUTER script,
+   whose C stack frames are all still alive
+   (triggers/t3_outer_qall.vim sourcing triggers/t3_inner_reduce.vim)
        unpatched -> LSAN 2192 bytes, NO stack-use-after-return
        patched   -> clean
-   This is the case that separates the two proposed mechanisms. The outer script is
-   still running and its C frames are alive, so "the sourcing frames are alive, hence
-   the ectx slot is still poisoned" predicts a use-after-return here; the save/restore
-   account predicts the inner restore_funccal() already dropped the frame, leaving a
-   pure leak. The leak is what happens, so the save/restore account is the right one
-   and the poisoning account is wrong.
-   Note that C and D above do not separate the two: both are consistent with either
-   story. Only G does.
+   Depth probe along the way: outer before 0, inner after the failing reduce 1,
+   outer after the source returns 0.
+
+   This is the case that separates the two proposed mechanisms. The outer script is still
+   running and its frames are alive, so "the sourcing frames are alive, hence the ectx slot
+   is still poisoned" predicts a use-after-return here; the save_funccal()/restore_funccal()
+   account predicts the inner restore_funccal() already dropped the frame, leaving a pure
+   leak. The leak is what happens, so the save/restore account is right and the poisoning
+   account is wrong.
+
+   C and D above are consistent with either story and do not discriminate; only G does.

@@ -42,6 +42,9 @@ def main(argv: list[str] | None = None) -> int:
             s.add_argument("--workers", type=int, default=8)
             s.add_argument("--budget", type=float, default=20.0)
             s.add_argument("--skip-llm", action="store_true", help="only run the Z3 filter")
+            s.add_argument("--max-callees", type=int, default=50,
+                           help="callee bodies to put in the validation prompt (0 disables)")
+            s.add_argument("--max-callee-lines", type=int, default=1000, help="lines kept per callee body")
 
     args = ap.parse_args(argv)
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO,
@@ -59,7 +62,7 @@ def main(argv: list[str] | None = None) -> int:
     elif args.cmd == "stage3":
         from .pipeline import Stage3
         Stage3(args.project, args.out, args.analyzer, args.vanilla, args.workers, args.budget, args.skip_llm,
-               args.tag, args.hints).run()
+               args.tag, args.hints, args.max_callees, args.max_callee_lines).run()
     return 0
 
 

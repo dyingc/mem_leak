@@ -181,16 +181,18 @@ class Stage3:
 
     def __init__(self, project: Path, out: Path, analyzer: str, vanilla: bool = False,
                  workers: int = 8, budget_usd: float | None = 20.0, skip_llm: bool = False,
-                 tag: str | None = None, hints_file: Path | None = None):
+                 tag: str | None = None, hints_file: Path | None = None,
+                 max_callees: int = 50, max_callee_lines: int = 1000):
         self.project, self.out, self.analyzer, self.vanilla = project, out, analyzer, vanilla
         self.hints_file = hints_file
         self.dir = run_dir(out, analyzer, vanilla, tag)
         self.workers, self.skip_llm = workers, skip_llm
+        self.max_callees, self.max_callee_lines = max_callees, max_callee_lines
         self.llm = None if skip_llm else LLM(cache_dir=out / "llm_cache", budget_usd=budget_usd)
 
     def run(self) -> list:
         from .models import Warning
-        from .verify import FunctionLocator, z3_filter, llm_verify
+        from .verify import CalleeIndex, FunctionLocator, z3_filter, llm_verify
         warnings = [Warning.from_dict(d) for d in json.loads((self.dir / "warnings.json").read_text())]
         summaries = load_hints(self.out, self.vanilla, self.hints_file)
         loc = FunctionLocator(self.project)
@@ -201,7 +203,10 @@ class Stage3:
                  "z3_seconds": round(time.time() - t0)}
         bugs = []
         if not self.skip_llm:
-            verdicts = llm_verify(self.project.name, z3r, loc, self.llm, self.workers)
+            cb_path = self.out / "codebase.json"
+            callees = CalleeIndex(loc, json.loads(cb_path.read_text()) if cb_path.exists() else None)
+            verdicts = llm_verify(self.project.name, z3r, loc, self.llm, self.workers, callees,
+                                  self.max_callees, self.max_callee_lines)
             _dump(self.dir / "llm_verdicts.json", [v.to_dict() for v in verdicts])
             for v in verdicts:
                 if v.verdict:

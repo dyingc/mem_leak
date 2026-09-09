@@ -52,6 +52,78 @@ class FunctionLocator:
 
 
 # --------------------------------------------------------------------------- #
+# callee bodies for the Phase 6 prompt
+# --------------------------------------------------------------------------- #
+
+_CALL = re.compile(r"\b([A-Za-z_]\w*)\s*\(")
+
+
+class CalleeIndex:
+    """Bodies of the functions a warning's function calls, for the Phase 6 prompt.
+
+    Most false positives we reviewed came from ownership decided inside a callee
+    (``alloc_string_tv()`` frees its argument on failure, ``generate_PUSHS()`` takes the
+    string, a list is handed to a typval and its refcount incremented).  The function's own
+    text cannot settle those, so the callee bodies go into the prompt.
+
+    Name resolution is deliberately narrow.  ``codebase.json`` keeps one definition per
+    name, so a global lookup can return an unrelated namesake from another subtree - Vim's
+    gettext shim ``_()`` in ``src/GvimExt`` is the one that bit us.  A callee is therefore
+    accepted only when it is defined in the caller's own file or in the same directory.
+    """
+
+    def __init__(self, locator: "FunctionLocator", codebase: dict | None = None):
+        self.locator = locator
+        self.by_name: dict[str, dict] = {}
+        for f in (codebase or {}).get("functions", []):
+            self.by_name[f["name"]] = f
+
+    def resolve(self, name: str, caller_file: str) -> tuple[str, str] | None:
+        """(file, code) of the callee, or None when no definition can be trusted."""
+        for f in self.locator.functions_in(caller_file):        # same translation unit
+            if f.name == name:
+                return caller_file, f.code
+        g = self.by_name.get(name)
+        if g and str(Path(g["file"]).parent) == str(Path(caller_file).parent):
+            return g["file"], g["code"]
+        return None
+
+    def context(self, func: FunctionInfo, items: list["Z3Result"], max_callees: int, max_lines: int) -> str:
+        if max_callees <= 0:
+            return ""
+        named: list[str] = []                                   # callees the warning points at come first
+        for r in items:
+            parts = (r.warning.allocation_site or "").split(":")
+            if len(parts) == 3 and parts[2]:
+                named.append(parts[2])
+            named += _CALL.findall(r.warning.message or "")
+        seen, order = set(), []
+        for n in named + _CALL.findall(func.code):
+            if n in _KEYWORDS or n == func.name or n in seen:
+                continue
+            seen.add(n)
+            order.append(n)
+        blocks = []
+        for n in order:
+            if len(blocks) >= max_callees:
+                break
+            hit = self.resolve(n, func.file)
+            if hit is None:
+                continue
+            file, code = hit
+            lines = code.splitlines()
+            body = "\n".join(lines[:max_lines])
+            if len(lines) > max_lines:
+                body += f"\n  /* ... {len(lines) - max_lines} more lines omitted ... */"
+            blocks.append(f"// {file}\n{body}")
+        if not blocks:
+            return ""
+        return ("\n**Bodies of the functions called from `%s`, so ownership handled inside a callee is visible "
+                "(a callee may take ownership of a pointer, free it on failure, or return an object whose "
+                "reference count the caller must still adjust):**\n```c\n%s\n```\n" % (func.name, "\n\n".join(blocks)))
+
+
+# --------------------------------------------------------------------------- #
 # Phase 5
 # --------------------------------------------------------------------------- #
 
@@ -99,7 +171,7 @@ SYSTEM = ("Role: You are a senior static-analysis engineer specializing in C/C++
           "actual memory-leak defects in the program.")
 
 
-def build_prompt(project: str, func: FunctionInfo, items: list[Z3Result]) -> str:
+def build_prompt(project: str, func: FunctionInfo, items: list[Z3Result], callees: str = "") -> str:
     lines = func.code.splitlines()
     bug_lines = {r.warning.line - func.start_line for r in items}
     src = "\n".join(l + ("   // <-- reported bug" if i in bug_lines else "") for i, l in enumerate(lines))
@@ -128,7 +200,7 @@ def build_prompt(project: str, func: FunctionInfo, items: list[Z3Result]) -> str
 ```c
 {src}
 ```
-
+{callees}
 Does this function actually have a memory leak (heap memory that is allocated and, on some execution path, neither freed nor ownership-transferred)? Determine whether the reported issue is a genuine bug (true) or a false alarm (false).
 
 Decision policy:
@@ -162,7 +234,8 @@ class LLMVerdict:
 
 
 def llm_verify(project: str, results: list[Z3Result], locator: FunctionLocator, llm: LLM,
-               workers: int = 8) -> list[LLMVerdict]:
+               workers: int = 8, callees: CalleeIndex | None = None,
+               max_callees: int = 50, max_callee_lines: int = 1000) -> list[LLMVerdict]:
     groups: dict[tuple[str, str], list[Z3Result]] = {}
     for r in results:
         if r.feasible and r.function:
@@ -171,11 +244,13 @@ def llm_verify(project: str, results: list[Z3Result], locator: FunctionLocator, 
 
     def run(key: tuple[str, str], items: list[Z3Result]) -> LLMVerdict:
         func = locator.at(key[0], items[0].warning.line)
-        text = llm.chat(SYSTEM, build_prompt(project, func, items), tag=f"verify-{func.name}")
+        ctx = callees.context(func, items, max_callees, max_callee_lines) if callees else ""
+        prompt = build_prompt(project, func, items, ctx)
+        text = llm.chat(SYSTEM, prompt, tag=f"verify-{func.name}")
         try:
             d = parse_json(text)
         except ValueError:
-            text = llm.chat(SYSTEM, build_prompt(project, func, items) + "\nReturn ONLY the JSON object.", tag=f"verify-{func.name}-retry")
+            text = llm.chat(SYSTEM, prompt + "\nReturn ONLY the JSON object.", tag=f"verify-{func.name}-retry")
             d = parse_json(text)
         idx = [int(i) for i in d.get("bug_indices", []) or [] if str(i).isdigit()]
         return LLMVerdict(func.name, key[0], bool(d.get("verdict")), float(d.get("confidence", 0) or 0),

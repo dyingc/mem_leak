@@ -29,8 +29,9 @@ Submission order (most important first): 3, 1, 2, 4, 7, 5, 6, 9, 8.
 **#3 is done** — accepted as `patch 9.2.1058`, commit `f874bf9e`.
 
 Expect to be asked for a test on anything reachable from a script.
-`../../../notes/vim-leak-test-patterns.md` has the three patterns and which one each of the
-remaining eight needs; `match_test.diff` is the one for #1, already written and verified.
+`README.md` says which one each of the remaining eight needs (and
+`../../../notes/from-signal-to-assertion.md` why); `match_test.diff` is the one for #1,
+already written and verified.
 
 ---
 

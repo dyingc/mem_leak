@@ -62,6 +62,9 @@ stack-use-after-return 的机制我解释错过两次，最后靠 `save_funccal`
   报 unknown option 退出、根本不生成报告文件——于是它以完全错误的理由通过。
 - Vim 的失败测试**不写 `.res` 文件**，我用 `wc -c < test_match.res` 判断，
   文件不存在被读成 0 字节 = 通过，于是我报告"两棵树都通过"，而未修复那棵正按设计失败。
+- 同一个测试目录里还有个配套的坑：`src/testdir/Makefile` 会给 `$ASAN_OPTIONS` 追加后缀，
+  `detect_leaks=0` 变成非法的 `detect_leaks=0_test_xxx` 直接让 ASAN 罢工，
+  `log_path=/tmp/asan` 落在 `/tmp/asan_test_xxx`。要传就只传字符串型选项。
 
 写完断言问一句：要观测的东西根本没运行的话，这个测试是什么颜色？答案得是跳过或红。
 
@@ -83,5 +86,3 @@ stack-use-after-return 的机制我解释错过两次，最后靠 `save_funccal`
 
 后面几行说明**不是所有信号都有"变致命"的开关**。没有的时候就自己造一个进程内的
 可观测量（计数器、前后快照），这反而更省事——不用子进程，也不用守卫。
-
-Vim 泄漏这一类的具体落地见 [vim-leak-test-patterns.md](vim-leak-test-patterns.md)。

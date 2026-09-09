@@ -10,13 +10,13 @@ patch authored by you carrying `closes: #<pr>` and two Signed-off-by lines.
 
 yegappan asked for a test on #21255, and chrisbra then added a stronger one on top of ours
 (`CheckAsan` in `util/check.vim`, plus a subprocess test that sets
-`abort_on_error=1` and asserts `v:shell_error`). `notes/vim-leak-test-patterns.md` records
-that pattern and the two others these nine need; the short version:
+`abort_on_error=1` and asserts `v:shell_error`). `notes/from-signal-to-assertion.md`
+has the general idea; what these nine need:
 
 | | when | how |
 |---|---|---|
 | A | the unpatched binary exits non-zero under ASan | `CheckAsan` + `abort_on_error=1` + `RunVim`, assert `v:shell_error` |
-| B | it exits 0 but a script-visible object stays referenced | `test_refcount()` — no ASan build needed, so prefer it |
+| B | it exits 0 but a script-visible object stays referenced | `test_refcount()` — cheaper, but the fallback: it encodes your model of the defect |
 | C | only reachable on allocation failure | no test; that is what all 22 upstream fixes did |
 
 `#1 f_setmatches` is a B: LSan cannot see it (the lists hang off the global `first_list`

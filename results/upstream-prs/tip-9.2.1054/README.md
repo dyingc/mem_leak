@@ -1,15 +1,28 @@
 # Nine leak fixes against upstream 5d934b1b (patch 9.2.1054, 2026-09-08)
 
-**Status (2026-09-09): `strings.diff` submitted as
-[vim/vim#21255](https://github.com/vim/vim/pull/21255); the other eight not submitted.**
-PR texts in `PR_DESCRIPTIONS.md`, review in `../CHALLENGE_RESPONSE.md`.
+**Status (2026-09-09): `strings.diff` accepted upstream as `patch 9.2.1058`
+(commit `f874bf9e`, closes [#21255](https://github.com/vim/vim/pull/21255)). The other eight
+not submitted.** PR texts in `PR_DESCRIPTIONS.md`, review in `../CHALLENGE_RESPONSE.md`.
 
-The maintainer asked for a test on #21255. None of the 22 comparable leak fixes upstream
-carried one, but this bug has no user-visible symptom to assert, so the test added
-(`strings_test.diff`, in `Test_reduce()`) just runs the failing path — Vim's `linux-asan`
-CI job fails the build on any ASan output, which is what catches it. Verified both ways:
-on an ASan build `make test_vim9_builtin` logs the 2192-byte `string_reduce` leak before the
-fix and nothing after.
+A Vim PR is always CLOSED rather than merged, so acceptance is checked in the tree, not on
+GitHub: `git log --oneline <base>..origin/master --grep=<function>` should show a numbered
+patch authored by you carrying `closes: #<pr>` and two Signed-off-by lines.
+
+yegappan asked for a test on #21255, and chrisbra then added a stronger one on top of ours
+(`CheckAsan` in `util/check.vim`, plus a subprocess test that sets
+`abort_on_error=1` and asserts `v:shell_error`). `notes/vim-leak-test-patterns.md` records
+that pattern and the two others these nine need; the short version:
+
+| | when | how |
+|---|---|---|
+| A | the unpatched binary exits non-zero under ASan | `CheckAsan` + `abort_on_error=1` + `RunVim`, assert `v:shell_error` |
+| B | it exits 0 but a script-visible object stays referenced | `test_refcount()` — no ASan build needed, so prefer it |
+| C | only reachable on allocation failure | no test; that is what all 22 upstream fixes did |
+
+`#1 f_setmatches` is a B: LSan cannot see it (the lists hang off the global `first_list`
+chain), but the `posN` lists it keeps referenced are script objects, so `test_refcount()`
+asserts it directly. `match_test.diff` is that test — it fails on the unpatched tree with
+`Expected 1 but got 2` and passes with the fix.
 
 Re-verified from scratch against the current tip, not against the analysed tag 9.2.0015.
 One earlier claim (`edit.c:ins_tab`) was **withdrawn** here as a false positive.

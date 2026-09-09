@@ -65,15 +65,29 @@ Two claims in the review did not survive and have been struck from the PR texts:
   | `qall!` **inside** the sourced script (`-S`, `-c source`, `-es`, `-u` alike) | `stack-use-after-return` in `unwind_def_callstack`, 5/5 runs | clean |
   | `qall!` passed **outside** via `-c` | `Direct leak of 2192 byte(s)` from `string_reduce:1037`, 0/5 SUAR | clean |
 
-  With `qall!` inside, `getout()` runs while the frames the orphaned `fc_ectx` points into
-  are still poisoned, so ASAN catches the read and aborts before the leak check. With
-  `qall!` outside, the chain unwinds far enough that the `funccall_T` becomes unreachable
-  and LSAN reports it as a leak instead. Same bug, two exit paths, two symptoms — which is
-  also why one side of this review saw only the leak and the other only the SUAR.
+  The explanation this reviewer first gave for that split — "the sourcing frames are still
+  alive, so the slot is still poisoned" — is **also wrong**, and is withdrawn. Poisoning has
+  nothing to do with it: the `ectx` slot belongs to a `call_def_function()` that returned
+  long before, and is poisoned from that moment. Reachability of a node on a *global* list
+  is not changed by C stack unwinding either. The correct mechanism is the reviewee's:
+  `do_source_ext()` calls `save_funccal()` on entry (scriptfile.c:1831) and
+  `restore_funccal()` on exit (scriptfile.c:2047), and `invoke_all_defer()` walks
+  `current_funccal` *and* every `funccal_stack` entry's chain (userfunc.c). While the script
+  runs, the stale frame sits on one of those chains and `invoke_all_defer()` reads its dead
+  `fc_ectx`; when the script ends, `restore_funccal()` drops it from every chain and it
+  becomes a pure leak.
 
-  So the PR *may* cite the stack-use-after-return, but the reproduction command has to put
-  `qall!` in the script. Naming `ASAN_OPTIONS=detect_stack_use_after_return=1` is not what
-  makes it work (it is the default); the placement of `qall!` is.
+  Verified by an experiment that separates the two accounts, which neither of the reviewee's
+  cases (C, D) does — both of those are consistent with either story. Put the failing
+  `reduce()` in an **inner** script that returns, then call `qall!` from the outer script,
+  whose frames are still very much alive: "poisoned slot" predicts a use-after-return, and
+  "`restore_funccal()` dropped it" predicts a leak with no use-after-return. Result: leak,
+  no use-after-return. Chain-depth probe agrees: 0 before the failing call, 1 after it, 0
+  once the script ends.
+
+  Consequence worth putting in the PR: the wrong function context lasts only for the rest of
+  the script that ran the failing `reduce()`. The reproduction command must put `qall!` in
+  the script, and should say why.
 - **"garbage collection does not reclaim the `setmatches()` lists".** That was this
   author's error, and the review was right to flag it: `garbagecollect(1)` only sets a flag
   and the collection runs from the main loop, which `-es -S script` never enters. With

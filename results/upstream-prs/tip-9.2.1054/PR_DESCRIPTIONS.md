@@ -42,13 +42,26 @@ ERROR: AddressSanitizer: stack-use-after-return ... vim9execute.c:7047 in unwind
     #3 getout                main.c:1737
 ```
 
-5 runs out of 5, on gcc 14 with plain `-fsanitize=address` (no extra flag needed —
-`detect_stack_use_after_return` is on by default in libasan 8), and on `-S`, `-c source`,
-`-es` and `-u` alike. Move the `qall!` out to `-c 'qall!'` and the same binary instead
-reports `Direct leak of 2192 byte(s) ... eval_expr_get_funccal ... string_reduce:1037` and
-no use-after-return: `getout()` then runs after the sourcing frames have gone, so the
-`funccall_T` becomes unreachable and LSAN reports it rather than ASAN catching the read.
-Same bug, two exit paths, two symptoms. Both are gone with the patch.
+5 runs out of 5, on gcc 14 with plain `-fsanitize=address` and on `-S`, `-c source`, `-es`
+and `-u` alike. Add `ASAN_OPTIONS=detect_stack_use_after_return=1` to the command: it is the
+default in libasan 8, but was not in older ones.
+
+Move the `qall!` out to `-c 'qall!'` and the same binary instead reports `Direct leak of
+2192 byte(s) ... eval_expr_get_funccal ... string_reduce:1037` and no use-after-return.
+That is not an artefact — it is `:source` teardown, and it is worth stating in the PR
+because it bounds the impact:
+
+`do_source_ext()` calls `save_funccal()` on entry (scriptfile.c:1831), which pushes the
+current chain onto `funccal_stack` and sets `current_funccal` to NULL, and
+`restore_funccal()` on exit (scriptfile.c:2047). `invoke_all_defer()` walks
+`current_funccal` *and* every `funccal_stack` entry's chain. So while the script is still
+running the stale frame is on one of those chains and `invoke_all_defer()` reaches it and
+reads the dead `fc_ectx`; once the script ends, `restore_funccal()` drops it from every
+chain and nothing reads it again — it is then simply leaked.
+
+The practical consequence: the wrong function context only lasts for the rest of the script
+that ran the failing `reduce()`. Measured with a chain-depth probe: 0 before the call, 1
+after it, 0 once the script ends. Both symptoms are gone with the patch.
 
 Five failing calls leave five frames on the `current_funccal` chain. `list_reduce()`,
 `blob_reduce()`, `tuple_reduce()` and the `filter()`/`map()` paths already use `break` and

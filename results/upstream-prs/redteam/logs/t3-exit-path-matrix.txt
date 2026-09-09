@@ -1,0 +1,30 @@
+string_reduce stale funccall: which symptom you see depends on whether the sourced
+script has ended before exit (do_source_ext(): save_funccal() at start sets
+current_funccal = NULL and pushes the old value on funccal_stack; restore_funccal() at
+the end pops it, which drops the stale frame from every chain). invoke_all_defer() at
+exit walks BOTH current_funccal and every funccal_stack entry (userfunc.c:6778-6786).
+Unpatched vim-con-orig, gcc 14.2 / libasan 8, default ASAN_OPTIONS + detect_leaks=1:
+
+A) qall! inside the script (-S t3_min.vim)            -> stack-use-after-return, no LSAN
+B) qall! from -c after the script (-S t3b.vim -c qall!) -> LSAN 2192 bytes (funccall_T), no UAR
+C) qall! in a NESTED sourced script (-S t3_outer.vim) -> stack-use-after-return
+   (inner save_funccal() moved the stale frame to funccal_stack; invoke_all_defer walks it)
+D) qall! inside script after 20 more def calls (t3_reuse.vim) -> stack-use-after-return
+   (the ectx fake-stack slot is NOT reused; "slot reuse" was a wrong hypothesis)
+E) rt_funccal_depth read from -c after the script: 0     (restore_funccal() ran)
+F) rt_funccal_depth read inside the script after reduce: 1 (stale frame on chain)
+Patched: A-D all clean.
+
+--- appended by the reviewer, 2026-09-09 ---
+G) failing reduce() in an INNER script that RETURNS, qall! from the OUTER script
+   (t3_uar_inner_returns.vim sourced by t3_uar_outer_qall.vim)
+       unpatched -> LSAN 2192 bytes, NO stack-use-after-return
+       patched   -> clean
+   This is the case that separates the two proposed mechanisms. The outer script is
+   still running and its C frames are alive, so "the sourcing frames are alive, hence
+   the ectx slot is still poisoned" predicts a use-after-return here; the save/restore
+   account predicts the inner restore_funccal() already dropped the frame, leaving a
+   pure leak. The leak is what happens, so the save/restore account is the right one
+   and the poisoning account is wrong.
+   Note that C and D above do not separate the two: both are consistent with either
+   story. Only G does.

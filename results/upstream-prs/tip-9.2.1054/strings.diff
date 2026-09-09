@@ -1,0 +1,13 @@
+diff --git a/src/strings.c b/src/strings.c
+index e3f76503..44d753e4 100644
+--- a/src/strings.c
++++ b/src/strings.c
+@@ -1053,7 +1053,7 @@ string_reduce(
+ 	clear_tv(&argv[0]);
+ 	clear_tv(&argv[1]);
+ 	if (r == FAIL || called_emsg != called_emsg_start)
+-	    return;
++	    break;
+     }
+ 
+     if (fc != NULL)

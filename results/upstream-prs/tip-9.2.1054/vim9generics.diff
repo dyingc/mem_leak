@@ -1,0 +1,15 @@
+diff --git a/src/vim9generics.c b/src/vim9generics.c
+index 86802c20..c324bcf7 100644
+--- a/src/vim9generics.c
++++ b/src/vim9generics.c
+@@ -325,7 +325,10 @@ parse_generic_func_type_args(
+ 	// copy the type name
+ 	generic_arg->gt_name = alloc(STRLEN(ret_name) + 1);
+ 	if (generic_arg->gt_name == NULL)
++	{
++	    vim_free(ret_free);
+ 	    return NULL;
++	}
+ 	STRCPY(generic_arg->gt_name, ret_name);
+ 	vim_free(ret_free);
+ 

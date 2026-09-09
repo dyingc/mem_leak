@@ -1,0 +1,18 @@
+diff --git a/src/viminfo.c b/src/viminfo.c
+index f8292dee..453344fd 100644
+--- a/src/viminfo.c
++++ b/src/viminfo.c
+@@ -1120,7 +1120,12 @@ barline_parse(vir_T *virp, char_u *text, garray_T *values)
+ 	    while (*p != '"')
+ 	    {
+ 		if (*p == NL || *p == NUL)
+-		    return TRUE;  // syntax error, drop the value
++		{
++		    // syntax error, drop the value
++		    if (s == buf)
++			vim_free(buf);
++		    return TRUE;
++		}
+ 		if (*p == '\\')
+ 		{
+ 		    ++p;

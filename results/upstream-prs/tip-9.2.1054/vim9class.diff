@@ -1,0 +1,17 @@
+diff --git a/src/vim9class.c b/src/vim9class.c
+index 908fb95a..ee184809 100644
+--- a/src/vim9class.c
++++ b/src/vim9class.c
+@@ -2140,7 +2140,12 @@ early_ret:
+     cl->class_name.length = (size_t)(name_end - name_start);
+     cl->class_name.string = vim_strnsave(name_start, cl->class_name.length);
+     if (cl->class_name.string == NULL)
++    {
++	// Nothing in "cl" is allocated yet, and set_var_const() below has not
++	// taken ownership of it, so a plain free is enough here.
++	VIM_CLEAR(cl);
+ 	goto cleanup;
++    }
+ 
+     cl->class_type.tt_type = VAR_CLASS;
+     cl->class_type.tt_class = cl;

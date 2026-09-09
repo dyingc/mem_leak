@@ -1,0 +1,15 @@
+diff --git a/src/gui_gtk_x11.c b/src/gui_gtk_x11.c
+index b178aecd..caddd7e4 100644
+--- a/src/gui_gtk_x11.c
++++ b/src/gui_gtk_x11.c
+@@ -6110,7 +6110,10 @@ gui_gtk_draw_string(int row, int col, char_u *s, int len, int flags)
+ 	    {
+ 		new_conv_buf = alloc(convlen + 2);
+ 		if (new_conv_buf == NULL)
++		{
++		    vim_free(conv_buf);
+ 		    return len;
++		}
+ 		plen += bp - conv_buf;
+ 		mch_memmove(new_conv_buf, conv_buf, plen);
+ 		new_conv_buf[plen] = ' ';

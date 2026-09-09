@@ -1,0 +1,15 @@
+diff --git a/src/json.c b/src/json.c
+index fb7755d0..b52216df 100644
+--- a/src/json.c
++++ b/src/json.c
+@@ -102,7 +102,10 @@ json_encode_lsp_msg(typval_T *val)
+ 
+     ga_init2(&ga, 1, 4000);
+     if (json_encode_gap(&ga, val, 0) == FAIL)
++    {
++	ga_clear(&ga);
+ 	return NULL;
++    }
+     ga_append(&ga, NUL);
+ 
+     ga_init2(&lspga, 1, 4000);

@@ -46,8 +46,9 @@
    "note": "buf = alloc(len+1); `return TRUE; // syntax error` happens before value->bv_tofree = buf, leaking buf on a malformed viminfo file. Still present at upstream HEAD."
   },
   "src/edit.c:ins_tab": {
-   "verdict": "TP",
-   "note": "saved_line = vim_strnsave(); later `newp = alloc()` failure returns FALSE without vim_free(saved_line). Still present at upstream HEAD."
+   "verdict": "FP",
+   "note": "WITHDRAWN 2026-09-08 after empirical re-check at upstream 5d934b1b. The alloc() whose failure was said to leak saved_line sits inside `if (!(State & VREPLACE_FLAG))`, while saved_line is only assigned inside `if (State & VREPLACE_FLAG)`; the two are mutually exclusive, so saved_line is always NULL at that return. Deterministic allocation-failure injection at that site produces no leak record.",
+   "previously": "TP"
   },
   "src/filepath.c:findfilendir": {
    "verdict": "FP",

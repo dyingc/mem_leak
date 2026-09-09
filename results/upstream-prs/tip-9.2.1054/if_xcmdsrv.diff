@@ -1,0 +1,12 @@
+diff --git a/src/if_xcmdsrv.c b/src/if_xcmdsrv.c
+index 22423a2e..e547d2b9 100644
+--- a/src/if_xcmdsrv.c
++++ b/src/if_xcmdsrv.c
+@@ -231,6 +231,7 @@ serverRegisterName(
+ 	{
+ 	    msg_attr(_("Unable to register a command server name"),
+ 		    HL_ATTR(HLF_W));
++	    vim_free(p);
+ 	    return FAIL;
+ 	}
+ 	if (p == NULL)

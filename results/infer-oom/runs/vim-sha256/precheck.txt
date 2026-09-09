@@ -1,0 +1,3 @@
+date=2026-09-09T14:14:40-07:00 run=vim-sha256
+MemAvailable_GiB=19.0 load1=1.26 swap_used_MiB=3257 disk_avail_GiB=571
+limits: ulimit -v 8388608 KB, wall guard 900s, jobs=1 nice=10 ionice=idle

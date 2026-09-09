@@ -1,0 +1,3 @@
+date=2026-09-09T13:01:20-07:00 run=c1-base
+MemAvailable_GiB=19.1 load1=0.66 swap_used_MiB=3167 disk_avail_GiB=573
+limits: ulimit -v 8388608 KB, wall guard 900s, jobs=1 nice=10 ionice=idle

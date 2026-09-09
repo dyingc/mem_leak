@@ -9,8 +9,8 @@
 
 - **请求文档里的精确故障（约 45 s 内 RSS 7.0 GiB 后 `Fatal error: out of memory`）没有在本机用通用夹具复现。**
   本机最大的通用夹具（Vim 9.2.0015 最大的几个 TU，单 worker、`ulimit -v 8388608`）峰值托管堆 3.1–4.0 GiB、RSS 最高 4.7 GB，都在 8 GiB 内完成。
-  故障机制则复现并测量到了：把上限降到与本机峰值同量级（4 GiB / 2 GiB）时，对照二进制以同样的
-  `Fatal error: out of memory` 退出，修复后的二进制在同一上限下完成并通过完整性检查（§5）。
+  机制本身已测量清楚（§3）；“把上限降到与本机峰值同量级（4 GiB / 2 GiB）时对照二进制以同样的
+  `Fatal error: out of memory` 退出、修复版在同一上限下完成”这组验证运行已排队，**结果尚未出来**（§5 会更新）。
 - 根因（已证实的部分，§3）：单 worker 模式下一个源文件是一个调度单元；文件内第一个顶层过程会按需分析整个传递闭包
   （Vim 一个大 TU ≈ 3.8k 个过程，嵌套深度 260–430），所有算出来的摘要都留在进程内的摘要缓存里直到整个文件结束才清；
   OCaml 主堆又按 `space_overhead=120` 放大到存活数据的约 2.2 倍；压缩阈值因单位错误实际是 1 GiB 而不是 8 GB，
@@ -128,12 +128,77 @@ RSS 再高出 1.6 GB 来自 `caml_compact_heap` 的二次压缩：它先按“�
 
 ## 4. 修复内容（`notes/infer-pulse-oom.patch`）
 
-TBD_FIX_SECTION
+补丁基于已应用 `notes/infer-arg-models.patch` 与 `notes/infer-argfile-transport.patch` 的 v1.2.0-4c53e80 源码树
+（`scripts/build-patched-infer.sh` 第 6 步按顺序应用三个补丁；单独应用见 §7）。改动 10 个文件、579 行 diff：
+
+| 文件 | 改动 | 默认行为是否改变 |
+|---|---|---|
+| `backend/Summary.ml`/`.mli` | 摘要缓存条目带 `last_use` 时钟；新增 `evict_if_heap_too_big`：`add` 时若主堆 ≥ `--summary-cache-max-heap-GB` 且距上次驱逐 ≥ `--compaction-minimum-interval-s`，删除最近最少使用的一半条目并 `Gc.compact`；`cache_stats` 供诊断 | 否（选项默认 0 = 关闭） |
+| `base/Config.ml`/`.mli` | 新选项 `--summary-cache-max-heap-GB`（默认 0）、`--gc-space-overhead`（默认 120）；`--compaction-if-heap-greater-equal-to-GB` 默认 8→1 并说明原因 | 压缩阈值：实际生效值不变（1 GiB） |
+| `backend/InferAnalyze.ml` | 阈值换算改为 `GB·2^30 / (word_size_in_bits/8)`；日志打印真实 GB（两位小数）；目标结束后的 HeapTrace 钩子 | 日志数值改为真实值 |
+| `pulse/Pulse.ml` | `AboutToOOM` 处理增加 `record_oom_abort`：写 `pulse/oom-aborted-procedures-<pid>.txt`（proc_uid、文件、行号、压缩后堆字数）、progress 日志、`Stats.incr_pulse_oom_aborts`；`exec_instr` 的指令级突增追踪（仅 `INFER_HEAP_TRACE` 时） | 只多了显式记录 |
+| `base/Stats.ml`/`.mli` | 计数器 `summary_cache_evictions`、`pulse_oom_aborts`（进入 `stats/` 与日志里的 stats 输出） | 否 |
+| `backend/ondemand.ml` | 每个过程分析开始/结束、每个顶层过程结束的 HeapTrace 钩子；`INFER_CLEAR_SUMMARY_CACHE_PER_PROC` 诊断开关 | 否 |
+| `absint/HeapTrace.ml`（新） | 诊断模块，环境变量控制，默认完全惰性 | 否 |
+
+**为什么驱逐缓存不丢结果**：`Ondemand.run_proc_analysis` 的 `postprocess` 先 `Summary.OnDisk.store`（写入 `results.db` 的 `specs`，DBWriter 会与旧 Pulse payload 合并）再把同一记录放进缓存；
+`Summary.OnDisk.get` 未命中时走 `load_summary_to_spec_table` 从库里反序列化并回填。正在分析中的过程不经过缓存被读取（`analyze_callee` 先用 `is_active` 做递归环检测）。
+`add_errlog` 找不到内存副本时只更新库，库里的 report_summary 是权威。所以驱逐只影响 CPU（重新反序列化），不影响报告内容。
+
+**为什么不直接调大 `--pulse-max-heap`、`--pulse-max-disjuncts` 之类**：它们要么跳过过程、要么少走路径（文档明确不接受）；本补丁只回收“已经落盘的缓存”与 GC 的空闲空间。
+`--pulse-max-heap` 保留原语义，但触发时现在是显式、可核对的（§5 的完整性脚本会把这些过程列为 “pulse-max-heap abort (explicit)” 并判 INCOMPLETE）。
 
 ## 5. 验证：复现、修复前后对比、完整性
 
-TBD_RESULTS
+完整性检查：`python3 output/oom/tools/check_completeness.py <results-dir> --infer <infer> [--files <changed-files-index>]`——
+用 `infer debug --procedures --procedures-name --procedures-source-file --procedures-definedness` 列出全部已捕获且有定义的过程（可限制到本次调度的文件），
+对照 `results.db` 里 `specs.Pulse IS NOT NULL` 的过程；缺失的按 `pulse/oom-aborted-procedures-*.txt`、`logs` 里的
+`Skipped large procedure`、`TIMEOUT in pulse after` 归因，其余标 UNEXPLAINED；同时输出 `PRAGMA integrity_check`。零缺失才是 COMPLETE。
+
+已完成的基线见 §3.3（全部 COMPLETE）。以下 A/B 运行已排入 `output/oom/runs/q2.txt`（`results/infer-oom/runs/queue-2.txt`），
+**结果尚未出来，本节会在运行结束后更新**：
+
+| 运行 | 二进制 | `ulimit -v` | 额外参数 | 预期 |
+|---|---|---|---|---|
+| `vim-ex_docmd-cap4-control` | 对照 | 4 GiB | — | 复现 `Fatal error: out of memory`（基线峰值堆 4.05 GiB） |
+| `vim-ex_docmd-cap4-fix1` | 修复 | 4 GiB（wall 1800 s） | `--summary-cache-max-heap-GB 1` | 完成，COMPLETE |
+| `c5-cap2-control` | 对照 | 2 GiB | — | 复现 OOM（基线峰值堆 2.01 GiB） |
+| `c5-cap2-fix1` | 修复 | 2 GiB（wall 1800 s） | `--summary-cache-max-heap-GB 1` | 完成，COMPLETE |
+| `vim-ex_docmd-fix1` | 修复 | 8 GiB（wall 1800 s） | `--summary-cache-max-heap-GB 1` | 峰值明显低于 4.12 GB，报告与 `vim-ex_docmd` 一致 |
+| `vim-ex_docmd-gc80` | 修复 | 8 GiB（wall 1800 s） | `--gc-space-overhead 80` | 量化 GC 放大系数的影响 |
+
+两 worker 实验（文档第 6 条）要等单 worker 修复运行稳定完成后再做。
 
 ## 6. 未解决的问题与阻塞
 
-TBD_OPEN
+- 精确故障未复现：本机没有一个通用夹具在 8 GiB 上限下越界；只能在降低上限后复现同一机制。要在请求方的环境验证，请按 §7 应用补丁重建，
+  用 `results/infer-oom/tools/run_guarded.sh`（改 `INFER`、路径）跑“对照 / `--summary-cache-max-heap-GB 1`（或 2）”两组，并用 `check_completeness.py` 判定。
+- `--pulse-max-heap 200000000` 挡不住 OOM 的原因未定位。本机指令级突增最多 355 MB；候选解释（未证实）：
+  ① 请求方的 TU 里有远大于 Vim `u_compute_hash`（11.7 MB 序列化）的摘要，调用指令一次应用 20 个 pre/post 就跨过几 GB；
+  ② 摘要序列化/入库瞬态（`Marshal` + SQLite blob 拷贝，`--sqlite-max-blob-size` 默认 500 MB）发生在两次检查之间。
+  `INFER_HEAP_TRACE=<prefix> INFER_HEAP_TRACE_INSTR_MB=256` 在请求方环境跑一次就能回答（看 `instr-burst` 行）。
+- 深度 260–430 层的嵌套按需分析（每层持有未完成的 invariant map）在峰值时刻已经退栈，所以本机数据里不是主因；在更大的 TU 上它可能与缓存叠加，未测。
+- 超时（`--timeout 60`，CPU 时间）导致的 NULL 摘要在 Infer 里同样是静默的，只在 `logs` 有 debug 行；本补丁没有改这一点，完整性脚本会把它们列出。
+- 单位修正把 `--compaction-if-heap-greater-equal-to-GB` 的默认值改成 1 以保持原实际行为；如果上游希望保留“8”这个数字，需要同时接受压缩频率下降 8 倍。
+
+## 7. 复现命令
+
+```bash
+# 构建（三个补丁按顺序应用；--verify 只跑 Problem 1 的验收测试）
+scripts/build-patched-infer.sh
+# 或手工：cd tools/infer-src && git apply ../../notes/infer-arg-models.patch \
+#   && git apply ../../notes/infer-argfile-transport.patch && git apply ../../notes/infer-pulse-oom.patch \
+#   && source ../infer-env.sh && make -j8 opt
+
+# 合成语料（确定性，seed=1）
+python3 results/infer-oom/tools/gen_corpus.py --out output/oom/corpus/c5 --units 12 --procs 60 --branches 5 --calls 3 --loops 1 --fields 12
+(cd output/oom/corpus/c5 && infer capture --results-dir infer-cap -- make && make clean)
+
+# 受限单 worker 运行（8 GiB 虚拟内存、900 s、nice/ionice、--jobs 1 --max-jobs 1 --timeout 60）
+INFER=<二进制> results/infer-oom/tools/run_guarded.sh c5-base output/oom/corpus/c5/infer-cap
+INFER=<二进制> results/infer-oom/tools/run_guarded.sh c5-fix output/oom/corpus/c5/infer-cap --summary-cache-max-heap-GB 1
+# 降低上限复现机制：VMEM_KB=2097152 …；堆追踪：INFER_HEAP_TRACE=<前缀> …
+python3 results/infer-oom/tools/check_completeness.py output/oom/runs/c5-fix/infer-out --infer <二进制>
+python3 results/infer-oom/tools/analyze_trace.py <前缀>.<pid>
+```
+（`run_guarded.sh` 里的绝对路径指向本仓库的 `output/oom/`；换环境时改 `BASE`/`INFER` 两行即可。）

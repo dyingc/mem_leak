@@ -1,0 +1,5 @@
+exit=0 wall_s=64.4 peak_rss_KiB=437784
+report.json: present, 0 issues
+fatal/oom lines: /home/edong/VSCode/papers/mem_leak/output/oom/runs/c1-base/stderr.txt:0 /home/edong/VSCode/papers/mem_leak/output/oom/runs/c1-base/infer-out/logs:0 
+compaction lines: 0
+post: MemAvailable_GiB=19.1 load1=0.97 du_out=12M

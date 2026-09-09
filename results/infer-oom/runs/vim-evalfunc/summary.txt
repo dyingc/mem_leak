@@ -1,0 +1,7 @@
+exit=0 wall_s=664.4 peak_rss_KiB=3561268
+report.json: present, 35 issues
+fatal/oom lines: /home/edong/VSCode/papers/mem_leak/output/oom/runs/vim-evalfunc/stderr.txt:0 /home/edong/VSCode/papers/mem_leak/output/oom/runs/vim-evalfunc/infer-out/logs:0 
+compaction lines: 1
+top_heap_words(main_process_full): 472331264 = 3.51914 GiB
+timeouts/skips: 2 log lines mention timeout
+post: MemAvailable_GiB=19.2 load1=1.32 du_out=384M

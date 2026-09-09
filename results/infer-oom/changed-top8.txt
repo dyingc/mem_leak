@@ -1,0 +1,8 @@
+src/evalfunc.c
+src/os_unix.c
+src/ex_docmd.c
+src/quickfix.c
+src/option.c
+src/window.c
+src/vim9execute.c
+src/eval.c

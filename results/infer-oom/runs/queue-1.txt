@@ -1,0 +1,10 @@
+vim-evalfunc corpus/vim/infer-cap --changed-files-index corpus/vim/changed-evalfunc.txt --suffix-match-changed-files
+c2-base corpus/c2/infer-cap
+c3-base corpus/c3/infer-cap
+c4-base corpus/c4/infer-cap
+vim-evalfunc corpus/vim/infer-cap --changed-files-index corpus/vim/changed-evalfunc.txt --suffix-match-changed-files
+vim-ex_docmd corpus/vim/infer-cap --changed-files-index corpus/vim/changed-ex_docmd.txt --suffix-match-changed-files
+vim-os_unix corpus/vim/infer-cap --changed-files-index corpus/vim/changed-os_unix.txt --suffix-match-changed-files
+vim-undo corpus/vim/infer-cap --changed-files-index corpus/vim/changed-undo.txt --suffix-match-changed-files
+vim-sha256 corpus/vim/infer-cap --changed-files-index corpus/vim/changed-sha256.txt --suffix-match-changed-files
+WALL=3600 INFER=/home/edong/VSCode/papers/mem_leak/tools/infer-src/infer/bin/infer INFER_HEAP_TRACE=/home/edong/VSCode/papers/mem_leak/output/oom/runs/vim-top8-trace/heaptrace vim-top8-trace corpus/vim/infer-cap --changed-files-index corpus/vim/changed-top8.txt --suffix-match-changed-files

@@ -1,0 +1,103 @@
+events=7923 span=618s final heap=0.09GiB top=3.06GiB compactions=2
+target-done: heap=0.09GiB top=3.06GiB t=618s file=src/ex_getln.c
+
+-- top procedures by inclusive heap growth (GiB): growth / top-heap increase / secs / nesting / proc
+  3.054   3.054   587.3s n=0   src/ex_getln.c:redrawcmdline_ex
+  3.050   3.050   587.1s n=1   src/ex_getln.c:redrawcmd
+  3.050   3.050   586.2s n=2   src/screen.c:windgoto
+  3.045   3.045   585.7s n=3   src/screen.c:screen_stop_highlight
+  3.043   3.043   585.2s n=4   src/term.c:out_str
+  3.043   3.043   585.2s n=5   src/term.c:out_str_nf
+  3.043   3.043   585.1s n=6   src/term.c:out_flush
+  3.043   3.043   585.0s n=7   src/ui.c:ui_write
+  3.043   3.043   584.9s n=8   src/gui.c:gui_write
+  2.967   2.967   581.4s n=9   src/gui.c:gui_outstr
+  2.967   2.967   581.2s n=10  src/gui.c:gui_outstr_nowrap
+  2.967   2.967   580.9s n=11  src/gui_gtk_x11.c:gui_gtk_draw_string
+  2.967   2.967   576.7s n=12  src/mbyte.c:string_convert
+  2.967   2.967   576.6s n=13  src/mbyte.c:string_convert_ext
+  2.967   2.967   575.4s n=14  src/strings.c:vim_strsave
+  2.967   2.967   575.4s n=15  src/alloc.c:alloc
+  2.967   2.967   575.4s n=16  src/alloc.c:lalloc
+  2.967   2.967   575.1s n=17  src/message.c:iemsg
+  2.967   2.967   574.4s n=18  src/message.c:emsg_core
+  2.967   2.967   573.9s n=19  src/message.c:msg_use_printf
+  2.967   2.967   573.9s n=20  src/message.c:msg_check_screen
+  2.967   2.967   573.9s n=21  src/screen.c:screen_valid
+  2.967   2.967   573.9s n=22  src/screen.c:screenalloc
+  2.967   2.967   573.7s n=23  src/term.c:win_new_shellsize
+  2.967   2.967   573.4s n=24  src/window.c:shell_new_columns
+
+-- top procedures by SELF heap growth (GiB, excluding callees): growth / count / proc
+  0.399 x1   src/fileio.c:readfile
+  0.347 x1   src/sha256.c:sha256_finish
+  0.302 x1   src/memline.c:recover_names
+  0.262 x1   src/vim9execute.c:may_invoke_defer_funcs
+  0.228 x1   src/message.c:vim_dialog_yesnoallcancel
+  0.198 x1   src/buffer.c:free_buffer
+  0.173 x1   src/drawscreen.c:win_redr_status
+  0.150 x1   src/drawline.c:text_prop_position
+  0.130 x1   src/search.c:do_search
+  0.113 x1   src/os_unix.c:mch_settitle
+  0.099 x1   src/list.c:list_equal
+  0.086 x1   src/getchar.c:handle_mapping
+  0.075 x1   src/screen.c:screen_fill
+  0.065 x1   src/option.c:get_varp
+  0.056 x1   src/vim9expr.c:apply_leader
+  0.049 x1   src/list.c:list_find
+  0.043 x1   src/vim9type.c:typval2type_int
+  0.037 x1   src/json.c:json_decode_item
+  0.032 x1   src/userfunc.c:func_remove
+  0.028 x1   src/vim9class.c:object_unref
+
+-- top procedures by wall time: secs / growth / proc
+  587.3s   3.054 n=0   src/ex_getln.c:redrawcmdline_ex
+  587.1s   3.050 n=1   src/ex_getln.c:redrawcmd
+  586.2s   3.050 n=2   src/screen.c:windgoto
+  585.7s   3.045 n=3   src/screen.c:screen_stop_highlight
+  585.2s   3.043 n=4   src/term.c:out_str
+  585.2s   3.043 n=5   src/term.c:out_str_nf
+  585.1s   3.043 n=6   src/term.c:out_flush
+  585.0s   3.043 n=7   src/ui.c:ui_write
+  584.9s   3.043 n=8   src/gui.c:gui_write
+  581.4s   2.967 n=9   src/gui.c:gui_outstr
+  581.2s   2.967 n=10  src/gui.c:gui_outstr_nowrap
+  580.9s   2.967 n=11  src/gui_gtk_x11.c:gui_gtk_draw_string
+  576.7s   2.967 n=12  src/mbyte.c:string_convert
+  576.6s   2.967 n=13  src/mbyte.c:string_convert_ext
+  575.4s   2.967 n=14  src/strings.c:vim_strsave
+
+-- heap after each top-level procedure (sampled every N):
+  #0     t=   587s heap=3.06GiB top=3.06GiB toplevel-done redrawcmdline_ex
+  #3     t=   599s heap=3.06GiB top=3.06GiB toplevel-done script_get
+  #6     t=   600s heap=3.06GiB top=3.06GiB toplevel-done __infer_globals_initializer_arshape_buf
+  #9     t=   600s heap=3.06GiB top=3.06GiB toplevel-done text_locked_msg
+  #12    t=   600s heap=3.06GiB top=3.06GiB toplevel-done parse_pattern_and_range
+  #15    t=   600s heap=3.06GiB top=3.06GiB toplevel-done set_cmdline_pos
+  #18    t=   600s heap=3.06GiB top=3.06GiB toplevel-done vim_strsave_fnameescape
+  #21    t=   600s heap=3.06GiB top=3.06GiB toplevel-done allbuf_locked
+  #24    t=   600s heap=3.06GiB top=3.06GiB toplevel-done set_cmdline_str
+  #27    t=   600s heap=3.06GiB top=3.06GiB toplevel-done trigger_cmd_autocmd
+  #30    t=   601s heap=3.06GiB top=3.06GiB toplevel-done abandon_cmdline
+  #33    t=   601s heap=3.06GiB top=3.06GiB toplevel-done get_text_locked_msg
+  #36    t=   601s heap=3.06GiB top=3.06GiB toplevel-done empty_pattern
+  #39    t=   601s heap=3.06GiB top=3.06GiB toplevel-done correct_cmdspos
+  #42    t=   601s heap=3.06GiB top=3.06GiB toplevel-done put_on_cmdline
+  #45    t=   601s heap=3.06GiB top=3.06GiB toplevel-done f_getcmdtype
+  #48    t=   601s heap=3.06GiB top=3.06GiB toplevel-done alloc_cmdbuff
+  #51    t=   601s heap=3.06GiB top=3.06GiB toplevel-done cmdline_charsize
+  #54    t=   602s heap=3.06GiB top=3.06GiB toplevel-done text_or_buf_locked
+  #57    t=   602s heap=3.06GiB top=3.06GiB toplevel-done get_cmdline_str
+  #60    t=   602s heap=3.06GiB top=3.06GiB toplevel-done __infer_globals_initializer_extra_char
+  #63    t=   602s heap=3.06GiB top=3.06GiB toplevel-done text_locked
+  #66    t=   603s heap=3.06GiB top=3.06GiB toplevel-done cmdline_toggle_langmap
+  #69    t=   604s heap=3.06GiB top=3.06GiB toplevel-done getexmodeline
+  #72    t=   604s heap=3.06GiB top=3.06GiB toplevel-done get_cmdline_completion
+  #75    t=   604s heap=3.06GiB top=3.06GiB toplevel-done __infer_globals_initializer_cedit_key
+  #78    t=   604s heap=3.06GiB top=3.06GiB toplevel-done compute_cmdrow
+  #81    t=   604s heap=3.06GiB top=3.06GiB toplevel-done set_search_match
+  #84    t=   604s heap=3.06GiB top=3.06GiB toplevel-done getcmdline_int
+  #87    t=   604s heap=3.06GiB top=3.06GiB toplevel-done f_getcmdpos
+  #90    t=   605s heap=3.06GiB top=3.06GiB toplevel-done get_user_input
+  #93    t=   606s heap=3.06GiB top=3.06GiB toplevel-done cmdline_getvcol_cursor
+  #95    t=   606s heap=3.06GiB top=3.06GiB toplevel-done curbuf_locked

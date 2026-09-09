@@ -1,0 +1,101 @@
+events=7839 span=579s final heap=0.07GiB top=3.06GiB compactions=2
+target-done: heap=0.07GiB top=3.06GiB t=579s file=src/vim9execute.c
+
+-- top procedures by inclusive heap growth (GiB): growth / top-heap increase / secs / nesting / proc
+  3.054   3.054   514.9s n=0   src/vim9execute.c:unwind_def_callstack
+  3.054   3.054   514.8s n=1   src/vim9execute.c:func_return
+  3.047   3.047   514.0s n=2   src/vim9execute.c:invoke_defer_funcs
+  3.047   3.047   513.7s n=3   src/userfunc.c:call_func
+  3.045   3.045   512.7s n=4   src/vim9generics.c:parse_generic_func_type_args
+  3.045   3.045   512.3s n=5   src/message.c:semsg
+  3.020   3.020   511.5s n=6   src/message.c:emsg_core
+  3.020   3.020   511.0s n=7   src/message.c:msg_use_printf
+  3.020   3.020   511.0s n=8   src/message.c:msg_check_screen
+  3.020   3.020   510.9s n=9   src/screen.c:screen_valid
+  3.020   3.020   510.9s n=10  src/screen.c:screenalloc
+  3.020   3.020   510.8s n=11  src/term.c:win_new_shellsize
+  3.014   3.014   510.4s n=12  src/window.c:shell_new_columns
+  3.014   3.014   510.0s n=13  src/window.c:frame_new_width
+  3.014   3.014   509.7s n=14  src/window.c:win_new_width
+  3.014   3.014   509.6s n=15  src/move.c:curs_columns
+  3.014   3.014   504.4s n=16  src/move.c:update_topline
+  3.014   3.014   498.4s n=17  src/misc2.c:check_cursor_lnum
+  3.014   3.014   498.3s n=18  src/fold.c:hasFolding
+  3.014   3.014   498.3s n=19  src/fold.c:hasFoldingWin
+  3.014   3.014   498.0s n=20  src/fold.c:checkupdate
+  3.014   3.014   498.0s n=21  src/fold.c:foldUpdate
+  3.014   3.014   497.7s n=22  src/fold.c:foldUpdateIEMS
+  3.014   3.014   495.4s n=23  src/fold.c:foldlevelMarker
+  3.014   3.014   495.1s n=24  src/memline.c:ml_get_buf
+
+-- top procedures by SELF heap growth (GiB, excluding callees): growth / count / proc
+  0.399 x1   src/os_unix.c:RealWaitForChar
+  0.347 x1   src/os_unix.c:WaitForChar
+  0.302 x1   src/sha256.c:sha256_finish
+  0.262 x1   src/clipboard.c:clip_copy_modeless_selection
+  0.228 x1   src/buffer.c:free_buffer
+  0.198 x1   src/clipboard.c:clip_x11_request_selection
+  0.173 x1   src/evalvars.c:eval_diff
+  0.150 x1   src/netbeans.c:nb_send
+  0.130 x1   src/vim9execute.c:call_def_function
+  0.113 x1   src/drawline.c:text_prop_position
+  0.099 x1   src/option.c:buf_copy_options
+  0.086 x1   src/typval.c:eval_number
+  0.075 x1   src/vim9generics.c:copy_generic_function
+  0.065 x1   src/screen.c:screen_puts_len
+  0.056 x1   src/charset.c:ptr2cells
+  0.049 x1   src/gui_gtk_x11.c:gui_gtk_draw_string_ext
+  0.043 x1   src/gui.c:gui_write
+  0.037 x1   src/screen.c:screen_char
+  0.032 x1   src/typval.c:clear_tv
+  0.028 x1   src/eval.c:partial_free
+
+-- top procedures by wall time: secs / growth / proc
+  514.9s   3.054 n=0   src/vim9execute.c:unwind_def_callstack
+  514.8s   3.054 n=1   src/vim9execute.c:func_return
+  514.0s   3.047 n=2   src/vim9execute.c:invoke_defer_funcs
+  513.7s   3.047 n=3   src/userfunc.c:call_func
+  512.7s   3.045 n=4   src/vim9generics.c:parse_generic_func_type_args
+  512.3s   3.045 n=5   src/message.c:semsg
+  511.5s   3.020 n=6   src/message.c:emsg_core
+  511.0s   3.020 n=7   src/message.c:msg_use_printf
+  511.0s   3.020 n=8   src/message.c:msg_check_screen
+  510.9s   3.020 n=9   src/screen.c:screen_valid
+  510.9s   3.020 n=10  src/screen.c:screenalloc
+  510.8s   3.020 n=11  src/term.c:win_new_shellsize
+  510.4s   3.014 n=12  src/window.c:shell_new_columns
+  510.0s   3.014 n=13  src/window.c:frame_new_width
+  509.7s   3.014 n=14  src/window.c:win_new_width
+
+-- heap after each top-level procedure (sampled every N):
+  #0     t=   515s heap=3.06GiB top=3.06GiB toplevel-done unwind_def_callstack
+  #3     t=   535s heap=3.06GiB top=3.06GiB toplevel-done dict_stack_clear
+  #6     t=   535s heap=3.06GiB top=3.06GiB toplevel-done call_prepare
+  #9     t=   535s heap=3.06GiB top=3.06GiB toplevel-done __infer_globals_initializer_current_ectx
+  #12    t=   536s heap=3.06GiB top=3.06GiB toplevel-done do_2string
+  #15    t=   536s heap=3.06GiB top=3.06GiB toplevel-done in_def_function
+  #18    t=   548s heap=3.06GiB top=3.06GiB toplevel-done __infer_globals_initializer_profile_info_ga
+  #21    t=   548s heap=3.06GiB top=3.06GiB toplevel-done update_has_breakpoint
+  #24    t=   550s heap=3.06GiB top=3.06GiB toplevel-done call_ufunc
+  #27    t=   550s heap=3.06GiB top=3.06GiB toplevel-done handle_closure_in_use
+  #30    t=   550s heap=3.06GiB top=3.06GiB toplevel-done exe_newlist
+  #33    t=   550s heap=3.06GiB top=3.06GiB toplevel-done exec_command
+  #36    t=   550s heap=3.06GiB top=3.06GiB toplevel-done restore_current_ectx
+  #39    t=   551s heap=3.06GiB top=3.06GiB toplevel-done exe_newtuple
+  #42    t=   552s heap=3.06GiB top=3.06GiB toplevel-done may_load_script
+  #45    t=   559s heap=3.06GiB top=3.06GiB toplevel-done list_instructions
+  #48    t=   559s heap=3.06GiB top=3.06GiB toplevel-done set_ref_in_funcstacks
+  #51    t=   560s heap=3.06GiB top=3.06GiB toplevel-done __infer_globals_initializer_debug_context
+  #54    t=   561s heap=3.06GiB top=3.06GiB toplevel-done call_def_function
+  #57    t=   561s heap=3.06GiB top=3.06GiB toplevel-done add_defer_function
+  #60    t=   562s heap=3.06GiB top=3.06GiB toplevel-done ex_disassemble
+  #63    t=   562s heap=3.06GiB top=3.06GiB toplevel-done funcstack_check_refcount
+  #66    t=   562s heap=3.06GiB top=3.06GiB toplevel-done ufunc_argcount
+  #69    t=   563s heap=3.06GiB top=3.06GiB toplevel-done call_by_name
+  #72    t=   563s heap=3.06GiB top=3.06GiB toplevel-done error_if_locked
+  #75    t=   563s heap=3.06GiB top=3.06GiB toplevel-done add_funcstack_to_list
+  #78    t=   564s heap=3.06GiB top=3.06GiB toplevel-done handle_debug
+  #81    t=   564s heap=3.06GiB top=3.06GiB toplevel-done may_break_in_function
+  #84    t=   564s heap=3.06GiB top=3.06GiB toplevel-done check_ufunc_arg_types
+  #87    t=   565s heap=3.06GiB top=3.06GiB toplevel-done set_context_in_disassemble_cmd
+  #89    t=   565s heap=3.06GiB top=3.06GiB toplevel-done check_for_number

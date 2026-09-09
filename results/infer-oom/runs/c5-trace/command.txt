@@ -1,0 +1,1 @@
+/home/edong/VSCode/papers/mem_leak/tools/infer-src/infer/bin/infer analyze --results-dir /home/edong/VSCode/papers/mem_leak/output/oom/runs/c5-trace/infer-out --pulse-only --jobs 1 --max-jobs 1 --timeout 60 

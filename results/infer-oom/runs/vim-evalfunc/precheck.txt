@@ -1,0 +1,3 @@
+date=2026-09-09T13:31:29-07:00 run=vim-evalfunc
+MemAvailable_GiB=19.1 load1=1.16 swap_used_MiB=3193 disk_avail_GiB=572
+limits: ulimit -v 8388608 KB, wall guard 900s, jobs=1 nice=10 ionice=idle

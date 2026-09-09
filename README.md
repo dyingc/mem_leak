@@ -43,7 +43,9 @@ export OPENAI_API_KEY=...        # only gpt-5.6-luna is used
 Stock Pulse can express two of the four summary shapes: an allocator whose *return value* owns the
 memory, and a deallocator that frees its *first* argument. We patched Infer to add the other two
 (`notes/infer-arg-models.patch`; a second patch, `notes/infer-argfile-transport.patch`, makes Infer forward
-arguments containing `^` -- i.e. every anchored regex -- to its sub-processes instead of dropping them):
+arguments containing `^` -- i.e. every anchored regex -- to its sub-processes instead of dropping them;
+a third, `notes/infer-pulse-oom.patch`, bounds the one-worker Pulse memory growth -- evidence and
+verification in `notes/infer-pulse-oom.md`, harness in `results/infer-oom/`):
 
 | summary | flag |
 |---|---|

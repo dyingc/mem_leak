@@ -4,6 +4,8 @@
 #   --pulse-model-free-arg-pattern  N:regex   release argument N, not just the first
 #   --pulse-model-alloc-arg-pattern N:regex   acquire through a T **out parameter
 #   notes/infer-argfile-transport.patch       arguments containing '^' (every anchored regex)
+#   notes/infer-pulse-oom.patch               summary-cache eviction under memory pressure, compaction
+#                                             threshold unit fix, explicit --pulse-max-heap aborts, HeapTrace
 #                                             are forwarded to sub-processes instead of dropped
 #
 # Neither exists in stock Infer, so `--infer-pattern-mode anchored-argn` needs this build.
@@ -156,7 +158,7 @@ else
   git clean -fdxq infer/src/atd
 fi
 
-say "6. apply notes/infer-arg-models.patch and notes/infer-argfile-transport.patch"
+say "6. apply notes/infer-arg-models.patch, notes/infer-argfile-transport.patch and notes/infer-pulse-oom.patch"
 cd "$T/infer-src"
 # patch 1: Config.ml Config.mli PulseModelsC.ml (arg-position models)
 # patch 2: CommandLineOption.ml (arguments containing '^' reach sub-processes intact)
@@ -173,6 +175,8 @@ apply_patch () {   # apply_patch <patch> <expected file count> <file regex>
 }
 apply_patch infer-arg-models.patch 3 'Config\.mli?$|PulseModelsC\.ml$'
 apply_patch infer-argfile-transport.patch 1 'CommandLineOption\.ml$'
+# patch 3: Stats/Summary/InferAnalyze/ondemand/Pulse (+ Config, already counted above; + new file HeapTrace.ml)
+apply_patch infer-pulse-oom.patch 7 'Stats\.mli?$|Summary\.mli?$|InferAnalyze\.ml$|ondemand\.ml$|pulse/Pulse\.ml$'
 git diff --stat
 
 say "7. build (jobs=$JOBS)"

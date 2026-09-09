@@ -1,0 +1,104 @@
+events=13419 span=997s final heap=0.12GiB top=3.06GiB compactions=6
+target-done: heap=0.09GiB top=3.06GiB t=601s file=src/eval.c
+target-done: heap=0.09GiB top=3.06GiB t=720s file=src/evalfunc.c
+target-done: heap=0.09GiB top=3.06GiB t=886s file=src/ex_docmd.c
+target-done: heap=0.57GiB top=3.06GiB t=919s file=src/option.c
+target-done: heap=0.57GiB top=3.06GiB t=928s file=src/os_unix.c
+target-done: heap=0.41GiB top=3.06GiB t=953s file=src/quickfix.c
+target-done: heap=0.09GiB top=3.06GiB t=996s file=src/vim9execute.c
+target-done: heap=0.12GiB top=3.06GiB t=997s file=src/window.c
+
+-- top procedures by inclusive heap growth (GiB): growth / top-heap increase / secs / nesting / proc
+  3.054   3.054   591.5s n=0   src/eval.c:eval4
+  3.050   3.050   591.3s n=1   src/eval.c:eval5
+  3.050   3.050   591.1s n=2   src/eval.c:eval6
+  3.050   3.050   591.0s n=3   src/eval.c:eval7
+  3.050   3.050   590.9s n=4   src/eval.c:eval8
+  3.049   3.049   590.7s n=5   src/vim9type.c:parse_type
+  3.047   3.047   590.5s n=6   src/vim9type.c:parse_type_user_defined
+  3.047   3.047   590.2s n=7   src/evalvars.c:eval_variable_import
+  3.047   3.047   589.5s n=8   src/evalvars.c:eval_variable
+  3.043   3.043   588.6s n=9   src/evalvars.c:find_var
+  3.014   3.014   587.5s n=10  src/evalvars.c:find_var_in_ht
+  3.014   3.014   587.3s n=11  src/scriptfile.c:script_autoload
+  3.014   3.014   587.2s n=12  src/vim9execute.c:may_load_script
+  3.014   3.014   587.1s n=13  src/scriptfile.c:do_source
+  3.014   3.014   587.0s n=14  src/scriptfile.c:do_source_ext
+  3.014   3.014   582.2s n=15  src/scriptfile.c:do_source_buffer_init
+  3.014   3.014   582.2s n=16  src/strings.c:vim_strsave
+  3.014   3.014   582.2s n=17  src/alloc.c:alloc
+  3.014   3.014   582.2s n=18  src/alloc.c:lalloc
+  3.014   3.014   581.9s n=19  src/message.c:iemsg
+  3.014   3.014   581.7s n=20  src/message.c:emsg_core
+  3.014   3.014   581.0s n=21  src/message.c:msg_use_printf
+  3.014   3.014   580.9s n=22  src/message.c:msg_check_screen
+  3.014   3.014   580.9s n=23  src/screen.c:screen_valid
+  3.014   3.014   580.9s n=24  src/screen.c:screenalloc
+
+-- top procedures by SELF heap growth (GiB, excluding callees): growth / count / proc
+  0.781 x1   src/vim9execute.c:list_instructions
+  0.427 x1   src/option.c:did_set_undofile
+  0.422 x1   src/undo.c:u_compute_hash
+  0.399 x1   src/ex_getln.c:may_adjust_incsearch_highlighting
+  0.347 x1   src/sha256.c:sha2_seed
+  0.302 x1   src/sha256.c:sha256_process
+  0.273 x1   src/sha256.c:sha256_bytes
+  0.262 x1   src/ex_getln.c:draw_cmdline
+  0.228 x1   src/sign.c:sign_define_by_name
+  0.198 x1   src/viminfo.c:write_viminfo
+  0.188 x1   src/vim9execute.c:execute_unletindex
+  0.173 x1   src/map.c:map_clear_mode
+  0.170 x1   src/window.c:winframe_restore
+  0.168 x1   src/evalfunc.c:f_shiftwidth
+  0.150 x2   src/charset.c:getvvcol
+  0.148 x1   src/ex_docmd.c:ex_wundo
+  0.130 x1   src/term.c:cursor_on_force
+  0.113 x1   src/window.c:win_enter_ext
+  0.111 x1   src/search.c:find_pattern_in_path
+  0.110 x1   src/sha256.c:sha256_self_test
+
+-- top procedures by wall time: secs / growth / proc
+  591.5s   3.054 n=0   src/eval.c:eval4
+  591.3s   3.050 n=1   src/eval.c:eval5
+  591.1s   3.050 n=2   src/eval.c:eval6
+  591.0s   3.050 n=3   src/eval.c:eval7
+  590.9s   3.050 n=4   src/eval.c:eval8
+  590.7s   3.049 n=5   src/vim9type.c:parse_type
+  590.5s   3.047 n=6   src/vim9type.c:parse_type_user_defined
+  590.2s   3.047 n=7   src/evalvars.c:eval_variable_import
+  589.5s   3.047 n=8   src/evalvars.c:eval_variable
+  588.6s   3.043 n=9   src/evalvars.c:find_var
+  587.5s   3.014 n=10  src/evalvars.c:find_var_in_ht
+  587.3s   3.014 n=11  src/scriptfile.c:script_autoload
+  587.2s   3.014 n=12  src/vim9execute.c:may_load_script
+  587.1s   3.014 n=13  src/scriptfile.c:do_source
+  587.0s   3.014 n=14  src/scriptfile.c:do_source_ext
+
+-- heap after each top-level procedure (sampled every N):
+  #0     t=   592s heap=3.06GiB top=3.06GiB toplevel-done eval4
+  #70    t=   597s heap=3.06GiB top=3.06GiB toplevel-done find_name_end
+  #140   t=   601s heap=0.09GiB top=3.06GiB toplevel-done f_changenr
+  #210   t=   649s heap=0.74GiB top=3.06GiB toplevel-done searchpair_cmn
+  #280   t=   659s heap=0.74GiB top=3.06GiB toplevel-done indexof_blob
+  #350   t=   662s heap=0.74GiB top=3.06GiB toplevel-done range_list_materialize
+  #420   t=   666s heap=0.74GiB top=3.06GiB toplevel-done __infer_globals_initializer_arg2_buffer_any
+  #490   t=   716s heap=1.29GiB top=3.06GiB toplevel-done f_getregtype
+  #560   t=   719s heap=1.29GiB top=3.06GiB toplevel-done __infer_globals_initializer_arg3_string_number_bool
+  #630   t=   736s heap=0.37GiB top=3.06GiB toplevel-done ex_nohlsearch
+  #700   t=   858s heap=1.13GiB top=3.06GiB toplevel-done compute_buffer_local_count
+  #770   t=   871s heap=1.30GiB top=3.06GiB toplevel-done find_ex_command
+  #840   t=   887s heap=0.09GiB top=3.06GiB toplevel-done do_set_option_numeric
+  #910   t=   908s heap=0.57GiB top=3.06GiB toplevel-done reset_modifiable
+  #980   t=   917s heap=0.57GiB top=3.06GiB toplevel-done did_set_title_icon
+  #1050  t=   919s heap=0.57GiB top=3.06GiB toplevel-done clip_xterm_lose_selection
+  #1120  t=   924s heap=0.57GiB top=3.06GiB toplevel-done __infer_globals_initializer_xterm_Shell
+  #1190  t=   927s heap=0.57GiB top=3.06GiB toplevel-done mch_create_pty_channel
+  #1260  t=   928s heap=0.57GiB top=3.06GiB toplevel-done qf_find_win
+  #1330  t=   944s heap=0.36GiB top=3.06GiB toplevel-done qf_list
+  #1400  t=   949s heap=0.36GiB top=3.06GiB toplevel-done vgr_process_args
+  #1470  t=   952s heap=0.41GiB top=3.06GiB toplevel-done qf_init
+  #1540  t=   957s heap=0.47GiB top=3.06GiB toplevel-done clear_current_ectx
+  #1610  t=   996s heap=0.09GiB top=3.06GiB toplevel-done win_split_ins
+  #1680  t=   997s heap=0.09GiB top=3.06GiB toplevel-done win_exchange
+  #1750  t=   997s heap=0.12GiB top=3.06GiB toplevel-done make_win_info_dict
+  #1758  t=   997s heap=0.12GiB top=3.06GiB toplevel-done frame_check_width

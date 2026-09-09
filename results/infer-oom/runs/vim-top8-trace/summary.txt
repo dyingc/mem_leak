@@ -1,0 +1,7 @@
+exit=0 wall_s=998.9 peak_rss_KiB=3484220
+report.json: present, 71 issues
+fatal/oom lines: /home/edong/VSCode/papers/mem_leak/output/oom/runs/vim-top8-trace/stderr.txt:0 /home/edong/VSCode/papers/mem_leak/output/oom/runs/vim-top8-trace/infer-out/logs:0 
+compaction lines: 4
+top_heap_words(main_process_full): 410722816 = 3.06012 GiB
+timeouts/skips: 3 log lines mention timeout
+post: MemAvailable_GiB=19.4 load1=1.17 du_out=492M

@@ -1,0 +1,12 @@
+Command: /home/edong/VSCode/papers/mem_leak/tools/infer-src/infer/bin/infer analyze --results-dir /home/edong/VSCode/papers/mem_leak/output/oom/runs/vim-ex_docmd/infer-out --pulse-only --jobs 1 --max-jobs 1 --timeout 60 --changed-files-index corpus/vim/changed-ex_docmd.txt --suffix-match-changed-files
+Exit status: 0
+Elapsed (wall clock) seconds: 749.4
+User time (seconds): 721.3
+System time (seconds): 24.5
+Maximum resident set size (kbytes): 4117920
+Peak tree RSS sampled (kbytes): 4081568
+samples (t_s, tree_rss_kb, max_vmhwm_kb):
+0.0 612 612
+1.0 144504 144504
+2.0 175848 175848
+3.0 206024 206024

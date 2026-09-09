@@ -1,7 +1,15 @@
 # Nine leak fixes against upstream 5d934b1b (patch 9.2.1054, 2026-09-08)
 
-**Status (2026-09-09): red-team reviewed, PR texts in `PR_DESCRIPTIONS.md`, NOT submitted —
-waiting for final approval.** Review: `../CHALLENGE_RESPONSE.md`.
+**Status (2026-09-09): `strings.diff` submitted as
+[vim/vim#21255](https://github.com/vim/vim/pull/21255); the other eight not submitted.**
+PR texts in `PR_DESCRIPTIONS.md`, review in `../CHALLENGE_RESPONSE.md`.
+
+The maintainer asked for a test on #21255. None of the 22 comparable leak fixes upstream
+carried one, but this bug has no user-visible symptom to assert, so the test added
+(`strings_test.diff`, in `Test_reduce()`) just runs the failing path — Vim's `linux-asan`
+CI job fails the build on any ASan output, which is what catches it. Verified both ways:
+on an ASan build `make test_vim9_builtin` logs the 2192-byte `string_reduce` leak before the
+fix and nothing after.
 
 Re-verified from scratch against the current tip, not against the analysed tag 9.2.0015.
 One earlier claim (`edit.c:ins_tab`) was **withdrawn** here as a false positive.

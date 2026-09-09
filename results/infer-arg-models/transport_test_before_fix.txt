@@ -1,0 +1,49 @@
+=== binary under test: /tmp/claude-1000/-home-edong-VSCode-papers-mem-leak/81423c58-ea79-42fd-b18c-6d67ecfaaac9/scratchpad/baseline/tree/bin/infer
+Infer version v1.2.0-4c53e80
+
+--- infer run, --jobs 2: models must survive both the capture and the analysis subprocesses
+PASS  infer run --jobs 2 exits 0 (capture subprocesses accepted the forwarded arguments)
+PASS  analysis really ran in 2 worker processes
+PASS  allocator (\| alternatives) + arg-1 deallocator active in the workers
+
+--- the anchored regex is not weakened to a prefix match (decoy my_alloc2)
+PASS  positive control: widening the regex to include my_alloc2 reports the decoys
+      (so the absence of a_decoy/b_decoy above is due to exact matching, not to a lost model)
+PASS  stock arg-0 free model misfires on the ctx argument (arg-position option is what fixes it)
+
+--- the regex is the last option before '--' (the capture wrapper used to die: option needs an argument)
+FAIL  infer run with the regex as the last option exits 0
+        exit code 3: External Error: *** capture command failed:
+FAIL  allocator model active (no deallocator model: a_ok/b_ok pass p to an unknown function)
+        expected [a_leak a_leak_other b_leak b_leak_other], got [NO-REPORT]
+
+--- direct infer analyze: originating process (--jobs 1), forked workers (--jobs 2),
+    exec'd workers (--jobs 2 --no-unix-fork: fresh processes that only see INFER_ARGS)
+PASS  infer analyze --jobs 1
+PASS  infer analyze --jobs 2
+FAIL  infer analyze --jobs 2 --no-unix-fork
+        expected [a_leak a_leak_other b_leak b_leak_other], got []
+
+--- argfiles written by every infer process (kept with --debug, TMPDIR=/tmp/tmp.nJml1h5PIS/tmp)
+      analysis worker   args.tmp.188e5c  alloc='--pulse-model-free-arg-pattern'  free='--results-dir'  MISMATCH
+      originator/capture  args.tmp.676f59  alloc='--pulse-model-free-arg-pattern'  free='--results-dir'  MISMATCH
+      originator/capture  args.tmp.6edf99  alloc='--pulse-model-free-arg-pattern'  free='--results-dir'  MISMATCH
+      analysis worker   args.tmp.a45a5b  alloc='--pulse-model-free-arg-pattern'  free='--results-dir'  MISMATCH
+      originator/capture  args.tmp.ad351a  alloc='--pulse-model-free-arg-pattern'  free='--results-dir'  MISMATCH
+      5 argfiles, 5 carry the model options, 0 intact, 2 written by exec'd analysis workers
+FAIL  every process's forwarded arguments carry both regexes verbatim
+        see the lines above
+
+--- INFER_ARGS environment variable
+PASS  ordinary ^-separated INFER_ARGS options are honoured (--jobs 2 taken from the env)
+PASS  command-line models combine with INFER_ARGS options
+
+--- compatibility: explicit @argfile and .inferconfig
+PASS  explicit @argfile on the command line
+PASS  explicit @argfile through INFER_ARGS
+PASS  .inferconfig in the project root
+
+FAIL  no caret warning in any run
+        32 warning line(s), e.g.: WARNING: Ignoring unsupported option containing '^' character: ^\(my_alloc\|other_alloc\)$
+
+=== 12 passed, 5 failed

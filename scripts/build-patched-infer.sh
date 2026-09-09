@@ -1,8 +1,10 @@
 #!/bin/bash
-# Build Infer v1.2.0 with our two Pulse model patches:
+# Build Infer v1.2.0 with our two Pulse model patches and the argument-transport fix:
 #
 #   --pulse-model-free-arg-pattern  N:regex   release argument N, not just the first
 #   --pulse-model-alloc-arg-pattern N:regex   acquire through a T **out parameter
+#   notes/infer-argfile-transport.patch       arguments containing '^' (every anchored regex)
+#                                             are forwarded to sub-processes instead of dropped
 #
 # Neither exists in stock Infer, so `--infer-pattern-mode anchored-argn` needs this build.
 # Everything lands under tools/ (gitignored): ~7 GB, ~40 min on 12 cores.
@@ -154,19 +156,24 @@ else
   git clean -fdxq infer/src/atd
 fi
 
-say "6. apply notes/infer-arg-models.patch"
+say "6. apply notes/infer-arg-models.patch and notes/infer-argfile-transport.patch"
 cd "$T/infer-src"
-PATCHED=$(git diff --name-only | grep -c -E 'Config\.mli?|PulseModelsC\.ml' || true)
-if [ "$PATCHED" -eq 3 ]; then
-  skip "patch already applied ($(git diff --shortstat))"
-elif [ "$PATCHED" -ne 0 ]; then
-  die "the source tree is partially modified; inspect 'git -C $T/infer-src diff' yourself"
-else
-  git apply --check "$REPO/notes/infer-arg-models.patch" \
-    || die "patch does not apply -- is the tree at $INFER_COMMIT?"
-  git apply "$REPO/notes/infer-arg-models.patch"
-  git diff --stat
-fi
+# patch 1: Config.ml Config.mli PulseModelsC.ml (arg-position models)
+# patch 2: CommandLineOption.ml (arguments containing '^' reach sub-processes intact)
+apply_patch () {   # apply_patch <patch> <expected file count> <file regex>
+  local n; n=$(git diff --name-only | grep -c -E "$3" || true)
+  if [ "$n" -eq "$2" ]; then
+    skip "$1 already applied"
+  elif [ "$n" -ne 0 ]; then
+    die "the source tree is partially modified; inspect 'git -C $T/infer-src diff' yourself"
+  else
+    git apply --check "$REPO/notes/$1" || die "$1 does not apply -- is the tree at $INFER_COMMIT?"
+    git apply "$REPO/notes/$1"
+  fi
+}
+apply_patch infer-arg-models.patch 3 'Config\.mli?$|PulseModelsC\.ml$'
+apply_patch infer-argfile-transport.patch 1 'CommandLineOption\.ml$'
+git diff --stat
 
 say "7. build (jobs=$JOBS)"
 cd "$T/infer-src"
@@ -198,6 +205,8 @@ fi   # VERIFY_ONLY
 say "8. verify the patched binary"
 "$REPO/results/infer-arg-models/verify_patch.sh" "$T/infer-src/infer/bin/infer" || \
   die "verification failed -- the build is not usable"
+"$REPO/results/infer-arg-models/verify_transport.sh" "$T/infer-src/infer/bin/infer" || \
+  die "argument-transport verification failed -- anchored regexes would not reach sub-processes"
 
 say "9. verify the stock binary FAILS the same checks"
 # Without this the previous step proves little: it must be able to tell the two apart.

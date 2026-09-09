@@ -21,7 +21,7 @@ cd <repo> && ./scripts/build-patched-infer.sh          # 从零到可用，约 4
 | `--pulse-model-free-arg-pattern N:regex` | 把匹配函数建模为释放第 N 个参数（原生只能释放第一个） | ❌ 没有 |
 | `--pulse-model-alloc-arg-pattern N:regex` | 把匹配函数建模为通过 `T **out` 出参交出新分配的内存（原生只能标记返回值） | ❌ 没有 |
 
-补丁在仓库里：`notes/infer-arg-models.patch`（211 行 diff，3 个文件）。
+补丁在仓库里：`notes/infer-arg-models.patch`（211 行 diff，3 个文件）和 `notes/infer-argfile-transport.patch`（74 行 diff，1 个文件；让含 `^` 的参数——也就是所有锚定正则——能原样传给 Infer 的子进程，见 `notes/infer-argfile-transport.md`）。
 `tools/` 在 `.gitignore` 里，所以源码树、opam switch、编译产物**都不在仓库里**，新 VM 上要从头做一遍。
 
 **好消息：不用编译 LLVM/clang。** Infer 的发行版 tarball 里已经带了编译好的 clang（909 MB）
@@ -327,6 +327,6 @@ python -m memhint stage2 <project> --out <out> --analyzer infer \
 ## 13. 参考
 
 - 完整设计与实测记录：`notes/infer-arg-models.md`
-- 补丁：`notes/infer-arg-models.patch`
-- 玩具用例、自检脚本与期望输出：`results/infer-arg-models/`（`verify_patch.sh`、`argn.c`、`out_arg.c`、`run_out_arg.sh`）
+- 补丁：`notes/infer-arg-models.patch`、`notes/infer-argfile-transport.patch`（后者的设计与验证：`notes/infer-argfile-transport.md`）
+- 玩具用例、自检脚本与期望输出：`results/infer-arg-models/`（`verify_patch.sh`、`argn.c`、`out_arg.c`、`run_out_arg.sh`；参数传递：`verify_transport.sh`、`transport_a.c`、`transport_b.c`）
 - 与官方 MemHint 实现的对比：`COMPARISON.md` §7

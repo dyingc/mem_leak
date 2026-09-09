@@ -37,15 +37,23 @@ class OwnershipModel:
     def __init__(self) -> None:
         self.allocators: set[str] = set(STD_ALLOCATORS)
         self.deallocators: dict[str, set[int]] = {k: set(v) for k, v in STD_DEALLOCATORS.items()}
+        # functions that write the fresh pointer to a `T **out` argument instead of returning it
+        self.out_allocators: dict[str, set[int]] = {}
 
     def add(self, s: Summary) -> None:
         if s.role is Role.ALLOCATOR:
-            self.allocators.add(s.name)
+            if s.arg_index >= 0:
+                self.out_allocators.setdefault(s.name, set()).add(s.arg_index)
+            else:
+                self.allocators.add(s.name)
         else:
             self.deallocators.setdefault(s.name, set()).add(s.arg_index)
 
     def frees(self, name: str) -> set[int]:
         return self.deallocators.get(name, set())
+
+    def allocates_out(self, name: str) -> set[int]:
+        return self.out_allocators.get(name, set())
 
 
 # --------------------------------------------------------------------------- #
@@ -74,6 +82,24 @@ class Aliases:
     def cls(self, v: str) -> set[str]:
         r = self.find(v)
         return {x for x in set(self.parent) | {v} if self.find(x) == r}
+
+
+_OUT_LHS = re.compile(r"^\(*\*+\(*([A-Za-z_]\w*)\)*\)*$|^([A-Za-z_]\w*)\[0\]$")
+
+
+def _deref_of(expr: str) -> str | None:
+    """`*out` / `(*out)` / `**out` / `out[0]` -> `out`; anything else -> None."""
+    m = _OUT_LHS.match(expr)
+    return (m.group(1) or m.group(2)) if m else None
+
+
+_ADDR_OF = re.compile(r"^&([A-Za-z_]\w*)$")
+
+
+def _addr_in_class(expr: str, C: set[str]) -> bool:
+    """`&p` where `p` is in the class -- how an out parameter receives the allocation."""
+    m = _ADDR_OF.match(expr)
+    return bool(m) and m.group(1) in C
 
 
 def _in_class(expr: str, C: set[str]) -> bool:
@@ -106,6 +132,9 @@ def track(cfg: CFG, C: set[str], model: OwnershipModel, alloc_nodes: set[int] | 
                         t.alloc_nodes.add(n.id)
                     else:
                         t.clear_nodes.add(n.id)        # overwritten by an unknown value
+                for i in model.allocates_out(e.name):
+                    if i < len(e.args) and _addr_in_class(e.args[i], C):
+                        t.alloc_nodes.add(n.id)
                 for i in model.frees(e.name):
                     if i < len(e.args) and _in_class(e.args[i], C):
                         t.free_nodes.add(n.id)
@@ -147,11 +176,15 @@ class SummaryValidator:
 
     def __init__(self, functions: dict[str, FunctionInfo], candidates: list[Summary]):
         self.functions = functions
-        self.hinted_alloc = {s.name for s in candidates if s.role is Role.ALLOCATOR}
+        self.hinted_alloc = {s.name for s in candidates
+                             if s.role is Role.ALLOCATOR and s.arg_index < 0}
+        self.hinted_alloc_out: dict[str, set[int]] = {}
         self.hinted_free: dict[str, set[int]] = {}
         for s in candidates:
             if s.role is Role.DEALLOCATOR:
                 self.hinted_free.setdefault(s.name, set()).add(s.arg_index)
+            elif s.role is Role.ALLOCATOR and s.arg_index >= 0:
+                self.hinted_alloc_out.setdefault(s.name, set()).add(s.arg_index)
         self.model = OwnershipModel()
         self.memo: dict[tuple[str, str, int], bool] = {}
         self.visiting: set[tuple[str, str, int]] = set()
@@ -182,7 +215,8 @@ class SummaryValidator:
             return False
         self.visiting.add(key)
         try:
-            ok = self._is_allocator(s.name, depth) if s.role is Role.ALLOCATOR else self._is_deallocator(s.name, s.arg_index, depth)
+            ok = self._is_allocator(s.name, depth, s.arg_index) if s.role is Role.ALLOCATOR \
+                else self._is_deallocator(s.name, s.arg_index, depth)
         finally:
             self.visiting.discard(key)
         self.memo[key] = ok
@@ -201,6 +235,14 @@ class SummaryValidator:
             return self.validate(Summary(name, Role.ALLOCATOR, "return"), depth + 1)
         return False
 
+    def _callee_allocates_out(self, name: str, depth: int) -> set[int]:
+        out = set(self.model.allocates_out(name))
+        for i in self.hinted_alloc_out.get(name, ()):
+            if i not in out and name in self.functions and \
+                    self.validate(Summary(name, Role.ALLOCATOR, f"arg{i}"), depth + 1):
+                out.add(i)
+        return out
+
     def _callee_frees(self, name: str, depth: int) -> set[int]:
         out = set(self.model.frees(name))
         for i in self.hinted_free.get(name, ()):
@@ -215,30 +257,58 @@ class SummaryValidator:
         m.allocators |= self.model.allocators
         for k, v in self.model.deallocators.items():
             m.deallocators.setdefault(k, set()).update(v)
+        for k, v in self.model.out_allocators.items():
+            m.out_allocators.setdefault(k, set()).update(v)
         for _, e in cfg.events():
             if isinstance(e, Call):
                 if e.result is not None and self._callee_is_allocator(e.name, depth):
                     m.allocators.add(e.name)
+                ao = self._callee_allocates_out(e.name, depth)
+                if ao:
+                    m.out_allocators.setdefault(e.name, set()).update(ao)
                 fr = self._callee_frees(e.name, depth)
                 if fr:
                     m.deallocators.setdefault(e.name, set()).update(fr)
         return m
 
     # ---- Eq. (1) ---------------------------------------------------------
-    def _is_allocator(self, name: str, depth: int) -> bool:
+    def _is_allocator(self, name: str, depth: int, idx: int = -1) -> bool:
+        """``idx < 0``: the allocation must reach a ``return``.  ``idx >= 0``: it must reach a
+        write through out parameter ``idx`` (``*out = p``), which is what
+        ``--pulse-model-alloc-arg-pattern`` models."""
         f = self.functions.get(name)
         if f is None:
             return False
         if f.is_macro:
-            return self._macro_is_allocator(f, depth)
+            return self._macro_is_allocator(f, depth) if idx < 0 else False
         cfg = self.cfg(name)
         if cfg is None:
             return False
+        param = None
+        if idx >= 0:
+            if idx >= len(cfg.params):
+                return False
+            param = cfg.params[idx]
         model = self._resolved_model(cfg, depth)
         al = Aliases(cfg)
+        # `*out = alloc(...)` writes the fresh pointer straight through the out parameter
+        if param is not None:
+            for n, e in cfg.events():
+                if isinstance(e, Call) and e.result and e.name in model.allocators \
+                        and _deref_of(e.result) == param:
+                    pe = PathEncoder(cfg)
+                    if pe.sat(pe.reach[n.id]):
+                        self.reasons[(name, "Allocator", idx)] = \
+                            f"alloc written straight to *{param} at L{n.line}"
+                        return True
         # candidate result variables: every alloc-call result (incl. `return f()` -> __ret__)
         vars_ = {e.result for _, e in cfg.events()
                  if isinstance(e, Call) and e.result and e.name in model.allocators and is_plain_ident(e.result)}
+        for _, e in cfg.events():   # `g(&p)` where g allocates through that argument
+            if isinstance(e, Call):
+                for i in model.allocates_out(e.name):
+                    if i < len(e.args) and (m := _ADDR_OF.match(e.args[i])):
+                        vars_.add(m.group(1))
         seen: set[str] = set()
         for v in vars_:
             C = al.cls(v)
@@ -246,14 +316,23 @@ class SummaryValidator:
                 continue
             seen.add(frozenset(C))
             t = track(cfg, C, model)
-            if not t.return_nodes:
+            if param is None:
+                targets = t.return_nodes
+            else:
+                targets = {n.id for n, e in cfg.events()
+                           if isinstance(e, Assign) and _in_class(e.rhs, C) and _deref_of(e.lhs) == param}
+            if not targets:
                 continue
             pe, a, fr, _ = encode(cfg, t)
-            for r in t.return_nodes:
+            for r in targets:
                 if pe.sat(pe.reach[r], a[r], z3.Not(fr[r])):
-                    self.reasons[(name, "Allocator", -1)] = f"alloc of {sorted(C)} reaches return at L{cfg.nodes[r].line}"
+                    where = "return" if param is None else f"*{param}"
+                    self.reasons[(name, "Allocator", idx)] = \
+                        f"alloc of {sorted(C)} reaches {where} at L{cfg.nodes[r].line}"
                     return True
-        self.reasons[(name, "Allocator", -1)] = "no feasible path from an allocation to a return of it"
+        self.reasons[(name, "Allocator", idx)] = (
+            "no feasible path from an allocation to a return of it" if param is None
+            else f"no feasible path from an allocation to a write of *{param}")
         return False
 
     # ---- Eq. (2) ---------------------------------------------------------
@@ -321,6 +400,7 @@ def _with_allocators(model: OwnershipModel, names: set[str]) -> OwnershipModel:
     m = OwnershipModel()
     m.allocators = model.allocators | names
     m.deallocators = {k: set(v) for k, v in model.deallocators.items()}
+    m.out_allocators = {k: set(v) for k, v in model.out_allocators.items()}
     return m
 
 
@@ -343,33 +423,46 @@ def leak_feasible(func: FunctionInfo, model: OwnershipModel, alloc_line: int | N
     except Exception as e:  # pragma: no cover
         return Feasibility(True, f"cfg failed ({e}); kept")
     al = Aliases(cfg)
-    sites: list[tuple[int, Call]] = []
+    # (node, call, variable that receives the ownership; None if the result is discarded)
+    sites: list[tuple[int, Call, str | None]] = []
     for n, e in cfg.events():
-        if isinstance(e, Call) and e.name in model.allocators:
-            rel_line = func.start_line + n.line - 1
-            if alloc_line is not None and abs(rel_line - alloc_line) > 1:
-                continue
-            if alloc_callee and e.name != alloc_callee:
-                continue
-            sites.append((n.id, e))
+        if not isinstance(e, Call):
+            continue
+        owner: str | None | bool = False
+        if e.name in model.allocators:
+            owner = e.result
+        else:
+            for i in model.allocates_out(e.name):
+                if i < len(e.args) and (m := _ADDR_OF.match(e.args[i])):
+                    owner = m.group(1)
+                    break
+        if owner is False:
+            continue
+        rel_line = func.start_line + n.line - 1
+        if alloc_line is not None and abs(rel_line - alloc_line) > 1:
+            continue
+        if alloc_callee and e.name != alloc_callee:
+            continue
+        sites.append((n.id, e, owner))
     if not sites and alloc_line is not None:
         # The analyzer asserts an allocation at this line (e.g. CodeQL followed a wrapper's
         # return chain that our summaries do not cover): trust it and track that call.
         for n, e in cfg.events():
             if isinstance(e, Call) and e.result and func.start_line + n.line - 1 == alloc_line \
                     and (alloc_callee is None or e.name == alloc_callee):
-                sites.append((n.id, e))
+                sites.append((n.id, e, e.result))
         if sites:
-            model = _with_allocators(model, {e.name for _, e in sites})
+            model = _with_allocators(model, {e.name for _, e, _ in sites})
     if not sites:   # fall back to any allocation
-        sites = [(n.id, e) for n, e in cfg.events() if isinstance(e, Call) and e.name in model.allocators]
+        sites = [(n.id, e, e.result) for n, e in cfg.events()
+                 if isinstance(e, Call) and e.name in model.allocators]
     if not sites:
         return Feasibility(True, "no recognised allocation in function; kept for LLM")
-    for nid, e in sites:
-        if e.result is None or not is_plain_ident(e.result):
+    for nid, e, owner in sites:
+        if owner is None or not is_plain_ident(owner):
             # result discarded / stored straight into a field: analyzer's call, keep it
             return Feasibility(True, f"allocation at L{cfg.nodes[nid].line} not bound to a local; kept")
-        C = al.cls(e.result)
+        C = al.cls(owner)
         t = track(cfg, C, model, alloc_nodes={nid})
         pe, a, fr, es = encode(cfg, t)
         x = cfg.exit

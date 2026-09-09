@@ -1,0 +1,211 @@
+diff --git a/infer/src/base/Config.ml b/infer/src/base/Config.ml
+index 808dbe7..4838392 100644
+--- a/infer/src/base/Config.ml
++++ b/infer/src/base/Config.ml
+@@ -2532,6 +2532,16 @@ and pulse_model_abort =
+     "Methods that should be modelled as abort in Pulse"
+ 
+ 
++and pulse_model_alloc_arg_pattern =
++  CLOpt.mk_string_list ~long:"pulse-model-alloc-arg-pattern" ~meta:"N:regex"
++    ~in_help:InferCommand.[(Analyze, manual_pulse)]
++    "Like $(b,--pulse-model-alloc-pattern) but the acquired resource is written by the matched \
++     function to the pointer-to-pointer out parameter number N (0-based) instead of being \
++     returned, e.g. $(b,1:^\\\\(make_thing\\\\)$) for $(i,int make_thing(int flags, struct \
++     thing **out)). May be given several times, once per argument position. The effect is applied \
++     only if argument N really has a pointer-to-pointer type."
++
++
+ and pulse_model_alloc_pattern =
+   CLOpt.mk_string_opt ~long:"pulse-model-alloc-pattern"
+     ~in_help:InferCommand.[(Analyze, manual_pulse)]
+@@ -2559,6 +2569,14 @@ and pulse_model_free_pattern =
+      call is dispatched to global function pointers)."
+ 
+ 
++and pulse_model_free_arg_pattern =
++  CLOpt.mk_string_list ~long:"pulse-model-free-arg-pattern" ~meta:"N:regex"
++    ~in_help:InferCommand.[(Analyze, manual_pulse)]
++    "Like $(b,--pulse-model-free-pattern) but the pointer to be freed is argument number N \
++     (0-based) of the matched function, e.g. $(b,1:^\\\\(my_free\\\\|other_free\\\\)$). May be \
++     given several times, once per argument position."
++
++
+ and pulse_model_malloc_pattern =
+   CLOpt.mk_string_opt ~long:"pulse-model-malloc-pattern"
+     ~in_help:InferCommand.[(Analyze, manual_pulse)]
+@@ -3882,6 +3900,20 @@ let join_patterns ~pattern_opt ~pattern_list =
+   join_patterns_list (Option.to_list !pattern_opt @ RevList.to_list !pattern_list)
+ 
+ 
++(** parse the [N:regex] specifications shared by --pulse-model-{free,alloc}-arg-pattern *)
++let parse_arg_index_patterns option_name specs =
++  List.map specs ~f:(fun spec ->
++      match String.lsplit2 spec ~on:':' with
++      | Some (n, re) -> (
++        match int_of_string_opt n with
++        | Some n when n >= 0 ->
++            (n, Str.regexp re)
++        | _ ->
++            L.die UserError "%s: bad argument index in '%s'" option_name spec )
++      | None ->
++          L.die UserError "%s expects N:regex, got '%s'" option_name spec )
++
++
+ let command =
+   let command_opt, _usage_exit =
+     CLOpt.parse ?config_file:inferconfig_file ~usage:exe_usage startup_action initial_command
+@@ -4505,6 +4537,11 @@ and pulse_max_heap = !pulse_max_heap
+ 
+ and pulse_model_abort = RevList.to_list !pulse_model_abort
+ 
++and pulse_model_alloc_arg_pattern =
++  parse_arg_index_patterns "--pulse-model-alloc-arg-pattern"
++    (RevList.to_list !pulse_model_alloc_arg_pattern)
++
++
+ and pulse_model_alloc_pattern = Option.map ~f:Str.regexp !pulse_model_alloc_pattern
+ 
+ and pulse_model_cheap_copy_type =
+@@ -4514,6 +4551,10 @@ and pulse_model_cheap_copy_type =
+ 
+ and pulse_model_free_pattern = Option.map ~f:Str.regexp !pulse_model_free_pattern
+ 
++and pulse_model_free_arg_pattern =
++  parse_arg_index_patterns "--pulse-model-free-arg-pattern"
++    (RevList.to_list !pulse_model_free_arg_pattern)
++
+ and pulse_model_malloc_pattern = Option.map ~f:Str.regexp !pulse_model_malloc_pattern
+ 
+ and pulse_model_realloc_pattern = Option.map ~f:Str.regexp !pulse_model_realloc_pattern
+diff --git a/infer/src/base/Config.mli b/infer/src/base/Config.mli
+index a2d5ae4..578849e 100644
+--- a/infer/src/base/Config.mli
++++ b/infer/src/base/Config.mli
+@@ -632,12 +632,16 @@ val pulse_max_heap : int option
+ 
+ val pulse_model_abort : string list
+ 
++val pulse_model_alloc_arg_pattern : (int * Str.regexp) list
++
+ val pulse_model_alloc_pattern : Str.regexp option
+ 
+ val pulse_model_cheap_copy_type : Str.regexp option
+ 
+ val pulse_model_free_pattern : Str.regexp option
+ 
++val pulse_model_free_arg_pattern : (int * Str.regexp) list
++
+ val pulse_model_malloc_pattern : Str.regexp option
+ 
+ val pulse_model_realloc_pattern : Str.regexp option
+diff --git a/infer/src/pulse/PulseModelsC.ml b/infer/src/pulse/PulseModelsC.ml
+index e419aeb..087c194 100644
+--- a/infer/src/pulse/PulseModelsC.ml
++++ b/infer/src/pulse/PulseModelsC.ml
+@@ -67,6 +67,26 @@ let custom_alloc_not_null model_data astate =
+     astate
+ 
+ 
++(* --pulse-model-alloc-arg-pattern N:regex — the matched function acquires a resource and stores it
++   into [*argN] instead of returning it. Only applied when argument N really is a pointer to a
++   pointer, so that configuring the wrong index cannot mark an unrelated value as allocated. *)
++let is_out_param_typ (typ : Typ.t) =
++  match typ.desc with Typ.Tptr (pointee, _) -> Typ.is_pointer pointee | _ -> false
++
++
++let alloc_out_arg (out_arg : DSL.aval FuncArg.t) : model =
++  let open DSL.Syntax in
++  start_model
++  @@ let* {callee_procname} = get_data in
++     if not (is_out_param_typ out_arg.FuncArg.typ) then ret ()
++     else
++       let desc = Procname.to_string callee_procname in
++       let* acquired = mk_fresh ~model_desc:desc ~more:"(out parameter)" () in
++       let* () = allocation (CustomMalloc callee_procname) acquired in
++       let* () = and_positive acquired in
++       write_deref ~ref:out_arg.FuncArg.arg_payload ~obj:acquired
++
++
+ let realloc_common allocator pointer size : model =
+  fun data astate non_disj ->
+   free pointer data astate non_disj
+@@ -143,7 +163,71 @@ let matchers : matcher list =
+         Str.string_match r s 0 )
+   in
+   let map_context_tenv f (x, _) = f x in
+-  [ +BuiltinDecl.(match_builtin free) <>$ capt_arg $--> free
++  let match_regexp r (_tenv, proc_name) _ = Str.string_match r (Procname.to_string proc_name) 0 in
++  (* --pulse-model-free-arg-pattern N:regex — free argument number N of matching functions *)
++  let free_arg_matchers =
++    List.map Config.pulse_model_free_arg_pattern ~f:(fun (n, r) ->
++        match n with
++        | 0 ->
++            +match_regexp r <>$ capt_arg $+...$--> free
++        | 1 ->
++            +match_regexp r <>$ any_arg $+ capt_arg $+...$--> free
++        | 2 ->
++            +match_regexp r <>$ any_arg $+ any_arg $+ capt_arg $+...$--> free
++        | 3 ->
++            +match_regexp r <>$ any_arg $+ any_arg $+ any_arg $+ capt_arg $+...$--> free
++        | 4 ->
++            +match_regexp r <>$ any_arg $+ any_arg $+ any_arg $+ any_arg $+ capt_arg $+...$--> free
++        | 5 ->
++            +match_regexp r
++            <>$ any_arg $+ any_arg $+ any_arg $+ any_arg $+ any_arg $+ capt_arg
++            $+...$--> free
++        | 6 ->
++            +match_regexp r
++            <>$ any_arg $+ any_arg $+ any_arg $+ any_arg $+ any_arg $+ any_arg $+ capt_arg
++            $+...$--> free
++        | 7 ->
++            +match_regexp r
++            <>$ any_arg $+ any_arg $+ any_arg $+ any_arg $+ any_arg $+ any_arg $+ any_arg
++            $+ capt_arg $+...$--> free
++        | _ ->
++            Logging.die UserError "--pulse-model-free-arg-pattern: argument index %d not supported (max 7)"
++              n )
++  in
++  (* --pulse-model-alloc-arg-pattern N:regex — acquire a resource through out parameter N *)
++  let alloc_arg_matchers =
++    List.map Config.pulse_model_alloc_arg_pattern ~f:(fun (n, r) ->
++        match n with
++        | 0 ->
++            +match_regexp r <>$ capt_arg $+...$--> alloc_out_arg
++        | 1 ->
++            +match_regexp r <>$ any_arg $+ capt_arg $+...$--> alloc_out_arg
++        | 2 ->
++            +match_regexp r <>$ any_arg $+ any_arg $+ capt_arg $+...$--> alloc_out_arg
++        | 3 ->
++            +match_regexp r <>$ any_arg $+ any_arg $+ any_arg $+ capt_arg $+...$--> alloc_out_arg
++        | 4 ->
++            +match_regexp r
++            <>$ any_arg $+ any_arg $+ any_arg $+ any_arg $+ capt_arg
++            $+...$--> alloc_out_arg
++        | 5 ->
++            +match_regexp r
++            <>$ any_arg $+ any_arg $+ any_arg $+ any_arg $+ any_arg $+ capt_arg
++            $+...$--> alloc_out_arg
++        | 6 ->
++            +match_regexp r
++            <>$ any_arg $+ any_arg $+ any_arg $+ any_arg $+ any_arg $+ any_arg $+ capt_arg
++            $+...$--> alloc_out_arg
++        | 7 ->
++            +match_regexp r
++            <>$ any_arg $+ any_arg $+ any_arg $+ any_arg $+ any_arg $+ any_arg $+ any_arg
++            $+ capt_arg $+...$--> alloc_out_arg
++        | _ ->
++            Logging.die UserError
++              "--pulse-model-alloc-arg-pattern: argument index %d not supported (max 7)" n )
++  in
++  free_arg_matchers
++  @ [ +BuiltinDecl.(match_builtin free) <>$ capt_arg $--> free
+   ; +match_regexp_opt Config.pulse_model_free_pattern <>$ capt_arg $+...$--> free
+   ; -"realloc" <>$ capt_arg $+ capt_exp $--> realloc
+   ; +match_regexp_opt Config.pulse_model_realloc_pattern
+@@ -161,4 +245,5 @@ let matchers : matcher list =
+       ; +BuiltinDecl.(match_builtin malloc_no_fail) <>$ capt_exp $--> malloc_not_null
+       ; +match_regexp_opt Config.pulse_model_alloc_pattern &--> custom_alloc_not_null
+       ; +BuiltinDecl.(match_builtin __call_c_function_ptr) $ capt_arg $++$--> call_c_function_ptr ]
++    @ alloc_arg_matchers
+     |> List.map ~f:(ProcnameDispatcher.Call.contramap_arg_payload ~f:ValueOrigin.addr_hist) )

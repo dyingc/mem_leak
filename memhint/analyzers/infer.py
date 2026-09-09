@@ -11,12 +11,28 @@ Infer compiles these patterns with OCaml's ``Str`` module and matches them with
 * a matched function is replaced by the model even when its body is visible.
 
 ``mode="anchored"`` (default) wraps the names in ``^\\( ... \\)$`` so only exact
-names are modelled and, since Infer's free model always releases the first
-argument, only ``arg0`` deallocators are injected.  ``mode="official"`` reproduces
+names are modelled.  Stock Infer can express only two of the four summary shapes --
+an allocator whose *return value* owns the memory and a deallocator that frees its
+*first* argument -- so that is all this mode injects.  ``mode="official"`` reproduces
 the reference implementation (jiekeshi/MemHint ``adapters.py``): unanchored names,
-every allocator and every deallocator regardless of target.  ``mode="anchored-argn"``
-is ``anchored`` plus, for deallocators that release argument N >= 1, our Infer patch's
-``--pulse-model-free-arg-pattern N:regex`` (see notes/infer-free-arg-patch.md).
+every allocator and every deallocator regardless of target.
+
+``mode="anchored-argn"`` needs our patched Infer (tools/infer-src, notes/infer-arg-models.patch)
+and injects all four shapes:
+
+===========================  =========================================
+summary                      flag
+===========================  =========================================
+Allocator / return           ``--pulse-model-alloc-pattern``
+Allocator / argN             ``--pulse-model-alloc-arg-pattern N:re``
+Deallocator / arg0           ``--pulse-model-free-pattern``
+Deallocator / argN (N >= 1)  ``--pulse-model-free-arg-pattern N:re``
+===========================  =========================================
+
+Infer gives a procedure at most one model and tries the release matchers first, so a
+name that ends up in both an allocation and a release rule silently loses its
+allocation model (and its callers then look like use-after-free).  ``analyze`` logs a
+warning when that happens.
 """
 from __future__ import annotations
 
@@ -44,24 +60,39 @@ def _anchored(names) -> str | None:
 
 def patterns(summaries: list[Summary], mode: str = "anchored") -> tuple[str | None, str | None]:
     skip = {"main", "_main", ""}
-    allocs = sorted({s.name for s in summaries if s.role is Role.ALLOCATOR and s.name not in skip})
     if mode == "official":
+        allocs = sorted({s.name for s in summaries if s.role is Role.ALLOCATOR and s.name not in skip})
         frees = sorted({s.name for s in summaries if s.role is Role.DEALLOCATOR and s.name not in skip})
         mk = lambda names: "\\|".join(_str_escape(n) for n in names) if names else None
         return mk(allocs), mk(frees)
+    # the return-value model would be wrong for an allocator that fills an out parameter
+    allocs = {s.name for s in summaries
+              if s.role is Role.ALLOCATOR and s.arg_index < 0 and s.name not in skip}
     frees = {s.name for s in summaries if s.role is Role.DEALLOCATOR and s.arg_index == 0}
     return _anchored(allocs), _anchored(frees)
+
+
+def _by_position(summaries: list[Summary], role: Role, lo: int) -> list[str]:
+    by_pos: dict[int, set[str]] = {}
+    for s in summaries:
+        if s.role is role and s.arg_index >= lo:
+            by_pos.setdefault(s.arg_index, set()).add(s.name)
+    return [f"{n}:{_anchored(names)}" for n, names in sorted(by_pos.items())]
 
 
 def free_arg_patterns(summaries: list[Summary]) -> list[str]:
     """``N:regex`` values for ``--pulse-model-free-arg-pattern`` (our Infer patch): one entry per
     argument position N >= 1 that some validated deallocator releases.  Functions that release
-    several arguments get one entry per position."""
-    by_pos: dict[int, set[str]] = {}
-    for s in summaries:
-        if s.role is Role.DEALLOCATOR and s.arg_index is not None and s.arg_index >= 1:
-            by_pos.setdefault(s.arg_index, set()).add(s.name)
-    return [f"{n}:{_anchored(names)}" for n, names in sorted(by_pos.items())]
+    several arguments get one entry per position.  Position 0 goes through stock Infer's
+    ``--pulse-model-free-pattern``."""
+    return _by_position(summaries, Role.DEALLOCATOR, 1)
+
+
+def alloc_arg_patterns(summaries: list[Summary]) -> list[str]:
+    """``N:regex`` values for ``--pulse-model-alloc-arg-pattern`` (our Infer patch): allocators
+    that hand the memory over through a ``T **out`` argument rather than the return value.
+    Position 0 is included -- unlike deallocators, stock Infer cannot express any of these."""
+    return _by_position(summaries, Role.ALLOCATOR, 0)
 
 
 class Infer:
@@ -96,6 +127,15 @@ class Infer:
             if self.pattern_mode == "anchored-argn":  # needs the patched Infer (tools/infer-src)
                 for spec in free_arg_patterns(summaries):
                     args += ["--pulse-model-free-arg-pattern", spec]
+                for spec in alloc_arg_patterns(summaries):
+                    args += ["--pulse-model-alloc-arg-pattern", spec]
+            both = ({s.name for s in summaries if s.role is Role.ALLOCATOR}
+                    & {s.name for s in summaries if s.role is Role.DEALLOCATOR})
+            if both:
+                # Infer models a procedure once and matches release rules first, so these keep
+                # only their release semantics (a realloc-like wrapper loses its allocation).
+                log.warning("%d function(s) are both allocator and deallocator; Infer will model "
+                            "only the release side: %s", len(both), ", ".join(sorted(both)[:10]))
         t0 = time.time()
         r = self.run(args)
         if r.returncode:

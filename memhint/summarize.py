@@ -34,18 +34,24 @@ Analyze each function below and determine whether it is a memory allocator, deal
 
 ### Allocator
 
-Function returns **newly allocated heap memory** that caller must eventually free.
+Function hands **newly allocated heap memory** to its caller, who must eventually free it.
+There are two ways to hand it over: through the **return value**, or by writing it to a
+**pointer-to-pointer out parameter**.
 
 **Positive indicators:**
 - Calls malloc/calloc/realloc/aligned_alloc/new/new[] and returns the result
 - Calls another known allocator (e.g., g_malloc, xmalloc, kmalloc) and returns result
 - Returns result of a wrapper function that allocates
+- Takes a `T **out` argument and stores freshly allocated memory in `*out` (the return value is
+  then usually a status/error code, not the memory)
 
 **Negative indicators (NOT an allocator):**
 - Returns pointer to static/global buffer
 - Returns pointer to struct field or array member
 - Returns one of the input arguments
-- Allocates internally but doesn't return the allocated memory
+- Allocates internally but neither returns the allocated memory nor writes it to an out parameter
+- Writes to a `T **out` argument a pointer the caller must NOT free (an interior pointer, a
+  cached/borrowed object, an element of a container that still owns it)
 - Returns stack-allocated memory (dangling pointer bug, but not allocator semantic)
 
 ### Deallocator
@@ -69,12 +75,17 @@ Function **frees/releases memory** passed as an argument.
 Return a JSON object with a `hints` array. Each hint is a function summary with:
 - `name`: the function name
 - `role`: "Allocator" or "Deallocator"
-- `target`: "return" for allocators (return value carries heap ownership), or "argN" for deallocators (the N-th argument is freed, 0-indexed)
+- `target`: where the ownership sits, 0-indexed argument numbering.
+  - Allocator: "return" if the return value carries the heap ownership, or "argN" if the N-th
+    argument is a pointer-to-pointer out parameter that receives it. Use "argN" only when the
+    argument really is a `T **` (or equivalent) that the function writes through.
+  - Deallocator: "argN", the N-th argument is freed.
 
 ```json
 {
     "hints": [
         {"name": "<func_name>", "role": "Allocator", "target": "return"},
+        {"name": "<func_name>", "role": "Allocator", "target": "arg1"},
         {"name": "<func_name>", "role": "Deallocator", "target": "arg0"}
     ]
 }
@@ -124,7 +135,9 @@ def parse_hints(text: str, names: set[str]) -> list[Summary]:
             continue
         if name not in names:
             continue
-        if role is Role.ALLOCATOR and target != "return":
+        if role is Role.ALLOCATOR and target != "return" and not (
+            target.startswith("arg") and target[3:].isdigit()
+        ):
             continue
         if role is Role.DEALLOCATOR and not (target.startswith("arg") and target[3:].isdigit()):
             continue

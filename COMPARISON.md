@@ -122,15 +122,15 @@ V0（干净目录、无摘要）26 条，V1（干净目录、旧的无效写法�
 - `memhint/report.py`：枚举所有 `codeql*`/`infer*` 运行目录。
 - `REPRODUCTION.md`：更正"告警去重"的错误描述与 Infer 相关章节（5.2、7.2 差异 2/3/4、11、附）。
 
-## 7. 后续：解除 Infer"只能释放第一个参数"的限制（2026-09-08）
+## 7. 后续：给 Infer 加按参数位置的分配 / 释放模型（2026-09-08）
 
 §3.2 提到 Infer 的 free 模式只能建模"释放第一个参数"，我们 153 个验证过的释放器里有 37 个因此注入不进去。
-为验证"改 Infer 源码"这条路是否可行，做了两件事，细节在 `notes/infer-free-arg-patch.md`：
+为验证"改 Infer 源码"这条路是否可行，做了两件事，细节在 `notes/infer-arg-models.md`：
 
 1. **预处理器影子方案**：capture 时用 `-include` 把这 35 个函数定义成宏，调用改写为 `free(argN)`。
    第一次因为原型声明也被展开而产生 2,731 个编译错误（Infer 的 `--keep-going` 静默吞掉，过程数看起来正常），
    改为先包含 `vim.h` 再定义宏后 capture 干净。
-2. **真正的 Infer 补丁**：新增 `--pulse-model-free-arg-pattern N:regex`（`notes/infer-free-arg-pattern.patch`，
+2. **真正的 Infer 补丁**：新增 `--pulse-model-free-arg-pattern N:regex`（`notes/infer-arg-models.patch`，
    3 个文件 56 行），复用发行版自带的 clang 重编 OCaml 部分，约 40 分钟。玩具用例：原生开关建模
    `my_free2(ctx, p)` 会报 3 个假泄漏加一个对 `ctx` 的 use-after-free，补丁版只报那个真泄漏。
 
@@ -139,3 +139,10 @@ V0（干净目录、无摘要）26 条，V1（干净目录、旧的无效写法�
 bug 层面召回不变（16 个补丁、窗口内 8/19），误报数与 refF 持平。原因：这些释放器的函数体在 Vim 里可见，
 Pulse 本来就能分析；模型的价值在于函数体不可见或分析不动的代码库。补丁已作为 `memhint/analyzers/infer.py`
 的 `anchored-argn` 模式接入（需要 `tools/infer-src` 的补丁版二进制）。
+
+第二轮补上了另一半：`--pulse-model-alloc-arg-pattern N:regex`，把"通过 `T **out` 出参交出新分配内存"
+建模出来。这一半更重要，因为**释放模型只能消掉报告，分配模型才产生报告**——第一轮召回不变的根源就在这里。
+模型只在指定参数确实是"指针的指针"时才生效，索引配错或配到 `void *` 上都不会凭空造出分配（玩具用例
+Case D/D′）。同时把 Stage 1 的提示词与 Eq.1 校验、`OwnershipModel`、`leak_feasible` 都扩到了出参形状。
+**在 Vim 上收益为零**：340 个分配器全部是 `target: return`，Vim 没有这种接口；价值在于
+`status = make(ctx, &out)` 风格占主导的代码库。

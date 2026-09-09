@@ -896,7 +896,7 @@ CodeQL 自带查询会跟踪包装器返回链，报告的分配点可能是我�
 |---|---|
 | 只做了 Vim | 论文做了 8 个项目。tmux 已确认可跑（75K SLOC，约 5 分钟 + $0.5），尚未执行 |
 | Infer 告警数仍低于论文（332-395 vs 1,032） | 正则写法已修正，Infer 线复现成功（时间窗内 8/19）。剩余差距来自官方 Stage 1 校验器放行的摘要集合和前缀匹配，详见 7.2 节差异 3 与 `COMPARISON.md` |
-| Infer 只能把释放器建模为"释放第一个参数" | 37 个非首参数释放器注入不进去。已给 Infer 打补丁加 `--pulse-model-free-arg-pattern N:regex` 并重编验证（`notes/infer-free-arg-patch.md`）；在 Vim 上只消掉 6 条误报、召回不变，因为这些函数体本来可见 |
+| Infer 的模型只能表达"分配返回值 / 释放第一个参数" | 四种摘要形状里只能注入两种：37 个非首参数释放器、以及任何通过 `T **out` 出参交出内存的分配器都注入不进去。已给 Infer 打补丁加 `--pulse-model-free-arg-pattern N:regex` 与 `--pulse-model-alloc-arg-pattern N:regex` 并重编验证（`notes/infer-arg-models.md`）。在 Vim 上前者只消掉 6 条误报、召回不变（这些函数体本来可见），后者收益为零（Vim 的 340 个分配器全部走返回值）；两者的价值都在函数体不可见、或出参风格接口占主导的代码库 |
 | 没有复现摘要质量实验 | 论文的 Table III 需要人工标注 1,532 个函数（两人独立标注，Cohen's κ=0.94），成本过高 |
 | 没有对比 LeakGuard / Semgrep | 论文的另外两个基线未纳入 |
 | 未使用增强 CodeQL 查询 | 见 3.3 节的表格。论文自己的数据表明它们不带来新 bug |

@@ -1,0 +1,56 @@
+### baseline
+  -- 0 report(s)
+
+### alloc-ret
+out_arg.c:31: error: Memory Leak
+  leak_return                  MEMORY_LEAK_C
+  -- 1 report(s)
+
+### free-argn
+  -- 0 report(s)
+
+### alloc-outarg
+out_arg.c:42: error: Memory Leak
+out_arg.c:47: error: Memory Leak
+out_arg.c:52: error: Memory Leak
+out_arg.c:85: error: Memory Leak
+out_arg.c:99: error: Memory Leak
+  leak_conditional             MEMORY_LEAK_C
+  leak_only_first_of_two       MEMORY_LEAK_C
+  leak_out0                    MEMORY_LEAK_C
+  leak_out0_of_two_args        MEMORY_LEAK_C
+  leak_out1                    MEMORY_LEAK_C
+  -- 5 report(s)
+
+### full
+out_arg.c:31: error: Memory Leak
+out_arg.c:42: error: Memory Leak
+out_arg.c:47: error: Memory Leak
+out_arg.c:52: error: Memory Leak
+out_arg.c:85: error: Memory Leak
+out_arg.c:99: error: Memory Leak
+  leak_conditional             MEMORY_LEAK_C
+  leak_only_first_of_two       MEMORY_LEAK_C
+  leak_out0                    MEMORY_LEAK_C
+  leak_out0_of_two_args        MEMORY_LEAK_C
+  leak_out1                    MEMORY_LEAK_C
+  leak_return                  MEMORY_LEAK_C
+  -- 6 report(s)
+
+### wrong-index
+  -- 0 report(s)
+
+### plain-pointer
+  -- 0 report(s)
+
+### rule-collision
+out_arg.c:59: error: Use After Free
+out_arg.c:115: error: Use After Free
+out_arg.c:121: error: Use After Free
+out_arg.c:127: error: Use After Free
+  no_leak_free_arg0            USE_AFTER_FREE
+  no_leak_free_arg1            USE_AFTER_FREE
+  no_leak_free_arg2            USE_AFTER_FREE
+  no_leak_out0                 USE_AFTER_FREE
+  -- 4 report(s)
+

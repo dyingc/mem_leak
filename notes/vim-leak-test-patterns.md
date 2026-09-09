@@ -1,46 +1,59 @@
-# 给 Vim 的泄漏修复写测试：三种模式
+# 给 Vim 的泄漏修复写测试
 
 2026-09-09。来源：`vim/vim#21255` 被接受（`patch 9.2.1058`）过程中 yegappan 要求加测试，
 以及 chrisbra 在我们的测试之上补的那一版。
 
-背后的通用原理见 [from-signal-to-assertion.md](from-signal-to-assertion.md)：
-先列出缺陷造成的所有异常现象——它们地位平等，都是要抓的 flag——再按准入和性价比筛。
-下面三种模式就是 Vim 泄漏这一类里的三个候选。
+通用方法在 [from-signal-to-assertion.md](from-signal-to-assertion.md)：**先列出缺陷造成的
+所有异常现象——它们地位平等，都是要抓的 flag——再按两道关卡筛，柿子找软的捏。**
+这一篇是它在 Vim 泄漏这一类上的落地。
+
+下面的 A / B / C **是我们实际遇到过的三个候选，不是穷举**。遇到新的 bug，
+照样先按通用方法列候选，很可能列出这三个之外的东西——Vim 里现成的还有：
+
+- `test_alloc_fail()` + `alloc_id`：调用点已经带 `aid_*` 的话可以直接注入分配失败；
+- `garbagecollect()` + `test_garbagecollect_now()` 之后数存活对象（实测过一次 3003 → 3）；
+- 窗口 / buffer / 句柄计数，`getbufinfo()`、`win_getid()` 之类的可见状态。
 
 上游那 22 个同类泄漏修复**一个都没带测试**，所以"要不要测试"取决于 bug 能不能从脚本走到。
 纯 `malloc` 失败路径的没人要求测；脚本可达的会被要求。
 
-## 选哪种模式：两道关卡
+## 遇到过的三个候选
 
-### 关卡一（准入）：这个现象在未修复的树上真的会翻吗
+| | 断言断的是什么 | 什么时候可用 | 本项目里的例子 |
+|---|---|---|---|
+| **A · ASAN 断言** | 子进程退出码（ASAN 报告 → SIGABRT → 134） | LSAN/ASAN 抓得到 | `#2 barline_parse`、`#3 string_reduce`、`#4 json_encode_lsp_msg`、`#7 ex_redir` |
+| **B · 引用计数断言** | `test_refcount()` 读到的引用计数 | 泄漏对象挂在全局链上，LSAN 看不见 | `#1 f_setmatches` |
+| **C · 不写测试** | —— | 只在 `malloc` 失败时触发 | `#5 vim9generics`、`#6 vim9class`、`#8 gui_gtk_x11` |
 
-跟缺陷脱钩的现象再便宜也出局。`f_setmatches` 就有这么一个陷阱候选：
+## 两道关卡
+
+### 关卡一（准入）：未修复也通过的，一毛钱关系都没有
+
+`f_setmatches` 就有这么一个陷阱候选——比引用计数还省事，但**未修复也通过**，
+因为 `clearmatches()` 确实把 match 列表清空了，缺陷只在于那几个 list 的引用没释放：
 
 ```vim
 call setmatches([...])
 call clearmatches()
-call assert_equal([], getmatches())   " 比 test_refcount 还省事
+call assert_equal([], getmatches())   " 未修复也是 []
 ```
 
-**未修复也通过**——`clearmatches()` 确实把 match 列表清空了，缺陷只在于那几个
-list 的引用没释放。任何候选都得先在未修复的树上跑一遍，看它翻不翻。
+### 关卡二（性价比）：优先 ASAN 断言，引用计数断言是它不可用时的退路
 
-### 关卡二（性价比）：优先 A，A 不可用才退到 B
+不是"引用计数便宜所以优先它"。它只在**价**上赢，ASAN 断言在三件事上赢：
 
-不是"B 便宜所以优先 B"。B 只在**价**上赢，A 在三件事上赢：
-
-- **复用面**：`CheckAsan` 一次投入，后续所有内存 bug 都能复用；B 的断言是一次性的。
-- **鲁棒性**：B 的断言里编码了"我认为泄漏表现为引用计数 +1"这个判断，
-  我对缺陷的理解错了它可能照样通过；A 不需要我理解缺陷，直接观测非法内存行为。
-  （本项目实证：`string_reduce` 那个 SUAR 的机制我解释错过两次。）
+- **复用面**：`CheckAsan` 一次投入，后续所有内存 bug 都能复用；引用计数断言是一次性的。
+- **鲁棒性**：引用计数断言里编码了"我认为泄漏表现为引用计数 +1"这个判断，
+  我对缺陷的理解错了它可能照样通过；ASAN 不需要我理解缺陷，直接观测非法内存行为。
+  （本项目实证：`string_reduce` 那个 stack-use-after-return 的机制我解释错过两次。）
 - **可审查性**：评审者看 `assert_equal(0, v:shell_error)` 一眼知道在测什么。
 
-而且社区认 A——chrisbra 为它专门往 `util/check.vim` 加了共享 helper。
+而且社区认它——chrisbra 为它专门往 `util/check.vim` 加了共享 helper。
 
-`#1 f_setmatches` 用 B，**不是因为 B 更好，是因为 A 在那个 case 不可用**。
+`#1 f_setmatches` 用引用计数，**不是因为它更好，是因为 ASAN 在那个 case 不可用**。
 （注：我们手上没有"两者都可用"的实例，上面是按成本结构判断的。）
 
-### A 到底可不可用，跑一条命令
+### ASAN 到底可不可用，跑一条命令
 
 ```bash
 # 未修复的二进制上跑触发脚本，看退出码
@@ -50,14 +63,13 @@ echo $?
 
 | 退出码 | 说明 | 结论 |
 |---|---|---|
-| 非 0（1 或 134） | LSAN/ASAN 抓到了 | **用模式 A** |
-| 0，但脚本里有可断言的计数差异 | LSAN 看不见（对象挂在全局链上） | A 不可用，**退到模式 B** |
-| 0，且没有任何脚本可见差异 | 只在分配失败时触发 | **模式 C**（多半不用写） |
+| 非 0（1 或 134） | LSAN/ASAN 抓到了 | **用 A** |
+| 0，但脚本里有可断言的计数差异 | LSAN 看不见（对象挂在全局链上） | A 不可用，**退到 B** |
+| 0，且没有任何脚本可见差异 | 只在分配失败时触发 | **C**，或另外去列候选 |
 
-## 模式 A：`CheckAsan` + `abort_on_error`（chrisbra 的写法）
+## A · ASAN 断言：`CheckAsan` + `abort_on_error`（chrisbra 的写法）
 
 适用：LSAN 能报的泄漏，以及 stack-use-after-return。
-`#2 barline_parse`、`#3 string_reduce`、`#4 json_encode_lsp_msg`、`#7 ex_redir` 属于这一类。
 
 chrisbra 为 `patch 9.2.1058` 新增了 `CheckAsan`（`src/testdir/util/check.vim`）：
 
@@ -104,7 +116,7 @@ enddef
 
 这比"只跑一遍路径、等 CI 捞 ASAN 日志"强：它在测试内部就断言了，本地也能跑。
 
-## 模式 B：`test_refcount()`（LSAN 看不见时）
+## B · 引用计数断言：`test_refcount()`
 
 适用：泄漏的对象挂在全局链上（`list_T` 挂 `first_list`、`funccall_T` 挂 `current_funccal`），
 LSAN 判定"可达"因而一声不吭。`#1 f_setmatches` 属于这一类，退出码两边都是 0。
@@ -130,15 +142,15 @@ endfunc
 
 实测：未修复 `Expected 1 but got 2`（`clearmatches()` 之后仍是 2），修复后通过。
 不需要 ASAN 构建、不需要子进程、不动全局状态，普通 CI 就能跑。
-**但这是 A 不可用时的退路，不是更优解**——理由见上面关卡二。
+**但这是 ASAN 不可用时的退路，不是更优解**——理由见关卡二。
 
 单个 `posN` 的情况引用计数正常，可以作为对照写进同一个测试。
 
-## 模式 C：只在分配失败时触发
+## C · 不写测试：只在分配失败时触发
 
-`#5 vim9generics`、`#6 vim9class`、`#8 gui_gtk_x11` 属于这一类。
-`test_alloc_fail()` 只对已经用 `alloc_id(size, aid_xxx)` 的调用点有效，这三处都是裸 `alloc()`，
-要测就得先给上游加 `aid_*` 枚举值——改动比修复本身还大，不值得。
+`test_alloc_fail()` 只对已经用 `alloc_id(size, aid_xxx)` 的调用点有效，
+`#5`/`#6`/`#8` 这三处都是裸 `alloc()`，要测就得先给上游加 `aid_*` 枚举值——
+改动比修复本身还大，不值得。
 
 上游那 22 个全是这一类，也全都没带测试。**提交时不用主动加，被要求了再说明原因。**
 

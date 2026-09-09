@@ -209,7 +209,7 @@ Python 打印 DeprecationWarning、Node 打印 UnhandledPromiseRejection。
 它是「挑中的异常代码读不到」之后的补救。挑对了，一件都不用。
 
 我们 `f_setmatches` 那个补丁就是例子。它泄漏的 list 挂在全局 `first_list` 链上，
-LeakSanitizer 根本看不见，两棵树都退出 0——模式 A 完全失效。
+LeakSanitizer 根本看不见，两棵树都退出 0——走 ASan 那条路完全失效。
 但被扣住不放的 `posN` 是**脚本里的对象**，Vim 的 `test_refcount()` 直接暴露它的引用计数：
 
 ```vim

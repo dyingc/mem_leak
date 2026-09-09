@@ -17,9 +17,10 @@ Submission order (most important first): 3, 1, 2, 4, 7, 5, 6, 9, 8.
 Problem:  reduce() on a String with a compiled closure or lambda that fails
           (error or exception) returns from string_reduce() without calling
           remove_funccal().  The funccall_T created by
-          eval_expr_get_funccal() is leaked and stays on the
-          current_funccal chain, so code consulting current_funccal
-          afterwards sees a frame belonging to a call that has returned.
+          eval_expr_get_funccal() stays on the current_funccal chain, and
+          its fc_ectx points at the stack frame of a call_def_function()
+          that has already returned.  On exit invoke_all_defer() ->
+          unwind_def_callstack() reads through it.
 Solution: Use break instead of return, like list_reduce() does, so the
           funccall is removed on the error path as well.
 ```
@@ -32,18 +33,27 @@ silent! echo reduce("abc", (acc, c) => [][0])
 qall!
 ```
 
-Unpatched ASAN build: `Direct leak of 2192 byte(s) in 1 object(s) ... eval_expr_get_funccal
-... string_reduce strings.c:1037`. Five failing calls leak five funccall_T and leave five
-frames on the `current_funccal` chain. `list_reduce()`, `blob_reduce()`, `tuple_reduce()`
-and the `filter()`/`map()` paths already use `break` and are not affected. A `def` funcref
-(`VAR_FUNC`) does not create a funccall and is not affected either.
+**The `qall!` has to be inside the script.** With it there, an ASAN build reports
 
-The frames left on the chain hold an `fc_ectx` pointing at a `call_def_function()` stack
-frame that has returned, so they are dangling as well as leaked. That is a code reading,
-**not** an observed fault: it was not possible to make AddressSanitizer report a
-stack-use-after-return for it, including on a clang build compiled with
-`-fsanitize-address-use-after-return=always` (verified against a control program that does
-report one). Do not put a stack-use-after-return claim in the PR body.
+```
+ERROR: AddressSanitizer: stack-use-after-return ... vim9execute.c:7047 in unwind_def_callstack
+    #1 invoke_funccall_defer userfunc.c:6773
+    #2 invoke_all_defer      userfunc.c:6790
+    #3 getout                main.c:1737
+```
+
+5 runs out of 5, on gcc 14 with plain `-fsanitize=address` (no extra flag needed —
+`detect_stack_use_after_return` is on by default in libasan 8), and on `-S`, `-c source`,
+`-es` and `-u` alike. Move the `qall!` out to `-c 'qall!'` and the same binary instead
+reports `Direct leak of 2192 byte(s) ... eval_expr_get_funccal ... string_reduce:1037` and
+no use-after-return: `getout()` then runs after the sourcing frames have gone, so the
+`funccall_T` becomes unreachable and LSAN reports it rather than ASAN catching the read.
+Same bug, two exit paths, two symptoms. Both are gone with the patch.
+
+Five failing calls leave five frames on the `current_funccal` chain. `list_reduce()`,
+`blob_reduce()`, `tuple_reduce()` and the `filter()`/`map()` paths already use `break` and
+are not affected. A `def` funcref (`VAR_FUNC`) does not create a funccall and is not
+affected either.
 
 Note for the PR body: this is not a security report. It needs the user to run a Vim9
 script, which is already arbitrary code execution; it goes through the normal patch flow.

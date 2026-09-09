@@ -51,6 +51,10 @@ arg4-7 各 1），这些一直注入不进 Infer。Oracle 这类"描述符在前
 
 ## 3. 重新编译：实际走通的路径
 
+> 现在这一节已经脚本化：`./scripts/build-patched-infer.sh`（说明见 `notes/build-patched-infer.md`）。
+> 下面保留当初手工走通的记录和踩过的坑。
+
+
 关键点：**发行版 tarball 里已经带了编译好的 clang（909 MB）和 AST 插件**，所以只需要编译 OCaml 部分。
 
 ```bash

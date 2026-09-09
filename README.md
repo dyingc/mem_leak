@@ -38,6 +38,34 @@ export OPENAI_API_KEY=...        # only gpt-5.6-luna is used
 .venv/bin/python -m pytest -q    # Fig. 4 (a)-(d), Fig. 5, delegation/alias/macro cases
 ```
 
+### Patched Infer (needed only for `--infer-pattern-mode anchored-argn`)
+
+Stock Pulse can express two of the four summary shapes: an allocator whose *return value* owns the
+memory, and a deallocator that frees its *first* argument. We patched Infer to add the other two
+(`notes/infer-arg-models.patch`):
+
+| summary | flag |
+|---|---|
+| Allocator / return | `--pulse-model-alloc-pattern` (stock) |
+| Allocator / argN — writes `*out` | `--pulse-model-alloc-arg-pattern N:regex` (ours) |
+| Deallocator / arg0 | `--pulse-model-free-pattern` (stock) |
+| Deallocator / argN, N ≥ 1 | `--pulse-model-free-arg-pattern N:regex` (ours) |
+
+```bash
+./scripts/build-patched-infer.sh     # ~7 GB, ~40 min; re-runnable, verifies itself at the end
+```
+
+It downloads the v1.2.0 release for its **prebuilt clang** (so LLVM is never compiled), clones the
+matching source commit, sets up a repo-local opam switch, applies the patch and builds. The last two
+steps check that the new binary passes `results/infer-arg-models/verify_patch.sh` (12 checks) *and*
+that the stock binary fails it — a verifier that cannot tell them apart proves nothing.
+`notes/build-patched-infer.md` explains each step and the version-drift traps in the opam
+dependencies; `notes/infer-arg-models.md` has the design and the measured effect.
+
+Everything lands under `tools/`, which is gitignored — a fresh clone has to build it. The two
+binaries then coexist: `tools/infer/bin/infer` (stock, the control group) and
+`tools/infer-src/infer/bin/infer` (patched, for `anchored-argn`).
+
 ## Run (Vim)
 
 ```bash
@@ -74,3 +102,5 @@ Every LLM response is cached under `output/<project>/llm_cache/`, so re-running 
 | `REPORT.md` | everything above next to the paper's numbers |
 
 `notes/vim-codeium-heartbeat-leak.md` documents a real 12 GB leak found on the development machine while setting up.
+`results/upstream-prs/` holds the patches we sent upstream; `results/infer-arg-models/` holds the Infer
+patch, its generic C fixtures and the self-check.

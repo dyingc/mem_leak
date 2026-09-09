@@ -2,10 +2,28 @@
 
 **Status: drafts, NOT submitted. Waiting for final approval.**
 
-One PR per diff, submitted one at a time. Title format follows the MemHint PRs already
-merged upstream (vim/vim#19516, #19531). No `version.c` change; the maintainer assigns the
+One PR per diff, submitted one at a time. No `version.c` change; the maintainer assigns the
 patch number. Each entry ends with the trigger a reviewer can run; the red-team evidence
 behind every claim is in `../CHALLENGE_RESPONSE.md` and `../redteam/`.
+
+Title and body format is borrowed from the **paper authors'** upstream PRs, not ours — we
+have never opened one against vim/vim, and there is no fork under this account yet. GitHub
+user `huanghuihui0904` (Huang, first author of the MemHint paper) sent 22 leak fixes to
+vim/vim between 2026-02 and 2026-06, all in the shape `### Problem` (line numbers plus the
+offending snippet) / `### Solution`, and all accepted. That format has cleared review 22
+times, which is the only reason to copy it.
+
+Those PRs are also **our ground truth**: the numbered patches they became — `9.2.0065`
+(`invoke_sync_listeners`, PR #19516), `9.2.0079` (`eval_dict`, PR #19531) and the rest —
+are the upstream leak-fix commits `memhint.evaluate` matches our findings against. All 22
+are CLOSED rather than merged; that is how Vim works, the maintainer thanks the author and
+applies the change as a numbered patch. The `invoke_sync_listeners` fix is in `change.c:648`
+upstream today.
+
+Worth keeping in mind when writing these bodies: every one of the 22 is an
+allocation-failure or error-path leak. `#1 f_setmatches` is not — it leaks N+1 lists on the
+normal path of an ordinary script call, with no error and no allocation failure — so it is
+the one whose severity a maintainer is most likely to want stated plainly.
 
 Submission order (most important first): 3, 1, 2, 4, 7, 5, 6, 9, 8.
 

@@ -88,3 +88,11 @@ Use `break` instead of `return`, so the error path falls through to the existing
 
 `make test_functions test_vim9_builtin test_vim9_script` — 793 tests, no failures. With the patch both
 symptoms above are gone, on both invocations.
+
+<!--
+Format note (not part of the PR body): the ### Problem / ### Solution shape with line
+numbers and the offending snippet is copied from the 22 leak-fix PRs that
+github.com/huanghuihui0904 (first author of the MemHint paper) had accepted into vim/vim
+between 2026-02 and 2026-06. Those same fixes are the ground truth this reproduction is
+evaluated against. This is the first PR from this account.
+-->

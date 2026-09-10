@@ -1,0 +1,192 @@
+diff --git a/infer/src/base/Config.ml b/infer/src/base/Config.ml
+index 18eecbf..5117321 100644
+--- a/infer/src/base/Config.ml
++++ b/infer/src/base/Config.ml
+@@ -2473,6 +2473,15 @@ and pulse_max_disjuncts =
+     "Stop exploring new paths after $(i,int) disjunctions in the domain"
+ 
+ 
++and pulse_max_trace_elements =
++  CLOpt.mk_int ~long:"pulse-max-trace-elements" ~default:10000
++    ~in_help:InferCommand.[(Analyze, manual_pulse)]
++    "Stop materialising the value history of a reported issue into its error trace after $(i,int) \
++     trace elements, and mark the trace as truncated at that point. This is a last-resort bound on \
++     the memory one report can use; 0 means no bound. It never changes which issues are reported, \
++     only how much of the explanation is printed."
++
++
+ and pulse_max_heap =
+   CLOpt.mk_int_opt ~long:"pulse-max-heap" ~meta:"int"
+     ~in_help:InferCommand.[(Analyze, manual_pulse)]
+@@ -4637,6 +4646,8 @@ and pulse_max_cfg_size = !pulse_max_cfg_size
+ 
+ and pulse_max_disjuncts = !pulse_max_disjuncts
+ 
++and pulse_max_trace_elements = !pulse_max_trace_elements
++
+ and pulse_max_heap = !pulse_max_heap
+ 
+ and pulse_model_abort = RevList.to_list !pulse_model_abort
+diff --git a/infer/src/base/Config.mli b/infer/src/base/Config.mli
+index df99e2a..6bfd66f 100644
+--- a/infer/src/base/Config.mli
++++ b/infer/src/base/Config.mli
+@@ -624,6 +624,8 @@ val pulse_max_cfg_size : int
+ 
+ val pulse_max_disjuncts : int
+ 
++val pulse_max_trace_elements : int
++
+ val pulse_max_heap : int option
+ 
+ val pulse_model_abort : string list
+diff --git a/infer/src/base/Stats.ml b/infer/src/base/Stats.ml
+index 9d45535..4a2bf34 100644
+--- a/infer/src/base/Stats.ml
++++ b/infer/src/base/Stats.ml
+@@ -251,6 +251,7 @@ type t =
+   ; pulse_summaries_with_some_unreachable_nodes_percent: IntCounter.t Atomic.t
+   ; pulse_summaries_with_some_unreachable_returns: IntCounter.t Atomic.t
+   ; pulse_summaries_with_some_unreachable_returns_percent: IntCounter.t Atomic.t
++  ; pulse_traces_truncated: IntCounter.t Atomic.t
+   ; pulse_summaries_count: IntCounter.t PulseSummaryCountMap.t Atomic.t
+   ; pulse_summaries_count_0_continue_program: IntCounter.t Atomic.t
+   ; pulse_summaries_count_0_percent: IntCounter.t Atomic.t
+@@ -319,6 +320,7 @@ let pp fmt stats =
+     ~pulse_disjuncts_dropped:(pp_int_field fmt) ~pulse_interrupted_loops:(pp_int_field fmt)
+     ~pulse_unknown_calls:(pp_int_field fmt) ~pulse_unknown_calls_on_hack_resource:(pp_int_field fmt)
+     ~pulse_summaries_contradictions:(pp_int_field fmt)
++    ~pulse_traces_truncated:(pp_int_field fmt)
+     ~pulse_summaries_count:(pp_pulse_summaries_count fmt)
+     ~pulse_summaries_count_0_continue_program:(pp_int_field fmt)
+     ~pulse_summaries_count_0_percent:(pp_int_field fmt)
+@@ -447,6 +449,8 @@ let incr field = add field 1
+ 
+ let add_exe_duration field exe_duration = update_with field ~f:(TimeCounter.add exe_duration)
+ 
++let incr_pulse_traces_truncated () = incr Fields.pulse_traces_truncated
++
+ let incr_summary_file_try_load () = incr Fields.summary_file_try_load
+ 
+ let incr_summary_read_from_disk () = incr Fields.summary_read_from_disk
+diff --git a/infer/src/base/Stats.mli b/infer/src/base/Stats.mli
+index 0da298c..c2f144a 100644
+--- a/infer/src/base/Stats.mli
++++ b/infer/src/base/Stats.mli
+@@ -10,6 +10,8 @@ open! IStd
+ 
+ type t
+ 
++val incr_pulse_traces_truncated : unit -> unit
++
+ val incr_summary_file_try_load : unit -> unit
+ (** a query to the filesystem attempting to load a summary file *)
+ 
+diff --git a/infer/src/pulse/PulseValueHistory.ml b/infer/src/pulse/PulseValueHistory.ml
+index 6c1fb63..dca8412 100644
+--- a/infer/src/pulse/PulseValueHistory.ml
++++ b/infer/src/pulse/PulseValueHistory.ml
+@@ -460,20 +460,55 @@ let is_taint_event = function
+       true
+ 
+ 
++exception Trace_budget_exhausted
++
++(** Materialise [history] into an error trace, in chronological order.
++
++    [pop_least_timestamp] traverses the history as the DAG it is (physically shared sub-histories
++    are expanded once), so this is linear in the size of that DAG and the bound below is a
++    last-resort backstop rather than the mechanism that keeps reporting affordable: it fires only
++    for a history that is genuinely that large. When it does fire it is deterministic (the oldest
++    events are the ones dropped, because [rev_iter] walks from the most recent event backwards) and
++    it is stated in the trace itself, so a truncated explanation can never be mistaken for a
++    complete one. Truncating a trace changes no analysis result: the issue is still reported, at the
++    same place, with the same type. *)
+ let add_to_errlog ?(include_taint_events = false) ~nesting history errlog =
+   let nesting = ref nesting in
+   let errlog = ref errlog in
++  let budget = Config.pulse_max_trace_elements in
++  let produced = ref 0 in
++  let last_location = ref None in
++  let truncated = ref false in
++  let spend location =
++    if budget > 0 && !produced >= budget then (
++      truncated := true ;
++      raise_notrace Trace_budget_exhausted ) ;
++    incr produced ;
++    last_location := Some location
++  in
+   let one_iter_event = function
+     | Event event ->
+-        if include_taint_events || not (is_taint_event event) then
+-          errlog := add_event_to_errlog ~nesting:!nesting event !errlog
++        if include_taint_events || not (is_taint_event event) then (
++          spend (location_of_event event) ;
++          errlog := add_event_to_errlog ~nesting:!nesting event !errlog )
+     | EnterCall _ ->
+         decr nesting
+     | ReturnFromCall (call, location) ->
++        spend location ;
+         errlog := add_returned_from_call_to_errlog ~nesting:!nesting call location !errlog ;
+         incr nesting
+   in
+-  rev_iter history ~f:one_iter_event ;
++  (try rev_iter history ~f:one_iter_event with Trace_budget_exhausted -> ()) ;
++  if !truncated then (
++    Stats.incr_pulse_traces_truncated () ;
++    let location = Option.value !last_location ~default:Location.dummy in
++    let description =
++      F.asprintf
++        "earlier history not shown: this value's history reached the %d-element trace limit \
++         (--pulse-max-trace-elements); the issue itself is unaffected"
++        budget
++    in
++    errlog := Errlog.make_trace_element !nesting location description [] :: !errlog ) ;
+   !errlog
+ 
+ 
+diff --git a/infer/src/pulse/unit/PulseValueHistoryTest.ml b/infer/src/pulse/unit/PulseValueHistoryTest.ml
+index b942040..0dd57a1 100644
+--- a/infer/src/pulse/unit/PulseValueHistoryTest.ml
++++ b/infer/src/pulse/unit/PulseValueHistoryTest.ml
+@@ -33,6 +33,12 @@ let ( ^::^ ) event1 event2 = event1 ^:: ValueHistory.singleton event2
+ 
+ let ( ++ ) history1 history2 = ValueHistory.binary_op (PlusA None) history1 history2
+ 
++let count_history_events history =
++  let n = ref 0 in
++  ValueHistory.iter history ~f:(function Event _ -> incr n | _ -> ()) ;
++  F.printf "%d events" !n
++
++
+ let iter_print_history history =
+   let call_stack = ref [] in
+   let is_first = ref true in
+@@ -85,4 +91,27 @@ let%test_module "iteration order" =
+       ++ (ev 8 ^:: ev 5 ^:: ev 2 ^::^ ev 0)
+       |> iter_print_history ;
+       [%expect {|ev0;ev1;ev2;ev3;ev4;ev5;ev6;ev7;ev8;ev9;ev10|}]
++
++
++    let%expect_test "physically shared branches are expanded once" =
++      (* [h ++ h] stores the *same* [h] on both sides, so the history is a DAG with [n] nodes but
++         2^[n] root-to-leaf paths. Iterating it has to stay linear in the number of nodes: without
++         the physically-equal pruning in [pop_least_timestamp] this test takes time and memory
++         exponential in [n] and aborts the process with "Fatal error: out of memory". [n = 60] is
++         far past the point where that happens. *)
++      let rec double n hist = if n <= 0 then hist else double (n - 1) (hist ++ hist) in
++      double 60 (ev 2 ^:: ev 1 ^::^ ev 0) |> iter_print_history ;
++      [%expect {|ev0;ev1;ev2|}]
++
++
++    let%expect_test "sharing reached through different parents is expanded once" =
++      (* the same history below two *different* parents, rather than as both children of one
++         [BinaryOp]; each level doubles the number of root-to-leaf paths just the same. Timestamps
++         keep increasing towards the root, as the representation invariant requires. *)
++      let rec nest n t hist =
++        if n <= 0 then hist
++        else nest (n - 1) (t + 2) ((ev (t + 1) ^:: hist) ++ (ev (t + 2) ^:: hist))
++      in
++      nest 30 2 (ev 2 ^:: ev 1 ^::^ ev 0) |> count_history_events ;
++      [%expect {|63 events|}]
+   end )

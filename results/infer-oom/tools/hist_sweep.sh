@@ -3,7 +3,9 @@
 set -u
 INFER_BIN=$1; TAG=$2; SHAPE=$3; shift 3
 ROOT=/home/edong/VSCode/papers/mem_leak
-BUILD_INFER=$ROOT/tools/infer-src/infer/bin/infer
+# capture must be done by a binary of the SAME Infer version as the one under test: the results
+# directory format and the bundled clang both differ between v1.2.0 and v1.3.0.
+BUILD_INFER=${CAPTURE_INFER:-$ROOT/tools/infer-src/infer/bin/infer}
 for n in "$@"; do
   D=$ROOT/output/oom/fixtures/hist/$SHAPE$n
   rm -rf "$D"; mkdir -p "$D"

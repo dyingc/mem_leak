@@ -1,0 +1,74 @@
+diff --git a/infer/src/base/CommandLineOption.ml b/infer/src/base/CommandLineOption.ml
+index 3d113ba..2412ec7 100644
+--- a/infer/src/base/CommandLineOption.ml
++++ b/infer/src/base/CommandLineOption.ml
+@@ -984,21 +984,13 @@ let decode_inferconfig_to_argv path =
+   List.fold ~f:one_config_item ~init:[] json_config
+ 
+ 
+-(** separator of argv elements when encoded into environment variables *)
++(** separator of argv elements when encoded into environment variables; only used to split a
++    user-provided [args_env_var] and to append internal arguments to it. Arguments computed by infer
++    itself are never joined with this character: they are written to an argfile, one argument per
++    line, so that any argument the command line can express (including ones containing this
++    character, e.g. anchored regexes like "^foo$") reaches sub-processes unchanged. *)
+ let env_var_sep = '^'
+ 
+-let encode_argv_to_env argv =
+-  String.concat ~sep:(String.make 1 env_var_sep)
+-    (List.filter
+-       ~f:(fun arg ->
+-         (not (String.contains arg env_var_sep))
+-         ||
+-         ( warnf "WARNING: Ignoring unsupported option containing '%c' character: %s@\n" env_var_sep
+-             arg ;
+-           false ) )
+-       argv )
+-
+-
+ let decode_env_to_argv env =
+   String.split ~on:env_var_sep env |> List.filter ~f:(Fn.non String.is_empty)
+ 
+@@ -1076,7 +1068,11 @@ let parse ?config_file ~usage action initial_command =
+   let inferconfig_args =
+     Option.map ~f:decode_inferconfig_to_argv config_file |> Option.value ~default:[]
+   in
+-  let args_to_export = ref "" in
++  (* Arguments to pass on to sub-processes, most recent first. They are kept as a list and written
++     to an argfile below instead of being joined with [env_var_sep]: joining would make any argument
++     containing [env_var_sep] impossible to transport (previously such arguments were dropped with a
++     warning, leaving their option dangling and breaking argument parsing in sub-processes). *)
++  let rev_args_to_export = ref [] in
+   let add_parsed_args_to_args_to_export () =
+     (* reread args_to_parse instead of using all_args since mk_path_helper may have modified them *)
+     let prog_args =
+@@ -1084,14 +1080,12 @@ let parse ?config_file ~usage action initial_command =
+         (rev_prefix_before_rest (Array.to_list !args_to_parse))
+         (List.rev !extra_env_args)
+     in
+-    (* do not include program path in args passed via env var *)
+-    let args = Option.value (List.tl prog_args) ~default:[] in
+-    if not (List.is_empty args) then
+-      let arg_string =
+-        if String.equal !args_to_export "" then encode_argv_to_env args
+-        else !args_to_export ^ String.of_char env_var_sep ^ encode_argv_to_env args
+-      in
+-      args_to_export := arg_string
++    (* do not include program path in args passed via env var; empty arguments are skipped as they
++       cannot be represented in an argfile (one argument per line) *)
++    let args =
++      Option.value (List.tl prog_args) ~default:[] |> List.filter ~f:(Fn.non String.is_empty)
++    in
++    rev_args_to_export := List.rev_append args !rev_args_to_export
+   in
+   (* read .inferconfig first, then env vars, then command-line options *)
+   parse_args ~usage InferCommand inferconfig_args |> ignore_usage ;
+@@ -1106,7 +1100,7 @@ let parse ?config_file ~usage action initial_command =
+     curr_usage
+   in
+   let to_export =
+-    let argv_to_export = decode_env_to_argv !args_to_export in
++    let argv_to_export = List.rev !rev_args_to_export in
+     if not (List.is_empty argv_to_export) then (
+       (* We have to be careful not to add too much data to the environment because the size of the
+          environment contributes to the length of the command to be run. If the environment + CLI is

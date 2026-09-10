@@ -1,0 +1,5 @@
+date=2026-09-09T19:22:45-07:00 run=wide1-cfg60k-fix5-12g
+MemAvailable_GiB=19.6 load1=1.01 swap_used_MiB=3958 disk_avail_GiB=566
+limits: ulimit -v 12582912 KB, wall guard 1800s, jobs=1 nice=10 ionice=idle
+infer: /home/edong/VSCode/papers/mem_leak/output/oom/tools/infer-fix5/bin/infer
+heap trace: /home/edong/VSCode/papers/mem_leak/output/oom/runs/wide1-cfg60k-fix5-12g/heaptrace

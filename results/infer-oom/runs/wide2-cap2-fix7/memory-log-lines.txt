@@ -1,0 +1,5 @@
+Memory: address space limited to 2.00 GB (RLIMIT_AS); relieving memory pressure above 1.00 GB, giving up on the current procedure above 1.50 GB
+Memory: 53% of the ceiling in use (108242432 words of 201326550; heap 87259136 words). Above the ceiling the analysis of the current procedure is given up on and recorded in pulse/oom-aborted-procedures-<pid>.txt
+Memory: 76% of the ceiling in use (154221568 words of 201326550; heap 132710912 words). Above the ceiling the analysis of the current procedure is given up on and recorded in pulse/oom-aborted-procedures-<pid>.txt
+Memory: 97% of the ceiling in use (197023744 words of 201326550; heap 175511040 words). Above the ceiling the analysis of the current procedure is given up on and recorded in pulse/oom-aborted-procedures-<pid>.txt
+Memory: peak managed heap 1.50 GB, peak address space 1.51 GB, 2 relief(s), 2 procedure(s) given up on

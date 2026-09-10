@@ -1,0 +1,1236 @@
+diff --git a/infer/src/absint/AbstractInterpreter.ml b/infer/src/absint/AbstractInterpreter.ml
+index 5082ab1..e928412 100644
+--- a/infer/src/absint/AbstractInterpreter.ml
++++ b/infer/src/absint/AbstractInterpreter.ml
+@@ -312,6 +312,9 @@ struct
+ 
+ 
+     let widen ~prev ~next ~num_iters =
++      (* widening joins up to [disjunct_limit] disjuncts of both states and runs outside the
++         per-instruction checks *)
++      ignore (MemoryPressure.check_sampled () : int option) ;
+       let max_iter =
+         match DConfig.widen_policy with UnderApproximateAfterNumIterations max_iter -> max_iter
+       in
+@@ -416,6 +419,9 @@ struct
+               ~f:(fun () ->
+                 (* check timeout once per disjunct to execute instead of once for all disjuncts *)
+                 Timer.check_timeout () ;
++                (* relieve memory pressure losslessly; whether to give up is decided by the
++                   checker's own transfer function, which knows how to record the omission *)
++                ignore (MemoryPressure.check_sampled () : int option) ;
+                 let disjuncts', non_disj' =
+                   T.exec_instr (pre_disjunct, non_disj) analysis_data node instr
+                 in
+@@ -621,6 +627,9 @@ module AbstractInterpreterCommon (TransferFunctions : NodeTransferFunctions) = s
+               logged_error := false ;
+               Ok post
+             with exn ->
++              HeapTrace.log ~event:"instr-error"
++                ~file:(F.asprintf "%a" (Sil.pp_instr ~print_types:false Pp.text) instr)
++                () ;
+               (* delay reraising to get a chance to write the debug HTML *)
+               let backtrace = Caml.Printexc.get_raw_backtrace () in
+               Error (exn, backtrace, instr) )
+@@ -632,6 +641,7 @@ module AbstractInterpreterCommon (TransferFunctions : NodeTransferFunctions) = s
+           ( match exn with
+           | RestartSchedulerException.ProcnameAlreadyLocked _
+           | MissingDependencyException.MissingDependencyException
++          | MemoryPressure.OverHardLimit _
+           | Timer.Timeout _ ->
+               (* this isn't an error; don't log it *)
+               ()
+diff --git a/infer/src/absint/HeapTrace.ml b/infer/src/absint/HeapTrace.ml
+index 7dfcfde..5463656 100644
+--- a/infer/src/absint/HeapTrace.ml
++++ b/infer/src/absint/HeapTrace.ml
+@@ -1,131 +1,240 @@
+ (*
+- * Diagnostic per-procedure managed-heap trace. Inert unless the environment variable
+- * INFER_HEAP_TRACE=<path prefix> is set; then one line per event is appended to
+- * <path prefix>.<pid>. If INFER_HEAP_TRACE_COMPACT=1 is also set, a [Gc.compact ()] is
+- * forced at the end of every scheduled target (after caches are cleared) and the heap size
+- * after compaction is logged, which approximates the memory retained across targets.
++ * Structured, opt-in memory diagnostics for the analysis.
++ *
++ * Everything here is inert unless INFER_HEAP_TRACE=<path prefix> is set, in which case one JSON
++ * object per line is appended to <path prefix>.<pid>.jsonl. The point of the trace is to be able
++ * to attribute an out-of-memory death to a phase: the last checkpoint before the process dies
++ * says which procedure, which instruction, and which subsystem (analysis state, cache,
++ * serialization, compaction) was running, and whether the growth was in the managed heap or in
++ * process memory.
++ *
++ * Environment:
++ *   INFER_HEAP_TRACE=<prefix>          enable, write <prefix>.<pid>.jsonl
++ *   INFER_HEAP_TRACE_LEVEL=2           also record every summary-cache get/add (very verbose)
++ *   INFER_HEAP_TRACE_INSTR_MB=<n>      record a Pulse instruction whose own growth is >= n MB
++ *                                      (default 64)
++ *   INFER_HEAP_TRACE_SMAPS=1           also read private_dirty from /proc/self/smaps_rollup
++ *                                      (expensive: the kernel walks the page tables)
++ *   INFER_HEAP_TRACE_CACHE_WORDS=1     measure the reachable size of the summary cache at every
++ *                                      checkpoint instead of only when the heap grew a lot
++ *                                      (expensive: traverses the live graph)
++ *   INFER_HEAP_TRACE_COMPACT=1         force a Gc.compact at the end of every scheduled target
++ *   INFER_CLEAR_SUMMARY_CACHE_PER_PROC=1  clear the summary cache after every top-level procedure
+  *)
+ 
+ open! IStd
+ 
++let getenv name = Sys.getenv name
++
+ let channel =
+   lazy
+-    (Option.map (Sys.getenv "INFER_HEAP_TRACE") ~f:(fun path ->
+-         Out_channel.create ~append:true
+-           (Printf.sprintf "%s.%d" path (Pid.to_int (Unix.getpid ()))) ) )
++    (Option.map (getenv "INFER_HEAP_TRACE") ~f:(fun path ->
++         Out_channel.create ~append:true (Printf.sprintf "%s.%d.jsonl" path (Pid.to_int (Unix.getpid ()))) ) )
++
++
++let enabled () = Option.is_some (Lazy.force channel)
+ 
++let level = lazy (match getenv "INFER_HEAP_TRACE_LEVEL" with Some s -> (try int_of_string s with _ -> 1) | None -> 1)
+ 
+-let compact_mode = lazy (Sys.getenv "INFER_HEAP_TRACE_COMPACT")
++let cache_ops_traced () = Lazy.force level >= 2
+ 
+-let compact_at_target_end = lazy (Option.is_some (Lazy.force compact_mode))
++let smaps_enabled = lazy (Option.is_some (getenv "INFER_HEAP_TRACE_SMAPS"))
+ 
+-let compact_at_toplevel_proc =
+-  lazy (Option.exists (Lazy.force compact_mode) ~f:(String.equal "toplevel"))
++let force_cache_words = lazy (Option.is_some (getenv "INFER_HEAP_TRACE_CACHE_WORDS"))
++
++let compact_at_target_end = lazy (Option.is_some (getenv "INFER_HEAP_TRACE_COMPACT"))
+ 
+-(* diagnostic knob: clear the in-memory summary cache after every top-level procedure of a file *)
+ let clear_summary_cache_per_toplevel_proc =
+-  lazy (Option.is_some (Sys.getenv "INFER_CLEAR_SUMMARY_CACHE_PER_PROC"))
++  lazy (Option.is_some (getenv "INFER_CLEAR_SUMMARY_CACHE_PER_PROC"))
+ 
+-let enabled () = Option.is_some (Lazy.force channel)
+ 
+-(* hook set by the backend to measure the summary cache: (entries, reachable words) *)
+-let cache_stats : (unit -> int * int) ref = ref (fun () -> (0, 0))
++let instr_burst_words =
++  let v =
++    lazy
++      ( (match getenv "INFER_HEAP_TRACE_INSTR_MB" with
++        | Some s -> ( try int_of_string s with _ -> 64 )
++        | None -> 64 )
++      * 1024 * 1024 / (Sys.word_size_in_bits / 8) )
++  in
++  fun () -> Lazy.force v
+ 
+-let last_cache_measure_heap = ref 0
+ 
+-let log_cache_stats ~event ?proc () =
+-  match Lazy.force channel with
+-  | None ->
+-      ()
+-  | Some oc ->
+-      let entries, words = !cache_stats () in
+-      Printf.fprintf oc "%.3f %s cache_entries=%d cache_words=%d proc=%s\n" (Unix.gettimeofday ())
+-        event entries words (Option.value proc ~default:"-") ;
+-      Out_channel.flush oc
++(* Set by the backend. These are deliberately two hooks: counting the entries is O(1), while
++   measuring the words reachable from the cache walks the whole live graph and costs as much as a
++   minor collection. Calling the expensive one on every record made a traced run of a Vim
++   translation unit ten times slower than an untraced one. *)
++let cache_entries : (unit -> int) ref = ref (fun () -> 0)
+ 
+-let log ~event ?(nesting = 0) ?file ?proc () =
++let cache_reachable_words : (unit -> int) ref = ref (fun () -> -1)
++
++(* process memory from /proc/self/statm: total program size and resident set, in pages *)
++let page_kib = 4
++
++let read_statm () =
++  try
++    let line = In_channel.read_all "/proc/self/statm" in
++    match String.split line ~on:' ' with
++    | size :: resident :: _ ->
++        (int_of_string size * page_kib, int_of_string resident * page_kib)
++    | _ ->
++        (-1, -1)
++  with _ -> (-1, -1)
++
++
++let read_private_dirty () =
++  if not (Lazy.force smaps_enabled) then -1
++  else
++    try
++      In_channel.read_lines "/proc/self/smaps_rollup"
++      |> List.find_map ~f:(fun line ->
++             if String.is_prefix line ~prefix:"Private_Dirty:" then
++               String.split line ~on:' '
++               |> List.filter ~f:(Fn.non String.is_empty)
++               |> function _ :: v :: _ -> int_of_string_opt v | _ -> None
++             else None )
++      |> Option.value ~default:(-1)
++    with _ -> -1
++
++
++let last_cache_measure_heap = ref 0
++
++let measure_cache_words heap_words =
++  let entries = !cache_entries () in
++  if Lazy.force force_cache_words || heap_words - !last_cache_measure_heap >= 32 * 1024 * 1024 then (
++    last_cache_measure_heap := heap_words ;
++    (entries, !cache_reachable_words ()) )
++  else (entries, -1)
++
++
++let json_escape s =
++  String.concat_map s ~f:(fun c ->
++      match c with
++      | '"' ->
++          "\\\""
++      | '\\' ->
++          "\\\\"
++      | '\n' ->
++          "\\n"
++      | '\r' ->
++          "\\r"
++      | '\t' ->
++          "\\t"
++      | c when Char.to_int c < 32 ->
++          Printf.sprintf "\\u%04x" (Char.to_int c)
++      | c ->
++          String.of_char c )
++
++
++(** the one record writer; every field of the agreed schema is always present *)
++let emit ?(procedure = "") ?(source_file = "") ?(payload_bytes = -1) ?(extra = "") phase =
+   match Lazy.force channel with
+   | None ->
+       ()
+   | Some oc ->
+       let st = Gc.quick_stat () in
++      let vm_size_kib, rss_kib = read_statm () in
++      let cache_entries, cache_words = measure_cache_words st.heap_words in
+       Printf.fprintf oc
+-        "%.3f %s nesting=%d heap_words=%d top_heap_words=%d minor=%d major=%d compact=%d \
+-         file=%s proc=%s\n"
+-        (Unix.gettimeofday ()) event nesting st.heap_words st.top_heap_words
+-        st.minor_collections st.major_collections st.compactions
+-        (Option.value file ~default:"-")
+-        (Option.value proc ~default:"-") ;
++        "{\"timestamp\":%.6f,\"pid\":%d,\"phase\":\"%s\",\"procedure\":\"%s\",\"source_file\":\"%s\",\"heap_words\":%d,\"top_heap_words\":%d,\"minor_collections\":%d,\"major_collections\":%d,\"compactions\":%d,\"rss_kib\":%d,\"vm_size_kib\":%d,\"private_dirty_kib\":%d,\"summary_cache_entries\":%d,\"summary_cache_reachable_words\":%d,\"serialized_payload_bytes\":%d%s}\n"
++        (Unix.gettimeofday ()) (Pid.to_int (Unix.getpid ())) (json_escape phase)
++        (json_escape procedure) (json_escape source_file) st.heap_words st.top_heap_words
++        st.minor_collections st.major_collections st.compactions rss_kib vm_size_kib
++        (read_private_dirty ()) cache_entries cache_words payload_bytes extra ;
+       Out_channel.flush oc
+ 
+ 
+-(* stack of frames for nested on-demand analyses: (heap at start, heap growth of direct children) *)
+-let frames : (int * int ref) list ref = ref []
++let log ~event ?(nesting = 0) ?file ?proc () =
++  if enabled () then
++    emit ?procedure:proc ?source_file:file ~extra:(Printf.sprintf ",\"nesting\":%d" nesting) event
+ 
+-let child_growth_of_current_frame () =
+-  match !frames with (_, acc) :: _ -> !acc | [] -> 0
+ 
++let log_proc ~event ~nesting proc_name (attrs : ProcAttributes.t) =
++  if enabled () then
++    emit ~procedure:(Procname.to_string proc_name)
++      ~source_file:(SourceFile.to_string attrs.translation_unit)
++      ~extra:(Printf.sprintf ",\"nesting\":%d" nesting)
++      event
++
++
++(** run [f], always leaving a checkpoint: [<phase>-start] then [<phase>-end] or [<phase>-error]
++    with the exception name. Cheap when the trace is off. *)
++let with_phase ~phase ?procedure ?source_file f =
++  if not (enabled ()) then f ()
++  else (
++    emit ?procedure ?source_file (phase ^ "-start") ;
++    match f () with
++    | res ->
++        emit ?procedure ?source_file (phase ^ "-end") ;
++        res
++    | exception exn ->
++        emit ?procedure ?source_file
++          ~extra:(Printf.sprintf ",\"exn\":\"%s\"" (json_escape (Exn.to_string exn)))
++          (phase ^ "-error") ;
++        raise exn )
++
++
++let log_cache_stats ~event ?proc () = if enabled () then emit ?procedure:proc event
++
++let log_cache_op ~event ~proc ?(payload_bytes = -1) () =
++  if enabled () && cache_ops_traced () then emit ~procedure:proc ~payload_bytes event
++
++
++(** always traced (not only at level 2): storing a summary is where a large payload is
++    serialized, marshalled and copied into SQLite *)
++let log_store ~event ~proc ?(payload_bytes = -1) () =
++  if enabled () then emit ~procedure:proc ~payload_bytes event
+ 
+-let log_proc ~event ~nesting callee_pname (attrs : ProcAttributes.t) =
+-  if enabled () then (
+-    let heap = (Gc.quick_stat ()).heap_words in
+-    ( match event with
+-    | "start" ->
+-        frames := (heap, ref 0) :: !frames
+-    | "end" | "end-error" -> (
+-      match !frames with
+-      | (heap0, _) :: rest ->
+-          frames := rest ;
+-          (match rest with (_, acc) :: _ -> acc := !acc + (heap - heap0) | [] -> ())
+-      | [] ->
+-          () )
+-    | _ ->
+-        () ) ;
+-    log ~event ~nesting
+-      ~file:(SourceFile.to_string attrs.translation_unit)
+-      ~proc:(Procname.to_string callee_pname) () )
++
++let log_compact ~reason ~f =
++  if not (enabled ()) then f ()
++  else (
++    emit ~extra:(Printf.sprintf ",\"reason\":\"%s\"" (json_escape reason)) "gc-compact-before" ;
++    let res = f () in
++    emit ~extra:(Printf.sprintf ",\"reason\":\"%s\"" (json_escape reason)) "gc-compact-after" ;
++    res )
+ 
+ 
+ let target_done ~target =
+   if enabled () then (
+-    log ~event:"target-done" ~file:target () ;
++    emit ~source_file:target "target-done" ;
+     last_cache_measure_heap := 0 ;
+     if Lazy.force compact_at_target_end then (
+       Gc.compact () ;
+-      log ~event:"target-done-compacted" ~file:target () ) )
++      emit ~source_file:target "target-done-compacted" ) )
++
+ 
++let target_start ~target = if enabled () then emit ~source_file:target "target-start"
+ 
+ let toplevel_proc_done ~proc =
+   if enabled () then (
+-    log ~event:"toplevel-done" ~proc () ;
+-    (let heap = (Gc.quick_stat ()).heap_words in
+-     (* measure the cache whenever the heap grew by >= 256MB since the last measurement *)
+-     if heap - !last_cache_measure_heap >= 32 * 1024 * 1024 then (
+-       last_cache_measure_heap := heap ;
+-       log_cache_stats ~event:"cache-stats" ~proc () ) ) ;
+-    if Lazy.force compact_at_toplevel_proc then (
+-      Gc.compact () ;
+-      log ~event:"toplevel-done-compacted" ~proc () ) )
++    emit ~procedure:proc "toplevel-done" ;
++    if Lazy.force clear_summary_cache_per_toplevel_proc then emit ~procedure:proc "toplevel-cache-cleared" )
+ 
+ 
+-(* instruction-level burst trace: log any single Pulse instruction execution (one disjunct) that
+-   grows the major heap by at least INFER_HEAP_TRACE_INSTR_MB megabytes (default 64) *)
+-let instr_burst_words =
+-  let v =
+-    lazy
+-      ( (match Sys.getenv "INFER_HEAP_TRACE_INSTR_MB" with Some s -> int_of_string s | None -> 64)
+-      * 1024 * 1024 / 8 )
+-  in
+-  fun () -> Lazy.force v
++let log_instr ~heap_before ~heap_after ~child_growth ~proc ~n_out ~instr =
++  if enabled () then
++    emit ~procedure:proc
++      ~extra:
++        (Printf.sprintf ",\"heap_before\":%d,\"heap_after\":%d,\"child_growth\":%d,\"n_out\":%d,\"instr\":\"%s\""
++           heap_before heap_after child_growth n_out (json_escape instr) )
++      "instr-burst"
+ 
+ 
+-let log_instr ~heap_before ~heap_after ~child_growth ~proc ~n_out ~instr =
+-  match Lazy.force channel with
+-  | None ->
+-      ()
+-  | Some oc ->
+-      Printf.fprintf oc
+-        "%.3f instr-burst heap_before=%d heap_after=%d child_growth=%d n_out=%d proc=%s instr=%s\n"
+-        (Unix.gettimeofday ()) heap_before heap_after child_growth n_out proc
+-        (String.filter instr ~f:(fun c -> not (Char.equal c '\n'))) ;
+-      Out_channel.flush oc
++(* stack of frames for nested on-demand analyses: (heap at start, growth of direct children) *)
++let frames : (int * int ref) list ref = ref []
++
++let child_growth_of_current_frame () = match !frames with (_, acc) :: _ -> !acc | [] -> 0
++
++let push_frame () =
++  if enabled () then frames := ((Gc.quick_stat ()).heap_words, ref 0) :: !frames
++
++
++let pop_frame () =
++  if enabled () then
++    match !frames with
++    | (heap0, _) :: rest ->
++        frames := rest ;
++        let grown = (Gc.quick_stat ()).heap_words - heap0 in
++        (match rest with (_, acc) :: _ -> acc := !acc + grown | [] -> ())
++    | [] ->
++        ()
+diff --git a/infer/src/backend/InferAnalyze.ml b/infer/src/backend/InferAnalyze.ml
+index cda091e..f01a027 100644
+--- a/infer/src/backend/InferAnalyze.ml
++++ b/infer/src/backend/InferAnalyze.ml
+@@ -43,7 +43,7 @@ let do_compaction_if_needed =
+     then (
+       L.log_task "Triggering compaction, heap size= %.2f GB@\n"
+         (float_of_int heap_words *. float_of_int (Sys.word_size_in_bits / 8) /. 1024. /. 1024. /. 1024.) ;
+-      Gc.compact () ;
++      HeapTrace.log_compact ~reason:"target-end-threshold" ~f:Gc.compact ;
+       last_compaction_time := Mtime_clock.counter () )
+     else ()
+ 
+@@ -102,6 +102,15 @@ let analyze_target : (TaskSchedulerTypes.target, TaskSchedulerTypes.analysis_res
+   in
+   fun target ->
+     let start = ExecutionDuration.counter () in
++    HeapTrace.target_start
++      ~target:
++        ( match target with
++        | Procname pname ->
++            Procname.to_string pname
++        | ProcUID uid ->
++            uid
++        | File sf ->
++            SourceFile.to_string sf ) ;
+     let exe_env = Exe_env.mk () in
+     let result =
+       match target with
+@@ -208,7 +217,16 @@ let tasks_generator_builder_for replay_call_graph_opt sources =
+ 
+ 
+ let analyze replay_call_graph source_files_to_analyze =
+-  HeapTrace.cache_stats := Summary.OnDisk.cache_stats ;
++  HeapTrace.cache_entries := Summary.OnDisk.cache_entries ;
++  HeapTrace.cache_reachable_words := Summary.OnDisk.cache_reachable_words ;
++  (* make the lossless relief reachable from anywhere in the analysis, see MemoryPressure.ml *)
++  MemoryPressure.evict_hook := Summary.OnDisk.evict_half ;
++  MemoryPressure.trace_hook :=
++    (fun ~event ~before ~after ->
++      HeapTrace.log ~event
++        ~file:(Printf.sprintf "heap_before=%d heap_after=%d" before after)
++        () ) ;
++  MemoryPressure.log_configuration () ;
+   if Config.is_checker_enabled ConfigImpactAnalysis then
+     L.debug Analysis Quiet "Config impact strict mode: %a@." ConfigImpactAnalysis.pp_mode
+       ConfigImpactAnalysis.mode ;
+@@ -219,6 +237,7 @@ let analyze replay_call_graph source_files_to_analyze =
+     in
+     let pre_analysis_gc_stats = GCStats.get ~since:ProgramStart in
+     Tasks.run_sequentially ~f:analyze_target target_files ;
++    MemoryPressure.log_summary () ;
+     ( [Stats.get ()]
+     , [GCStats.get ~since:(PreviousStats pre_analysis_gc_stats)]
+     , [MissingDependencies.get ()] ) )
+diff --git a/infer/src/backend/Payloads.ml b/infer/src/backend/Payloads.ml
+index 0d9f426..90a6069 100644
+--- a/infer/src/backend/Payloads.ml
++++ b/infer/src/backend/Payloads.ml
+@@ -150,7 +150,14 @@ module SQLite = struct
+     | None ->
+         Sqlite3.Data.NULL
+     | Some payload ->
+-        Sqlite3.Data.BLOB (Marshal.to_string payload [Closures])
++        (* [Marshal.to_string] allocates a string as large as the serialised payload in the
++           managed heap; SQLite then copies it again into native memory. Both are invisible to
++           the per-instruction heap check, so leave a checkpoint when the payload is large. *)
++        let s = Marshal.to_string payload [Closures] in
++        if HeapTrace.enabled () && String.length s >= 8 * 1024 * 1024 then
++          HeapTrace.log_store ~event:"payload-serialized" ~proc:"" ~payload_bytes:(String.length s)
++            () ;
++        Sqlite3.Data.BLOB s
+ 
+ 
+   let serialize payloads =
+diff --git a/infer/src/backend/Summary.ml b/infer/src/backend/Summary.ml
+index d8fdd9f..5f3cb3b 100644
+--- a/infer/src/backend/Summary.ml
++++ b/infer/src/backend/Summary.ml
+@@ -205,7 +205,9 @@ module OnDisk = struct
+ 
+   let clear_cache () = Hash.clear cache
+ 
+-  let cache_stats () = (Hash.length cache, Obj.reachable_words (Obj.repr cache))
++  let cache_entries () = Hash.length cache
++
++  let cache_reachable_words () = Obj.reachable_words (Obj.repr cache)
+ 
+   let summary_cache_max_heap_words =
+     Config.summary_cache_max_heap_GB * 1024 * 1024 * (1024 / (Sys.word_size_in_bits / 8))
+@@ -217,6 +219,24 @@ module OnDisk = struct
+       [--summary-cache-max-heap-GB], drop the least-recently-used half of the cache and compact.
+       Summaries are always persisted in the results database before being cached (see [store]),
+       so an evicted summary is simply re-loaded from disk on its next use. *)
++  (** Drop the least-recently-used half of the cache. Every cached summary was written to the
++      results database before being cached (see [store]), so this only costs the time to read it
++      back; nothing is lost. Procedures whose analysis is in flight are not affected: the value is
++      held by the running [run_proc_analysis] and recursion is guarded by [Ondemand.is_active]
++      before the cache is consulted. *)
++  let evict_half () =
++    let n = Hash.length cache in
++    if n > 1 then (
++      let by_age =
++        Hash.fold (fun key entry acc -> (key, entry.last_use) :: acc) cache []
++        |> List.sort ~compare:(fun (_, a) (_, b) -> Int.compare a b)
++      in
++      List.iteri by_age ~f:(fun i (key, _) -> if i < n / 2 then Hash.remove cache key) ;
++      BStats.incr_summary_cache_evictions () ;
++      L.debug Analysis Quiet "summary cache: evicted %d of %d cached summaries@\n"
++        (n - Hash.length cache) n )
++
++
+   let evict_if_heap_too_big () =
+     if summary_cache_max_heap_words > 0 then
+       let heap_words = (Gc.quick_stat ()).heap_words in
+@@ -231,14 +251,9 @@ module OnDisk = struct
+       in
+       if heap_words >= summary_cache_max_heap_words && interval_elapsed then (
+         let n = Hash.length cache in
+-        let by_age =
+-          Hash.fold (fun key entry acc -> (key, entry.last_use) :: acc) cache []
+-          |> List.sort ~compare:(fun (_, a) (_, b) -> Int.compare a b)
+-        in
+-        List.iteri by_age ~f:(fun i (key, _) -> if i < n / 2 then Hash.remove cache key) ;
+-        Gc.compact () ;
++        evict_half () ;
++        HeapTrace.log_compact ~reason:"summary-cache-eviction" ~f:Gc.compact ;
+         last_eviction := Some (Mtime_clock.counter ()) ;
+-        BStats.incr_summary_cache_evictions () ;
+         L.debug Analysis Quiet
+           "summary cache: heap was %d words (>= %d), evicted %d of %d cached summaries, heap is now \
+            %d words@\n"
+@@ -321,10 +336,12 @@ module OnDisk = struct
+   let get ~lazy_payloads analysis_req proc_name =
+     let found_from_cache summary =
+       BStats.incr_summary_cache_hits () ;
++      HeapTrace.log_cache_op ~event:"cache-hit" ~proc:(Procname.to_string proc_name) () ;
+       Some summary
+     in
+     let not_found_from_cache () =
+       BStats.incr_summary_cache_misses () ;
++      HeapTrace.log_cache_op ~event:"cache-miss" ~proc:(Procname.to_string proc_name) () ;
+       load_summary_to_spec_table ~lazy_payloads analysis_req proc_name
+     in
+     match find_opt (proc_name, analysis_req) with
+@@ -358,11 +375,17 @@ module OnDisk = struct
+       SummaryMetadata.of_full_summary ~is_complete_result summary
+     in
+     try
++      (* serialising a summary allocates a string as large as the summary, and SQLite then copies
++         it again outside the managed heap: make room first, and leave a checkpoint on both sides
++         so an out-of-memory death during this phase is attributable *)
++      ignore (MemoryPressure.check () : int option) ;
++      HeapTrace.log_store ~event:"summary-store-start" ~proc:(Procname.to_string proc_name) () ;
+       DBWriter.store_spec analysis_req ~proc_uid:(Procname.to_unique_id proc_name)
+         ~proc_name:(Procname.SQLite.serialize proc_name)
+         ~merge_pulse_payload:(Payloads.SQLite.serialize payloads)
+         ~merge_report_summary:(ReportSummary.SQLite.serialize report_summary)
+         ~merge_summary_metadata:(SummaryMetadata.SQLite.serialize summary_metadata) ;
++      HeapTrace.log_store ~event:"summary-store-end" ~proc:(Procname.to_string proc_name) () ;
+       summary
+     with SqliteUtils.DataTooBig ->
+       (* Serialization exceeded size limits, write and return an empty summary  *)
+diff --git a/infer/src/backend/Summary.mli b/infer/src/backend/Summary.mli
+index 8b138db..186dc73 100644
+--- a/infer/src/backend/Summary.mli
++++ b/infer/src/backend/Summary.mli
+@@ -45,10 +45,18 @@ val pp_text : Format.formatter -> t -> unit
+ (** Print the summary in text format *)
+ 
+ module OnDisk : sig
++  val evict_half : unit -> unit
++  (** drop the least-recently-used half of the summary cache; lossless, the summaries are in the
++      results database *)
++
+   val clear_cache : unit -> unit
+ 
+-  val cache_stats : unit -> int * int
+-  (** diagnostic: number of cached summaries and words reachable from the cache *)
++  val cache_entries : unit -> int
++  (** diagnostic: number of cached summaries; O(1) *)
++
++  val cache_reachable_words : unit -> int
++  (** diagnostic: words reachable from the summary cache; walks the live graph, so only for
++      occasional use *)
+   (** Remove all the elements from the cache of summaries *)
+ 
+   val get : lazy_payloads:bool -> AnalysisRequest.t -> Procname.t -> t option
+diff --git a/infer/src/backend/ondemand.ml b/infer/src/backend/ondemand.ml
+index 02b5c96..787e165 100644
+--- a/infer/src/backend/ondemand.ml
++++ b/infer/src/backend/ondemand.ml
+@@ -150,7 +150,9 @@ let run_proc_analysis exe_env tenv analysis_req ?specialization ?caller_pname ca
+     L.progress "[%d] run_proc_analysis %a -> %a@." !nesting (Pp.option Procname.pp) caller_pname
+       Procname.pp callee_pname ;
+   let preprocess () =
+-    HeapTrace.log_proc ~event:"start" ~nesting:!nesting callee_pname callee_attributes ;
++    HeapTrace.log_proc ~event:"proc-start" ~nesting:!nesting callee_pname callee_attributes ;
++    HeapTrace.push_frame () ;
++    MemoryPressure.enter_procedure () ;
+     incr nesting ;
+     let source_file = callee_attributes.ProcAttributes.translation_unit in
+     update_taskbar (Some callee_pname) (Some source_file) ;
+@@ -169,7 +171,9 @@ let run_proc_analysis exe_env tenv analysis_req ?specialization ?caller_pname ca
+   in
+   let postprocess summary =
+     decr nesting ;
+-    HeapTrace.log_proc ~event:"end" ~nesting:!nesting callee_pname callee_attributes ;
++    MemoryPressure.exit_procedure () ;
++    HeapTrace.pop_frame () ;
++    HeapTrace.log_proc ~event:"proc-end" ~nesting:!nesting callee_pname callee_attributes ;
+     (* copy the previous recursion edges over to the new summary if doing a replay analysis so that
+        subsequent replay analyses can pick them up too *)
+     Option.iter !edges_to_ignore ~f:(fun edges_to_ignore ->
+@@ -199,7 +203,7 @@ let run_proc_analysis exe_env tenv analysis_req ?specialization ?caller_pname ca
+     in
+     let new_summary = {summary with stats; payloads} in
+     let new_summary = Summary.OnDisk.store analysis_req new_summary in
+-    HeapTrace.log_proc ~event:"end-error" ~nesting:!nesting callee_pname callee_attributes ;
++    HeapTrace.log_proc ~event:"proc-end-error" ~nesting:!nesting callee_pname callee_attributes ;
+     remove_active callee_pname ;
+     log_elapsed_time () ;
+     new_summary
+@@ -218,6 +222,9 @@ let run_proc_analysis exe_env tenv analysis_req ?specialization ?caller_pname ca
+     final_callee_summary
+   with exn -> (
+     let backtrace = Printexc.get_backtrace () in
++    HeapTrace.log_proc ~event:"proc-exception" ~nesting:!nesting callee_pname callee_attributes ;
++    MemoryPressure.exit_procedure () ;
++    HeapTrace.pop_frame () ;
+     IExn.reraise_if exn ~f:(fun () ->
+         match exn with
+         | RestartSchedulerException.ProcnameAlreadyLocked _
+diff --git a/infer/src/base/Config.ml b/infer/src/base/Config.ml
+index 6b9e3f2..5b91596 100644
+--- a/infer/src/base/Config.ml
++++ b/infer/src/base/Config.ml
+@@ -1322,6 +1322,20 @@ and compaction_minimum_interval_s =
+      elapsed since last compaction. Defaults to 15"
+ 
+ 
++and max_heap_percent_of_address_space =
++  CLOpt.mk_int ~long:"max-heap-percent-of-address-space" ~default:75 ~meta:"int"
++    ~in_help:InferCommand.[(Analyze, manual_generic)]
++    "If the process has a finite address-space limit (RLIMIT_AS, e.g. set with $(i,ulimit -v)), \
++     use this percentage of it as the analysis memory ceiling, measured on the address space \
++     actually in use (which includes the heap-compaction transient and non-heap memory, unlike \
++     $(b,--pulse-max-heap)). Memory pressure is relieved losslessly, by evicting cached summaries \
++     that the results database already holds, at two thirds of the ceiling; at the ceiling the \
++     current procedure is given up on -- explicitly, and recorded -- instead of letting the \
++     runtime abort the whole process with 'Fatal error: out of memory'. The default 75 leaves \
++     room for the memory the analysis cannot give back; 0 disables this. Inert when the address \
++     space is unlimited, which is the usual case."
++
++
+ and summary_cache_max_heap_GB =
+   CLOpt.mk_int ~long:"summary-cache-max-heap-GB" ~default:0 ~meta:"int"
+     ~in_help:InferCommand.[(Analyze, manual_generic)]
+@@ -4146,6 +4160,8 @@ and compaction_minimum_interval_s = !compaction_minimum_interval_s
+ 
+ and summary_cache_max_heap_GB = !summary_cache_max_heap_GB
+ 
++and max_heap_percent_of_address_space = !max_heap_percent_of_address_space
++
+ and gc_space_overhead = !gc_space_overhead
+ 
+ and complete_capture_from = !complete_capture_from
+diff --git a/infer/src/base/Config.mli b/infer/src/base/Config.mli
+index ac7afc2..b356ca5 100644
+--- a/infer/src/base/Config.mli
++++ b/infer/src/base/Config.mli
+@@ -281,6 +281,8 @@ val compaction_minimum_interval_s : int
+ 
+ val summary_cache_max_heap_GB : int
+ 
++val max_heap_percent_of_address_space : int
++
+ val gc_space_overhead : int
+ 
+ val complete_capture_from : string option
+diff --git a/infer/src/base/MemoryPressure.ml b/infer/src/base/MemoryPressure.ml
+new file mode 100644
+index 0000000..a5bb2f8
+--- /dev/null
++++ b/infer/src/base/MemoryPressure.ml
+@@ -0,0 +1,363 @@
++(*
++ * Reachable memory-pressure checkpoints.
++ *
++ * Pulse can allocate gigabytes *inside* the analysis of a single procedure: inside one call
++ * instruction that applies a callee summary to every disjunct
++ * ([PulseCallOperations.call_aux]), inside a join/widen, or while building the summary of a
++ * procedure ([PulseSummary.of_posts]). None of those places used to observe memory:
++ *   - [--pulse-max-heap] was checked at exactly one place, the top of
++ *     [PulseTransferFunctions.exec_instr], i.e. only at instruction boundaries;
++ *   - the summary cache was only ever trimmed from [Summary.OnDisk.add], i.e. between
++ *     procedures, and cleared between scheduled targets.
++ * So a run that grows past the address-space limit inside one procedure is killed by the OCaml
++ * runtime ("Fatal error: out of memory") without either mechanism ever running.
++ *
++ * This module provides one cheap function those inner loops can call. It first relieves memory
++ * pressure *losslessly* (evict database-backed cached summaries, then collect), and only then
++ * reports that the heap is still over the hard limit, so the caller can give up on the current
++ * procedure explicitly -- and record that omission -- instead of losing the whole run.
++ *)
++
++open! IStd
++module L = Logging
++
++exception OverHardLimit of int
++(** raised by {!check_exn} when the managed heap is over the hard limit even after relief; the
++    payload is the heap size in words *)
++
++let heap_words () = (Gc.quick_stat ()).heap_words
++
++(** virtual size of this process in words, from /proc/self/statm (first field is in pages). This is
++    the quantity the OCaml runtime fails to extend when it aborts with "Fatal error: out of
++    memory" under RLIMIT_AS, and it includes what the managed heap does not: the compaction
++    transient, native allocations, and the SQLite copies of serialised summaries. *)
++let page_words = 4096 / (Sys.word_size_in_bits / 8)
++
++let vm_words () =
++  try
++    let line = In_channel.read_all "/proc/self/statm" in
++    match String.split line ~on:' ' with
++    | size :: _ ->
++        Some (int_of_string size * page_words)
++    | [] ->
++        None
++  with _ -> None
++
++let words_per_GB = 1024 * 1024 * (1024 / (Sys.word_size_in_bits / 8))
++
++(** address-space limit of this process (RLIMIT_AS) in words, if finite *)
++let address_space_limit_words =
++  lazy
++    (let path = "/proc/self/limits" in
++     if not (ISys.file_exists path) then None
++     else
++       try
++         In_channel.read_lines path
++         |> List.find_map ~f:(fun line ->
++                if String.is_prefix line ~prefix:"Max address space" then
++                  let rest = String.drop_prefix line (String.length "Max address space") in
++                  match String.split rest ~on:' ' |> List.filter ~f:(Fn.non String.is_empty) with
++                  | soft :: _ -> (
++                    match int_of_string_opt soft with
++                    | Some bytes ->
++                        Some (bytes / (Sys.word_size_in_bits / 8))
++                    | None ->
++                        None )
++                  | [] ->
++                      None
++                else None )
++       with _ -> None )
++
++
++let percent_of_address_space percent =
++  if percent <= 0 then None
++  else
++    Lazy.force address_space_limit_words
++    |> Option.map ~f:(fun limit -> limit / 100 * percent)
++
++
++(** heap size at which we start relieving pressure losslessly *)
++let soft_limit_words =
++  lazy
++    (let from_option =
++       if Config.summary_cache_max_heap_GB > 0 then
++         Some (Config.summary_cache_max_heap_GB * words_per_GB)
++       else None
++     in
++     (* start relieving well before the ceiling so the lossless path has a chance to work *)
++     let from_rlimit =
++       percent_of_address_space Config.max_heap_percent_of_address_space
++       |> Option.map ~f:(fun ceiling -> ceiling * 2 / 3)
++     in
++     match (from_option, from_rlimit) with
++     | Some a, Some b ->
++         Some (min a b)
++     | (Some _ as x), None | None, (Some _ as x) ->
++         x
++     | None, None ->
++         None )
++
++
++(** heap size at which the current procedure is given up on, explicitly *)
++let hard_limit_words =
++  lazy
++    (let from_option = Config.pulse_max_heap in
++     let from_rlimit = percent_of_address_space Config.max_heap_percent_of_address_space in
++     match (from_option, from_rlimit) with
++     | Some a, Some b ->
++         Some (min a b)
++     | (Some _ as x), None | None, (Some _ as x) ->
++         x
++     | None, None ->
++         None )
++
++
++let is_enabled () =
++  Option.is_some (Lazy.force soft_limit_words) || Option.is_some (Lazy.force hard_limit_words)
++
++
++(** set by the backend: drop the least-recently-used half of the summary cache. Cached summaries
++    are written to the results database before they are cached, so this only costs the time to
++    read them back. *)
++(* Heap size when each procedure analysis started, innermost last. The procedure that is given up
++   on is the innermost one running when the ceiling is crossed, which is not necessarily the one
++   that filled memory: a small callee can be started by a caller that has already accumulated
++   gigabytes. Recording the heap at its own start lets the omission record distinguish the two. *)
++let procedure_heap_stack : int list ref = ref []
++
++let enter_procedure () =
++  if is_enabled () then procedure_heap_stack := heap_words () :: !procedure_heap_stack
++
++
++let exit_procedure () =
++  match !procedure_heap_stack with _ :: tl -> procedure_heap_stack := tl | [] -> ()
++
++
++let heap_at_current_procedure_start () = List.hd !procedure_heap_stack
++
++
++let evict_hook : (unit -> unit) ref = ref (fun () -> ())
++
++
++
++(** set by the diagnostics: log a relief event *)
++let trace_hook : (event:string -> before:int -> after:int -> unit) ref =
++  ref (fun ~event:_ ~before:_ ~after:_ -> ())
++
++(* Observed peaks and crossings, so that a run that still dies can be diagnosed from [logs] alone,
++   without having to enable the JSONL trace. *)
++let peak_heap = ref 0
++
++let peak_vm = ref 0
++
++let aborts = ref 0
++
++let reported_fractions = ref []
++
++let note_abort () = incr aborts
++
++let report_crossings in_use =
++  match Lazy.force hard_limit_words with
++  | None ->
++      ()
++  | Some ceiling ->
++      let percent = if ceiling <= 0 then 0 else in_use * 100 / ceiling in
++      let step = if percent >= 90 then 90 else if percent >= 75 then 75 else if percent >= 50 then 50 else 0 in
++      if step > 0 && not (List.mem !reported_fractions step ~equal:Int.equal) then (
++        reported_fractions := step :: !reported_fractions ;
++        L.progress
++          "Memory: %d%% of the ceiling in use (%d words of %d; heap %d words). Above the ceiling \
++           the analysis of the current procedure is given up on and recorded in \
++           pulse/oom-aborted-procedures-<pid>.txt@."
++          percent in_use ceiling (heap_words ()) )
++
++
++let last_relief = ref None
++
++let base_relief_interval_ns =
++  Int64.(of_int Config.compaction_minimum_interval_s * 1_000_000_000L)
++
++
++let max_relief_interval_ns = Int64.(600L * 1_000_000_000L)
++
++(* Relief is best-effort: when a procedure's own live state is what fills memory there is nothing
++   in the cache to drop and a full major collection frees nothing. Repeating it every
++   [compaction_minimum_interval_s] then costs a large fraction of the run for no benefit (measured:
++   a Vim translation unit went from 750s to over 1800s). So back off exponentially whenever a
++   relief does not free a worthwhile amount, and reset as soon as one does. The hard ceiling, not
++   the relief, is what keeps the process alive. *)
++let relief_interval_ns = ref base_relief_interval_ns
++
++(* compaction moves the whole heap; stop paying for it once it stops giving memory back *)
++let compaction_worth_it = ref true
++
++let relief_interval_elapsed () =
++  match !last_relief with
++  | None ->
++      true
++  | Some counter ->
++      Int64.(Mtime.Span.to_uint64_ns (Mtime_clock.count counter) >= !relief_interval_ns)
++
++
++(** Lossless relief: drop database-backed cached summaries, then collect. [Gc.full_major] first
++    because it needs no extra address space; compact only if that was not enough, since
++    compaction briefly needs a second heap-sized chunk. *)
++let relieve () =
++  let before = heap_words () in
++  !evict_hook () ;
++  Gc.full_major () ;
++  let after_major = heap_words () in
++  let after =
++    match Lazy.force soft_limit_words with
++    | Some soft when after_major >= soft && !compaction_worth_it ->
++        let before_compact = after_major in
++        Gc.compact () ;
++        let after_compact = heap_words () in
++        compaction_worth_it := before_compact - after_compact >= before_compact / 20 ;
++        after_compact
++    | _ ->
++        after_major
++  in
++  last_relief := Some (Mtime_clock.counter ()) ;
++  ( if before - after < before / 10 then
++      (* freed less than a tenth: do not pay for this again soon *)
++      relief_interval_ns :=
++        Int64.min max_relief_interval_ns Int64.(!relief_interval_ns * 2L)
++    else relief_interval_ns := base_relief_interval_ns ) ;
++  Stats.incr_memory_pressure_reliefs () ;
++  !trace_hook ~event:"memory-pressure-relief" ~before ~after ;
++  L.debug Analysis Quiet
++    "memory pressure: heap was %d words, after eviction+GC %d words (soft limit %d, next relief \
++     not before %Ldms)@\n"
++    before after
++    (Option.value (Lazy.force soft_limit_words) ~default:0)
++    Int64.(!relief_interval_ns / 1_000_000L) ;
++  after
++
++
++(* reading /proc costs a syscall, so only do it once the managed heap is big enough that the
++   address space could plausibly be at risk, and at most once every [vm_recheck_calls] checks *)
++let vm_recheck_calls = 256
++
++let calls_since_vm_read = ref 0
++
++let last_vm = ref 0
++
++(* [vm_words] costs a syscall, so it is rate-limited by the call counter alone. Conditioning it on
++   the heap being high would mean one syscall per Pulse instruction for the whole second half of a
++   large procedure -- measured at +90% wall time on a Vim translation unit. *)
++let current_vm_words ~heap =
++  incr calls_since_vm_read ;
++  if !calls_since_vm_read >= vm_recheck_calls then (
++    calls_since_vm_read := 0 ;
++    match vm_words () with Some vm -> last_vm := vm ; vm | None -> heap )
++  else max !last_vm heap
++
++
++(** Cheap checkpoint: relieve pressure if we are over the soft limit, and report the memory in use
++    if we are still over the hard limit. Safe to call from anywhere in the analysis: the relief
++    only drops caches that are recoverable from the results database. *)
++let check_with_heap heap =
++  let soft = Lazy.force soft_limit_words in
++  let hard = Lazy.force hard_limit_words in
++  match (soft, hard) with
++  | None, None ->
++      None
++  | _ ->
++      (* the watermark keeps the fast path free of both syscalls and extra Gc.quick_stat calls
++         until memory is actually a concern *)
++      let watermark =
++        match (soft, hard) with
++        | Some s, _ ->
++            s / 2
++        | None, Some h ->
++            h / 4
++        | None, None ->
++            Int.max_value
++      in
++      if heap < watermark && !last_vm < watermark then (
++        incr calls_since_vm_read ;
++        if !calls_since_vm_read >= vm_recheck_calls then (
++          calls_since_vm_read := 0 ;
++          Option.iter (vm_words ()) ~f:(fun vm -> last_vm := vm) ) ;
++        None )
++      else
++        let in_use = max heap (current_vm_words ~heap) in
++        if heap > !peak_heap then peak_heap := heap ;
++        if !last_vm > !peak_vm then peak_vm := !last_vm ;
++        report_crossings in_use ;
++        let in_use =
++          match soft with
++          | Some soft when in_use >= soft && relief_interval_elapsed () ->
++              let after = relieve () in
++              calls_since_vm_read := vm_recheck_calls ;
++              max after (current_vm_words ~heap:after)
++          | _ ->
++              in_use
++        in
++        ( match hard with Some hard when in_use > hard -> Some in_use | _ -> None )
++
++
++let check () = check_with_heap (heap_words ())
++
++
++(* The checkpoints added inside the analysis run one or two orders of magnitude more often than
++   the per-instruction one that already existed upstream (once per callee pre/post pair, once per
++   disjunct). Sample them so the fast path stays cheap: memory cannot move far in a few
++   applications, and the limit is a ceiling with headroom, not an exact budget. *)
++let sample_stride = 16
++
++let calls_since_sample = ref 0
++
++let check_sampled () =
++  if not (is_enabled ()) then None
++  else (
++    incr calls_since_sample ;
++    if !calls_since_sample < sample_stride then None
++    else (
++      calls_since_sample := 0 ;
++      check () ) )
++
++
++
++(** Same as {!check} but raises {!OverHardLimit}. Only call from code whose callers give up on the
++    current procedure and record the omission (Pulse does; other checkers do not). *)
++let check_exn () = Option.iter (check ()) ~f:(fun heap -> raise (OverHardLimit heap))
++
++(** Sampled variant for the inner loops. *)
++let check_sampled_exn () = Option.iter (check_sampled ()) ~f:(fun heap -> raise (OverHardLimit heap))
++
++let hard_limit () = Lazy.force hard_limit_words
++
++let gb_of_words w = float_of_int w *. float_of_int (Sys.word_size_in_bits / 8) /. 1024. /. 1024. /. 1024.
++
++(** one line at the start of the analysis saying what is and is not bounded *)
++let log_configuration () =
++  match (Lazy.force address_space_limit_words, Lazy.force hard_limit_words) with
++  | Some limit, Some ceiling ->
++      L.environment_info
++        "Memory: address space limited to %.2f GB (RLIMIT_AS); relieving memory pressure above \
++         %.2f GB, giving up on the current procedure above %.2f GB@."
++        (gb_of_words limit)
++        (gb_of_words (Option.value (Lazy.force soft_limit_words) ~default:0))
++        (gb_of_words ceiling)
++  | None, Some ceiling ->
++      L.environment_info
++        "Memory: no address-space limit; giving up on the current procedure above %.2f GB of \
++         managed heap (--pulse-max-heap)@."
++        (gb_of_words ceiling)
++  | _, None ->
++      L.environment_info
++        "Memory: unbounded. There is no address-space limit (RLIMIT_AS) and neither \
++         --pulse-max-heap nor --summary-cache-max-heap-GB is set, so a single procedure that needs \
++         more memory than the machine has will abort the whole analysis with 'Fatal error: out of \
++         memory'. Run under 'ulimit -v' to get a recorded per-procedure omission instead.@."
++
++
++(** one line at the end, so a log alone shows how close the run came to the ceiling *)
++let log_summary () =
++  if is_enabled () || !peak_heap > 0 then
++    L.progress
++      "Memory: peak managed heap %.2f GB, peak address space %.2f GB, %d relief(s), %d procedure(s) \
++       given up on@."
++      (gb_of_words !peak_heap) (gb_of_words !peak_vm) (Stats.get_memory_pressure_reliefs ()) !aborts
+diff --git a/infer/src/base/MemoryPressure.mli b/infer/src/base/MemoryPressure.mli
+new file mode 100644
+index 0000000..efa1bb3
+--- /dev/null
++++ b/infer/src/base/MemoryPressure.mli
+@@ -0,0 +1,55 @@
++(*
++ * Memory-pressure checkpoints that are reachable from inside a single procedure analysis.
++ * See MemoryPressure.ml for why this exists.
++ *)
++
++open! IStd
++
++exception OverHardLimit of int
++
++val heap_words : unit -> int
++
++val is_enabled : unit -> bool
++(** whether any soft or hard limit is configured *)
++
++val hard_limit : unit -> int option
++
++val note_abort : unit -> unit
++(** count a procedure the analysis gave up on, for the end-of-analysis summary *)
++
++val log_configuration : unit -> unit
++(** one line at the start of the analysis saying what is bounded and what is not *)
++
++val log_summary : unit -> unit
++(** one line at the end with the observed peaks, reliefs and omissions *)
++
++val enter_procedure : unit -> unit
++(** record the heap size at the start of a procedure analysis *)
++
++val exit_procedure : unit -> unit
++
++val heap_at_current_procedure_start : unit -> int option
++(** heap size when the innermost procedure analysis started, so a record of giving up on it can
++    say how much of the memory that procedure itself is responsible for *)
++
++val evict_hook : (unit -> unit) ref
++(** set by the backend to drop the least-recently-used half of the summary cache *)
++
++val trace_hook : (event:string -> before:int -> after:int -> unit) ref
++
++val check : unit -> int option
++
++val check_with_heap : int -> int option
++(** like {!check} but reuses a heap size the caller has already measured *)
++(** relieve memory pressure losslessly if over the soft limit; return the heap size if still over
++    the hard limit *)
++
++val check_sampled : unit -> int option
++(** like {!check} but only does the work every so many calls; for the inner loops of the analysis,
++    which run far more often than instruction boundaries *)
++
++val check_exn : unit -> unit
++(** like {!check} but raises {!OverHardLimit}; only for callers that record the omission *)
++
++val check_sampled_exn : unit -> unit
++(** sampled variant of {!check_exn} for the inner loops *)
+diff --git a/infer/src/base/Stats.ml b/infer/src/base/Stats.ml
+index 7e3103e..37c5ee9 100644
+--- a/infer/src/base/Stats.ml
++++ b/infer/src/base/Stats.ml
+@@ -185,6 +185,7 @@ type t =
+   ; mutable topl_reachable_calls: IntCounter.t
+   ; mutable timeouts: IntCounter.t
+   ; mutable summary_cache_evictions: IntCounter.t
++  ; mutable memory_pressure_reliefs: IntCounter.t
+   ; mutable pulse_oom_aborts: IntCounter.t
+   ; mutable timings: TimingsStat.t
+   ; mutable longest_proc_duration_heap: LongestProcDurationHeap.t
+@@ -274,6 +275,7 @@ let pp fmt stats =
+     ~pulse_summaries_with_some_unreachable_returns:(pp_int_field fmt)
+     ~pulse_summaries_with_some_unreachable_returns_percent:(pp_percent_field fmt)
+     ~timeouts:(pp_int_field fmt) ~summary_cache_evictions:(pp_int_field fmt)
++    ~memory_pressure_reliefs:(pp_int_field fmt)
+     ~pulse_oom_aborts:(pp_int_field fmt) ~restart_scheduler_useful_time:(pp_time_counter_field fmt)
+     ~restart_scheduler_total_time:(pp_time_counter_field fmt)
+     ~spec_store_times:(pp_time_counter_field fmt) ~topl_reachable_calls:(pp_int_field fmt)
+@@ -453,6 +455,10 @@ let incr_timeouts () = incr Fields.timeouts
+ 
+ let incr_summary_cache_evictions () = incr Fields.summary_cache_evictions
+ 
++let incr_memory_pressure_reliefs () = incr Fields.memory_pressure_reliefs
++
++let get_memory_pressure_reliefs () = global_stats.memory_pressure_reliefs
++
+ let incr_pulse_oom_aborts () = incr Fields.pulse_oom_aborts
+ 
+ let add_timing timeable t =
+diff --git a/infer/src/base/Stats.mli b/infer/src/base/Stats.mli
+index 3b433ce..d71e0b7 100644
+--- a/infer/src/base/Stats.mli
++++ b/infer/src/base/Stats.mli
+@@ -60,6 +60,10 @@ val incr_timeouts : unit -> unit
+ 
+ val incr_summary_cache_evictions : unit -> unit
+ 
++val incr_memory_pressure_reliefs : unit -> unit
++
++val get_memory_pressure_reliefs : unit -> int
++
+ val incr_pulse_oom_aborts : unit -> unit
+ 
+ val add_timing : Timeable.t -> float -> unit
+diff --git a/infer/src/pulse/Pulse.ml b/infer/src/pulse/Pulse.ml
+index 4fdc1fc..3ec83ab 100644
+--- a/infer/src/pulse/Pulse.ml
++++ b/infer/src/pulse/Pulse.ml
+@@ -15,7 +15,10 @@ open PulseOperationResult.Import
+ module CallGlobalForStats = PulseCallOperations.GlobalForStats
+ 
+ (** raised when we detect that pulse is using too much memory to stop the analysis of the current
+-    procedure *)
++    procedure. Kept for compatibility; the checks themselves now go through
++    {!MemoryPressure.check_exn}, which is reachable from the inner loops that allocate the most
++    (applying a callee summary to every disjunct, joining, building a summary) and which first
++    tries to free memory losslessly. *)
+ exception AboutToOOM
+ 
+ let report_topl_errors {InterproceduralAnalysis.proc_desc; err_log} summary =
+@@ -1543,18 +1546,19 @@ module PulseTransferFunctions = struct
+   let exec_instr ((astate, path), astate_n) analysis_data cfg_node instr :
+       DisjDomain.t list * NonDisjDomain.t =
+     let heap_size = heap_size () in
+-    ( match Config.pulse_max_heap with
+-    | Some max_heap_size when heap_size > max_heap_size ->
++    (* [MemoryPressure.check] first evicts database-backed cached summaries and collects; it only
++       reports being over the limit if that was not enough *)
++    ( match MemoryPressure.check_with_heap heap_size with
++    | Some heap_words ->
+         let pname = Procdesc.get_proc_name analysis_data.InterproceduralAnalysis.proc_desc in
+         L.internal_error
+           "OOM danger: heap size is %d words, more than the specified threshold of %d words. \
+            Aborting the analysis of the procedure %a to avoid running out of memory.@\n"
+-          heap_size max_heap_size Procname.pp pname ;
+-        (* If we'd not compact, then heap remains big, and we'll keep skipping procedures until
+-           the runtime decides to compact. *)
+-        Gc.compact () ;
+-        raise_notrace AboutToOOM
+-    | _ ->
++          heap_words
++          (Option.value (MemoryPressure.hard_limit ()) ~default:0)
++          Procname.pp pname ;
++        raise_notrace (MemoryPressure.OverHardLimit heap_words)
++    | None ->
+         () ) ;
+     let trace_heap_before = if HeapTrace.enabled () then heap_size else 0 in
+     let trace_child_before =
+@@ -1612,11 +1616,21 @@ let oom_aborted_channel =
+ let record_oom_abort proc_desc =
+   let proc_attrs = Procdesc.get_attributes proc_desc in
+   Stats.incr_pulse_oom_aborts () ;
++  MemoryPressure.note_abort () ;
+   let channel = Lazy.force oom_aborted_channel in
+-  Printf.fprintf channel "%s\t%s\t%d\theap_words_after_compaction=%d\n"
++  let heap_now = (Gc.quick_stat ()).heap_words in
++  let own_growth =
++    match MemoryPressure.heap_at_current_procedure_start () with
++    | Some at_start ->
++        heap_now - at_start
++    | None ->
++        -1
++  in
++  Printf.fprintf channel
++    "%s\t%s\t%d\theap_words=%d\theap_words_grown_by_this_procedure=%d\n"
+     (Procname.to_unique_id (Procdesc.get_proc_name proc_desc))
+     (SourceFile.to_string proc_attrs.ProcAttributes.translation_unit)
+-    proc_attrs.ProcAttributes.loc.Location.line (Gc.quick_stat ()).heap_words ;
++    proc_attrs.ProcAttributes.loc.Location.line heap_now own_growth ;
+   Out_channel.flush channel ;
+   L.progress "Pulse: aborted the analysis of %a (%a) because the heap exceeded --pulse-max-heap; \
+               the report is incomplete for this procedure@."
+@@ -1925,8 +1939,8 @@ let checker ?specialization ({InterproceduralAnalysis.proc_desc} as analysis_dat
+               current_summary.PulseSummary.specialized
+           in
+           {current_summary with PulseSummary.specialized}
+-    with AboutToOOM ->
+-      HeapTrace.log_proc ~event:"about-to-oom" ~nesting:0
++    with AboutToOOM | MemoryPressure.OverHardLimit _ ->
++      HeapTrace.log_proc ~event:"pulse-oom-abort" ~nesting:0
+         (Procdesc.get_proc_name proc_desc) (Procdesc.get_attributes proc_desc) ;
+       (* We trigger GC to avoid skipping the next procedure that will be analyzed. *)
+       Gc.major () ;
+diff --git a/infer/src/pulse/PulseCallOperations.ml b/infer/src/pulse/PulseCallOperations.ml
+index 1c225ed..5bf2bd3 100644
+--- a/infer/src/pulse/PulseCallOperations.ml
++++ b/infer/src/pulse/PulseCallOperations.ml
+@@ -480,6 +480,9 @@ let call_aux ({InterproceduralAnalysis.tenv} as analysis_data) path call_loc cal
+           (* apply one pre/post spec, check for timeouts in-between each pre/post spec from the callee
+               *)
+           Timer.check_timeout () ;
++          (* applying a large callee summary to every disjunct is the single biggest allocation
++             inside one instruction; the per-instruction heap check never sees it *)
++          MemoryPressure.check_sampled_exn () ;
+           match
+             apply_callee analysis_data path callee_pname call_loc callee_exec_state
+               ~captured_formals ~captured_actuals ~formals ~actuals ~ret ?call_flags astate
+diff --git a/infer/src/pulse/PulseSummary.ml b/infer/src/pulse/PulseSummary.ml
+index 9e5929d..1dff010 100644
+--- a/infer/src/pulse/PulseSummary.ml
++++ b/infer/src/pulse/PulseSummary.ml
+@@ -172,6 +172,9 @@ let force_exit_program analysis_data post =
+ let of_posts analysis_data specialization location posts non_disj =
+   let pre_post_list =
+     List.filter_mapi posts ~f:(fun i exec_state ->
++        (* summary creation canonicalises and filters every disjunct; it runs after the last
++           instruction of the procedure, so the per-instruction heap check never sees it *)
++        MemoryPressure.check_sampled_exn () ;
+         L.d_printfln "Creating spec out of state #%d:@\n%a" i
+           (ExecutionDomain.pp_with_kind HTML None)
+           exec_state ;

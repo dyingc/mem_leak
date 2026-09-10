@@ -1,0 +1,5 @@
+date=2026-09-09T19:41:37-07:00 run=vim-ex_docmd-fix6
+MemAvailable_GiB=19.6 load1=1.96 swap_used_MiB=3972 disk_avail_GiB=565
+limits: ulimit -v 8388608 KB, wall guard 1800s, jobs=1 nice=10 ionice=idle
+infer: /home/edong/VSCode/papers/mem_leak/output/oom/tools/infer-fix6/bin/infer
+heap trace: off

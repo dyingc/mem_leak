@@ -1,0 +1,12 @@
+Command: /home/edong/VSCode/papers/mem_leak/output/oom/tools/infer-fix7/bin/infer analyze --results-dir /home/edong/VSCode/papers/mem_leak/output/oom/runs/wide2-cap2-fix7/infer-out --pulse-only --jobs 1 --max-jobs 1 --timeout 60
+Exit status: 0
+Elapsed (wall clock) seconds: 71.3
+User time (seconds): 69.6
+System time (seconds): 1.0
+Maximum resident set size (kbytes): 1489456
+Peak tree RSS sampled (kbytes): 1487180
+samples (t_s, tree_rss_kb, max_vmhwm_kb):
+0.0 612 612
+1.0 147996 147996
+2.0 190924 190924
+3.0 232984 232984

@@ -6,6 +6,8 @@
 #   notes/infer-argfile-transport.patch       arguments containing '^' (every anchored regex)
 #   notes/infer-pulse-oom.patch               summary-cache eviction under memory pressure, compaction
 #                                             threshold unit fix, explicit --pulse-max-heap aborts, HeapTrace
+#   notes/infer-pulse-oom-followup.patch      memory checkpoints reachable from inside a procedure
+#                                             analysis, address-space ceiling, JSONL diagnostics
 #                                             are forwarded to sub-processes instead of dropped
 #
 # Neither exists in stock Infer, so `--infer-pattern-mode anchored-argn` needs this build.
@@ -158,7 +160,7 @@ else
   git clean -fdxq infer/src/atd
 fi
 
-say "6. apply notes/infer-arg-models.patch, notes/infer-argfile-transport.patch and notes/infer-pulse-oom.patch"
+say "6. apply the four notes/*.patch files in order"
 cd "$T/infer-src"
 # patch 1: Config.ml Config.mli PulseModelsC.ml (arg-position models)
 # patch 2: CommandLineOption.ml (arguments containing '^' reach sub-processes intact)
@@ -177,6 +179,9 @@ apply_patch infer-arg-models.patch 3 'Config\.mli?$|PulseModelsC\.ml$'
 apply_patch infer-argfile-transport.patch 1 'CommandLineOption\.ml$'
 # patch 3: Stats/Summary/InferAnalyze/ondemand/Pulse (+ Config, already counted above; + new file HeapTrace.ml)
 apply_patch infer-pulse-oom.patch 7 'Stats\.mli?$|Summary\.mli?$|InferAnalyze\.ml$|ondemand\.ml$|pulse/Pulse\.ml$'
+# patch 4: adds MemoryPressure.ml/.mli and touches AbstractInterpreter, Payloads, PulseCallOperations,
+# PulseSummary on top of the files patch 3 already changed
+apply_patch infer-pulse-oom-followup.patch 4 'AbstractInterpreter\.ml$|Payloads\.ml$|PulseCallOperations\.ml$|PulseSummary\.ml$'
 git diff --stat
 
 say "7. build (jobs=$JOBS)"

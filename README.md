@@ -44,8 +44,10 @@ Stock Pulse can express two of the four summary shapes: an allocator whose *retu
 memory, and a deallocator that frees its *first* argument. We patched Infer to add the other two
 (`notes/infer-arg-models.patch`; a second patch, `notes/infer-argfile-transport.patch`, makes Infer forward
 arguments containing `^` -- i.e. every anchored regex -- to its sub-processes instead of dropping them;
-a third, `notes/infer-pulse-oom.patch`, bounds the one-worker Pulse memory growth -- evidence and
-verification in `notes/infer-pulse-oom.md`, harness in `results/infer-oom/`):
+a third and fourth, `notes/infer-pulse-oom.patch` and `notes/infer-pulse-oom-followup.patch`, bound the
+one-worker Pulse memory growth -- evidence and verification in `notes/infer-pulse-oom.md` and
+`notes/infer-pulse-oom-followup.md`, how to diagnose a remaining failure in
+`notes/infer-oom-diagnostics-howto.md`, harness in `results/infer-oom/`):
 
 | summary | flag |
 |---|---|

@@ -1,0 +1,7 @@
+exit=0 wall_s=167.0 peak_rss_KiB=262088
+report.json: present, 0 issues
+fatal/oom lines: /home/edong/VSCode/papers/mem_leak/output/oom/runs/deep3-control/stderr.txt:0 /home/edong/VSCode/papers/mem_leak/output/oom/runs/deep3-control/infer-out/logs:0 
+compaction lines: 0
+top_heap_words(main_process_full): 19927552 = 0.148472 GiB
+timeouts/skips: 4 log lines mention timeout
+post: MemAvailable_GiB=19.5 load1=1.42 du_out=3.1M

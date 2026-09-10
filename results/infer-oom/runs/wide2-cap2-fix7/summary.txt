@@ -1,0 +1,7 @@
+exit=0 wall_s=71.5 peak_rss_KiB=1489456
+report.json: present, 0 issues
+fatal/oom lines: /home/edong/VSCode/papers/mem_leak/output/oom/runs/wide2-cap2-fix7/stderr.txt:2 /home/edong/VSCode/papers/mem_leak/output/oom/runs/wide2-cap2-fix7/infer-out/logs:2 
+compaction lines: 2
+top_heap_words(main_process_full): 201838080 = 1.50381 GiB
+timeouts/skips: 2 log lines mention timeout
+post: MemAvailable_GiB=19.6 load1=1.21 du_out=1.2M

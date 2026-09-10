@@ -1,0 +1,5 @@
+date=2026-09-09T20:37:28-07:00 run=wide2-cap2-fix7
+MemAvailable_GiB=19.6 load1=1.10 swap_used_MiB=3979 disk_avail_GiB=564
+limits: ulimit -v 2097152 KB, wall guard 900s, jobs=1 nice=10 ionice=idle
+infer: /home/edong/VSCode/papers/mem_leak/output/oom/tools/infer-fix7/bin/infer
+heap trace: off

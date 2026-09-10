@@ -1,0 +1,8 @@
+# 1. control: does a single-procedure blow-up kill the process under a 2 GiB address space?
+VMEM_KB=2097152 WALL=900 INFER=/home/edong/VSCode/papers/mem_leak/output/oom/tools/infer-pre/bin/infer tools/run_guarded.sh wide2-cap2-control corpus/wide2/infer-cap
+# 2. previous candidate emulated: summary-cache eviction only, no reachable ceiling
+VMEM_KB=2097152 WALL=900 INFER=/home/edong/VSCode/papers/mem_leak/output/oom/tools/infer-fix2/bin/infer tools/run_guarded.sh wide2-cap2-cacheonly corpus/wide2/infer-cap --summary-cache-max-heap-GB 1 --max-heap-percent-of-address-space 0
+# 3. new fix at its default ceiling, with the structured trace
+VMEM_KB=2097152 WALL=1800 INFER=/home/edong/VSCode/papers/mem_leak/output/oom/tools/infer-fix2/bin/infer INFER_HEAP_TRACE=/home/edong/VSCode/papers/mem_leak/output/oom/runs/wide2-cap2-fix2/heaptrace tools/run_guarded.sh wide2-cap2-fix2 corpus/wide2/infer-cap
+# 4. control at the same cap with the structured trace, to show the last checkpoint before death
+VMEM_KB=2097152 WALL=900 INFER=/home/edong/VSCode/papers/mem_leak/output/oom/tools/infer-fix2/bin/infer INFER_HEAP_TRACE=/home/edong/VSCode/papers/mem_leak/output/oom/runs/wide2-cap2-control-traced/heaptrace tools/run_guarded.sh wide2-cap2-control-traced corpus/wide2/infer-cap --max-heap-percent-of-address-space 0

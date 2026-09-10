@@ -1,0 +1,26 @@
+records=21  span=39.0s
+peak heap=1.65GiB  peak rss=1.55GiB  peak vm=1.82GiB
+
+phase counts: {'target-start': 1, 'proc-start': 3, 'proc-end': 2, 'summary-store-start': 2, 'summary-store-end': 2, 'toplevel-done': 2, 'instr-burst': 9}
+
+-- last 12 checkpoints before the end of the trace:
+  t=     0.0s summary-store-end        heap=  0.01G rss=  0.10G vm=  0.16G cache=2 helper0 
+  t=     0.0s toplevel-done            heap=  0.01G rss=  0.10G vm=  0.16G cache=2 helper0 
+  t=     0.0s proc-start               heap=  0.01G rss=  0.11G vm=  0.16G cache=2 bigproc0 
+  t=    12.0s instr-burst              heap=  0.54G rss=  0.57G vm=  0.70G cache=3 bigproc0 *&acc:=(n$3982 + n$3981) [line 232, column 3]
+  t=    13.7s instr-burst              heap=  0.62G rss=  0.65G vm=  0.78G cache=3 bigproc0 *&acc:=(n$3968 + n$3967) [line 238, column 3]
+  t=    15.6s instr-burst              heap=  0.72G rss=  0.73G vm=  0.87G cache=3 bigproc0 *&acc:=(n$3954 + n$3953) [line 244, column 3]
+  t=    18.4s instr-burst              heap=  0.82G rss=  0.82G vm=  0.98G cache=3 bigproc0 n$3934=_fun_helper1(n$3932:,(n$3933 + 225):) [line 252, colu
+  t=    20.9s instr-burst              heap=  0.95G rss=  0.93G vm=  1.10G cache=3 bigproc0 *&acc:=(n$3922 + n$3921) [line 257, column 3]
+  t=    23.8s instr-burst              heap=  1.09G rss=  1.06G vm=  1.25G cache=3 bigproc0 *&acc:=(n$3901 + n$3900) [line 266, column 3]
+  t=    28.4s instr-burst              heap=  1.25G rss=  1.20G vm=  1.41G cache=3 bigproc0 *n$3877.f246:=(n$3878 + 246) [line 274, column 3]
+  t=    32.2s instr-burst              heap=  1.44G rss=  1.36G vm=  1.60G cache=3 bigproc0 *n$3856.f255:=(n$3857 + 255) [line 283, column 3]
+  t=    39.0s instr-burst              heap=  1.65G rss=  1.55G vm=  1.82G cache=3 bigproc0 *&acc:=(n$3825 + n$3824) [line 297, column 3]
+
+-- 1 procedure(s) started and never finished (innermost last):
+   w0.c:bigproc0 started at t=0.0s heap=0.01GiB rss=0.11GiB
+
+-- interpretation of the final state:
+   managed heap 1.65GiB vs RSS 1.55GiB vs VM 1.82GiB
+   summary cache entries: first=0 last=3 max=3
+   no serialized payload above the 8 MB trace threshold

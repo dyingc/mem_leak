@@ -1,0 +1,7 @@
+exit=134 wall_s=47.4 peak_rss_KiB=1925212
+report.json: MISSING
+fatal/oom lines: /home/edong/VSCode/papers/mem_leak/output/oom/runs/wide2-cap2-control/stderr.txt:1 /home/edong/VSCode/papers/mem_leak/output/oom/runs/wide2-cap2-control/infer-out/logs:0 
+compaction lines: 0
+top_heap_words(main_process_full): 
+timeouts/skips: 1 log lines mention timeout
+post: MemAvailable_GiB=19.4 load1=1.24 du_out=1.4M

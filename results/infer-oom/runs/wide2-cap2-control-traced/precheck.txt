@@ -1,0 +1,5 @@
+date=2026-09-09T17:09:57-07:00 run=wide2-cap2-control-traced
+MemAvailable_GiB=19.4 load1=1.59 swap_used_MiB=3804 disk_avail_GiB=567
+limits: ulimit -v 2097152 KB, wall guard 900s, jobs=1 nice=10 ionice=idle
+infer: /home/edong/VSCode/papers/mem_leak/output/oom/tools/infer-fix2/bin/infer
+heap trace: /home/edong/VSCode/papers/mem_leak/output/oom/runs/wide2-cap2-control-traced/heaptrace

@@ -259,14 +259,20 @@ CFG 都控制在 1 万节点、过程确实被分析（摘要 302 KB），但峰
 `disjuncts_out=1`，单次操作增长达 0.95 GiB。另有一处更早的调用点在 19 与 20 两种配置下分别
 产出 19 与 20 个后继状态，是目前唯一的 fan-out 线索，但因果关系未证。
 
-**本机对这条 load 的一个候选解释（未证实）**：`Pulse.ml` 的 `Load` 分支里，
-`set_global_astates` 会在**每次载入全局常量或全局函数指针时重新内联其初始化器**
-（`dispatch_call` 到 `__infer_globals_initializer_*`），上游还留着
-`TODO: Initial global constants only once`。一张大的全局事件/调度表因此可能在每次被读到时
-重新物化进抽象状态。但它只匹配 `Lvar pvar`（整体载入全局变量），本机用 `table[i].v0`
-（`Lindex`）构造的夹具走不到该路径，峰值仅 0.31 GB，**假设未证实**。
-用新的 `op-start` 记录里的 `detail` 可以直接判定：若那条 load 的指令文本形如
-`n$X=*&<全局名>`，即走的这条路径。
+**本机查过并基本排除的一个候选解释**：`Pulse.ml` 的 `Load` 分支里，`set_global_astates`
+会在**每次载入全局常量或全局函数指针时重新内联其初始化器**（`dispatch_call` 到
+`__infer_globals_initializer_*`），上游还留着 `TODO: Initial global constants only once`，
+一张大的全局事件/调度表因此可能在每次被读到时重新物化进抽象状态。
+
+本机做了三个夹具验证，**全部没有触发**：`table[i].v0`（`Lindex`，不匹配只认 `Lvar` 的守卫，
+峰值 0.31 GB）、全局 const 指针、以及最简单的 `static const int g_flag` 循环读取。
+捕获库里确有 `__infer_globals_initializer_*` 过程（小夹具 2 个，Vim 1083 个），
+所以不是初始化器不存在，而是守卫 `is_global_constant` 为假：`is_compile_constant` 实为 C++ 的
+`is_constexpr`，而 `Pvar.is_const` 在 C 的 `static const int` 上也没被置上。
+**结论：这条路径在 C 代码里基本不会触发，很可能不是原因。**
+
+仍然保留了一个开关与一条追踪记录，因为对方那边**一次 grep 就能彻底排除或坐实**：
+`--no-pulse-inline-global-init` 关闭该内联；追踪里若出现 `global-init-inline` 记录即为触发。
 
 ## 6. 遗留阻塞
 

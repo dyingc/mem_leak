@@ -757,7 +757,7 @@ index 02b5c96..89a69ab 100644
          match exn with
          | RestartSchedulerException.ProcnameAlreadyLocked _
 diff --git a/infer/src/base/Config.ml b/infer/src/base/Config.ml
-index 6b9e3f2..5b91596 100644
+index 6b9e3f2..03f8036 100644
 --- a/infer/src/base/Config.ml
 +++ b/infer/src/base/Config.ml
 @@ -1322,6 +1322,20 @@ and compaction_minimum_interval_s =
@@ -781,7 +781,25 @@ index 6b9e3f2..5b91596 100644
  and summary_cache_max_heap_GB =
    CLOpt.mk_int ~long:"summary-cache-max-heap-GB" ~default:0 ~meta:"int"
      ~in_help:InferCommand.[(Analyze, manual_generic)]
-@@ -4146,6 +4160,8 @@ and compaction_minimum_interval_s = !compaction_minimum_interval_s
+@@ -2502,6 +2516,17 @@ and pulse_havoc_arguments =
+     "Heuristically havoc arguments to unknown functions."
+ 
+ 
++and pulse_inline_global_init =
++  CLOpt.mk_bool ~long:"pulse-inline-global-init" ~default:true
++    ~in_help:InferCommand.[(Analyze, manual_pulse)]
++    "Inline the initializer of a global constant every time that global is loaded (the current \
++     behaviour, see the 'TODO: Initial global constants only once' in Pulse). A large global table \
++     is then re-materialised into the abstract state at each use, which can be a substantial part \
++     of the memory a procedure needs. Turn this off to find out whether it is: doing so loses the \
++     precision that inlining buys (it exists to prune infeasible global_var != constant paths), so \
++     it is a diagnostic, not a fix."
++
++
+ and pulse_inline_global_init_func_pointer =
+   CLOpt.mk_bool ~long:"pulse-inline-global-init-func-pointer" ~default:false
+     ~in_help:InferCommand.[(Analyze, manual_pulse)]
+@@ -4146,6 +4171,8 @@ and compaction_minimum_interval_s = !compaction_minimum_interval_s
  
  and summary_cache_max_heap_GB = !summary_cache_max_heap_GB
  
@@ -790,8 +808,17 @@ index 6b9e3f2..5b91596 100644
  and gc_space_overhead = !gc_space_overhead
  
  and complete_capture_from = !complete_capture_from
+@@ -4543,6 +4570,8 @@ and pulse_force_continue = !pulse_force_continue
+ 
+ and pulse_havoc_arguments = !pulse_havoc_arguments
+ 
++and pulse_inline_global_init = !pulse_inline_global_init
++
+ and pulse_inline_global_init_func_pointer = !pulse_inline_global_init_func_pointer
+ 
+ and pulse_intraprocedural_only = !pulse_intraprocedural_only
 diff --git a/infer/src/base/Config.mli b/infer/src/base/Config.mli
-index ac7afc2..b356ca5 100644
+index ac7afc2..1875b35 100644
 --- a/infer/src/base/Config.mli
 +++ b/infer/src/base/Config.mli
 @@ -281,6 +281,8 @@ val compaction_minimum_interval_s : int
@@ -803,6 +830,15 @@ index ac7afc2..b356ca5 100644
  val gc_space_overhead : int
  
  val complete_capture_from : string option
+@@ -620,6 +622,8 @@ val pulse_force_continue : bool
+ 
+ val pulse_havoc_arguments : bool
+ 
++val pulse_inline_global_init : bool
++
+ val pulse_inline_global_init_func_pointer : bool
+ 
+ val pulse_intraprocedural_only : bool
 diff --git a/infer/src/base/MemoryPressure.ml b/infer/src/base/MemoryPressure.ml
 new file mode 100644
 index 0000000..a5bb2f8
@@ -1280,7 +1316,7 @@ index 3b433ce..d71e0b7 100644
  
  val add_timing : Timeable.t -> float -> unit
 diff --git a/infer/src/pulse/Pulse.ml b/infer/src/pulse/Pulse.ml
-index 4fdc1fc..3ec83ab 100644
+index 4fdc1fc..64b38fd 100644
 --- a/infer/src/pulse/Pulse.ml
 +++ b/infer/src/pulse/Pulse.ml
 @@ -15,7 +15,10 @@ open PulseOperationResult.Import
@@ -1295,7 +1331,44 @@ index 4fdc1fc..3ec83ab 100644
  exception AboutToOOM
  
  let report_topl_errors {InterproceduralAnalysis.proc_desc; err_log} summary =
-@@ -1543,18 +1546,19 @@ module PulseTransferFunctions = struct
+@@ -1291,7 +1294,9 @@ module PulseTransferFunctions = struct
+       && Config.pulse_inline_global_init_func_pointer
+     in
+     match (exp : Exp.t) with
+-    | Lvar pvar when is_global_constant pvar || is_global_func_pointer pvar -> (
++    | Lvar pvar
++      when Config.pulse_inline_global_init
++           && (is_global_constant pvar || is_global_func_pointer pvar) -> (
+       (* Inline initializers of global constants or globals function pointers when they are being used.
+          This addresses nullptr false positives by pruning infeasable paths global_var != global_constant_value,
+          where global_constant_value is the value of global_var *)
+@@ -1299,6 +1304,11 @@ module PulseTransferFunctions = struct
+       match Pvar.get_initializer_pname pvar with
+       | Some init_pname when not (Procname.equal (Procdesc.get_proc_name proc_desc) init_pname) ->
+           L.d_printfln_escaped "Found initializer for %a" (Pvar.pp Pp.text) pvar ;
++          (* this runs at *every* load of the global, so a large global table is re-materialised
++             into the abstract state each time; record it so a trace can show how much it costs *)
++          let heap_before_init =
++            if HeapTrace.ops_enabled () then (Gc.quick_stat ()).heap_words else 0
++          in
+           let call_flags = CallFlags.default in
+           let ret_id_void = (Ident.create_fresh Ident.knormal, StdTyp.void) in
+           let no_error_states, non_disj =
+@@ -1314,6 +1324,13 @@ module PulseTransferFunctions = struct
+                   None )
+           in
+           let astates = if List.is_empty no_error_states then [astate] else no_error_states in
++          HeapTrace.log_op ~kind:"global-init-inline" ~node:"-"
++            ~loc:(F.asprintf "%a" Location.pp_file_pos loc)
++            ~disjuncts_in:1
++            ~disjuncts_out:(List.length astates)
++            ~dropped:0 ~heap_before:heap_before_init
++            ~heap_after:(if HeapTrace.ops_enabled () then (Gc.quick_stat ()).heap_words else 0)
++            ~detail:(F.asprintf "inlined initializer of global %a" (Pvar.pp Pp.text) pvar) ;
+           (astates, non_disj)
+       | _ ->
+           ([astate], non_disj) )
+@@ -1543,18 +1560,19 @@ module PulseTransferFunctions = struct
    let exec_instr ((astate, path), astate_n) analysis_data cfg_node instr :
        DisjDomain.t list * NonDisjDomain.t =
      let heap_size = heap_size () in
@@ -1323,7 +1396,7 @@ index 4fdc1fc..3ec83ab 100644
          () ) ;
      let trace_heap_before = if HeapTrace.enabled () then heap_size else 0 in
      let trace_child_before =
-@@ -1612,11 +1616,21 @@ let oom_aborted_channel =
+@@ -1612,11 +1630,21 @@ let oom_aborted_channel =
  let record_oom_abort proc_desc =
    let proc_attrs = Procdesc.get_attributes proc_desc in
    Stats.incr_pulse_oom_aborts () ;
@@ -1347,7 +1420,7 @@ index 4fdc1fc..3ec83ab 100644
    Out_channel.flush channel ;
    L.progress "Pulse: aborted the analysis of %a (%a) because the heap exceeded --pulse-max-heap; \
                the report is incomplete for this procedure@."
-@@ -1925,8 +1939,8 @@ let checker ?specialization ({InterproceduralAnalysis.proc_desc} as analysis_dat
+@@ -1925,8 +1953,8 @@ let checker ?specialization ({InterproceduralAnalysis.proc_desc} as analysis_dat
                current_summary.PulseSummary.specialized
            in
            {current_summary with PulseSummary.specialized}

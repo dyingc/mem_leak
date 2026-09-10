@@ -165,6 +165,21 @@ python3 results/infer-oom/tools/check_completeness.py <results-dir> --infer <inf
 另外一个副产品发现：宏密集代码非常容易越过 `--pulse-max-cfg-size`（570 行源码 → 83 万 CFG 节点）
 而被**静默跳过**，那是召回损失而不是 OOM，只有 §4 的完整性脚本能查出来。
 
+## 4c. 一个可以一次排除的候选（全局初始化器反复内联）
+
+`Pulse.ml` 的 `set_global_astates` 会在每次载入全局常量时重新内联其初始化器，上游留着
+`TODO: Initial global constants only once`。本机在三个 C 夹具上都**没有触发**它
+（守卫 `is_global_constant` 依赖 C++ 的 `constexpr`/const 标记），所以很可能不是原因，
+但排除它只要一次 grep：
+
+```bash
+grep -c global-init-inline <前缀>.<pid>.jsonl     # 0 表示该路径未触发，直接排除
+```
+
+若不为 0，再跑一次 `--no-pulse-inline-global-init` 对照；若 OOM 消失，
+修复方向就是让每个全局的初始化器在一次过程分析内只内联一次。
+该开关只是诊断用，关闭它会损失它本来提供的精度（剪掉不可行的 `全局 != 常量` 路径）。
+
 ## 5. 上限该设多大
 
 上限来自 `RLIMIT_AS`，比例由 `--max-heap-percent-of-address-space` 决定（默认 75，0 关闭）：

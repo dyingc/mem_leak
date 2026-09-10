@@ -2,7 +2,24 @@
 
 给在目标压力用例上复跑的人。目标是**一次运行就拿到足以定位相位的证据**，不要再靠猜。
 需要的二进制：应用了 `notes/infer-arg-models.patch`、`notes/infer-argfile-transport.patch`、
-`notes/infer-pulse-oom.patch`、`notes/infer-pulse-oom-followup.patch` 后 `make -j8 opt` 的 Infer。
+`notes/infer-pulse-oom.patch`、`notes/infer-pulse-oom-followup.patch`、`notes/infer-pulse-history-oom.patch`
+后 `make -j8 opt` 的 Infer。
+
+> **2026-09-10 更新：先读这一段。** 你给的 `doubling_null.c` 已经定位并修好了，是 Infer 的
+> 一个真 bug，不是内存上限问题。值历史（`PulseValueHistory.t`）是 **DAG**：`h ++ h` 两个孩子是
+> 同一个物理节点，`n` 次翻倍只有 `n` 个节点，却有 `2^n` 条根到叶的路径。而把历史铺成错误轨迹的
+> 遍历（`pop_least_timestamp`，`ValueHistory.add_to_errlog` 走的就是它）把 DAG 当成树来走，于是
+> 时间和内存都是 `2^n`。这正好对上你做的 stage 定位：`add_access_trace` 进去不出来，堆从
+> 0.65 GiB 一路涨到 12 GiB 上限。原版 Infer 在这个 31 行的 C 文件上 4 GiB 就崩；修好之后
+> 2 GiB 下 1.2 秒、105 MiB 跑完，报告和轨迹一个不少。上游在我们这个基线之后三个月修过同样的
+> 问题（`facebook/infer@c257eb16f`），补丁已经按我们这棵树的形状回移过来了，另外加了一个显式的
+> 轨迹上限 `--pulse-max-trace-elements`（默认 10000，触发时会在轨迹里写明并计入
+> `count.backend_stats.pulse_traces_truncated`）。细节和全部实测数字见
+> `notes/infer-pulse-history-oom.md`。
+>
+> **所以：重新拉取、重新编译（多了第五个补丁 `notes/infer-pulse-history-oom.patch`），先直接跑
+> 你原来的 stress case，默认 20 个析取、不开追踪。** 如果它过了，下面这些排查步骤就都不用做了；
+> 如果还不过，再按下面第 1 节开追踪，那说明除了这条还有别的原因。
 
 ## 0. 先看三行日志，不用开追踪
 

@@ -1,5 +1,6 @@
 #!/bin/bash
-# Build Infer v1.2.0 with our two Pulse model patches and the argument-transport fix:
+# Build Infer v1.2.0 with our two Pulse model patches, the argument-transport fix and the two
+# Pulse memory fixes:
 #
 #   --pulse-model-free-arg-pattern  N:regex   release argument N, not just the first
 #   --pulse-model-alloc-arg-pattern N:regex   acquire through a T **out parameter
@@ -9,6 +10,9 @@
 #   notes/infer-pulse-oom-followup.patch      memory checkpoints reachable from inside a procedure
 #                                             analysis, address-space ceiling, JSONL diagnostics
 #                                             are forwarded to sub-processes instead of dropped
+#   notes/infer-pulse-history-oom.patch       value histories are DAGs: traverse them as DAGs when
+#                                             building an error trace, instead of exponentially as
+#                                             trees, plus an explicit trace-size bound
 #
 # Neither exists in stock Infer, so `--infer-pattern-mode anchored-argn` needs this build.
 # Everything lands under tools/ (gitignored): ~7 GB, ~40 min on 12 cores.
@@ -160,7 +164,7 @@ else
   git clean -fdxq infer/src/atd
 fi
 
-say "6. apply the four notes/*.patch files in order"
+say "6. apply the five notes/*.patch files in order"
 cd "$T/infer-src"
 # patch 1: Config.ml Config.mli PulseModelsC.ml (arg-position models)
 # patch 2: CommandLineOption.ml (arguments containing '^' reach sub-processes intact)
@@ -182,6 +186,8 @@ apply_patch infer-pulse-oom.patch 7 'Stats\.mli?$|Summary\.mli?$|InferAnalyze\.m
 # patch 4: adds MemoryPressure.ml/.mli and touches AbstractInterpreter, Payloads, PulseCallOperations,
 # PulseSummary on top of the files patch 3 already changed
 apply_patch infer-pulse-oom-followup.patch 4 'AbstractInterpreter\.ml$|Payloads\.ml$|PulseCallOperations\.ml$|PulseSummary\.ml$'
+# patch 5: PulseValueHistory.ml + its unit test (Config/Stats hunks land on top of patches 3 and 4)
+apply_patch infer-pulse-history-oom.patch 2 'PulseValueHistory\.ml$|PulseValueHistoryTest\.ml$'
 git diff --stat
 
 say "7. build (jobs=$JOBS)"

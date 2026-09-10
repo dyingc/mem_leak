@@ -45,9 +45,11 @@ memory, and a deallocator that frees its *first* argument. We patched Infer to a
 (`notes/infer-arg-models.patch`; a second patch, `notes/infer-argfile-transport.patch`, makes Infer forward
 arguments containing `^` -- i.e. every anchored regex -- to its sub-processes instead of dropping them;
 a third and fourth, `notes/infer-pulse-oom.patch` and `notes/infer-pulse-oom-followup.patch`, bound the
-one-worker Pulse memory growth -- evidence and verification in `notes/infer-pulse-oom.md` and
-`notes/infer-pulse-oom-followup.md`, how to diagnose a remaining failure in
-`notes/infer-oom-diagnostics-howto.md`, harness in `results/infer-oom/`):
+one-worker Pulse memory growth; a fifth, `notes/infer-pulse-history-oom.patch`, stops an error trace
+from expanding a shared value history exponentially, which makes stock Infer run out of memory on a
+31-line C file -- evidence and verification in `notes/infer-pulse-oom.md`,
+`notes/infer-pulse-oom-followup.md` and `notes/infer-pulse-history-oom.md`, how to diagnose a
+remaining failure in `notes/infer-oom-diagnostics-howto.md`, harness in `results/infer-oom/`):
 
 | summary | flag |
 |---|---|

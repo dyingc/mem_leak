@@ -1,0 +1,331 @@
+diff --git a/infer/src/base/Config.ml b/infer/src/base/Config.ml
+index 03f8036..f17e329 100644
+--- a/infer/src/base/Config.ml
++++ b/infer/src/base/Config.ml
+@@ -438,6 +438,8 @@ let implicit_sdk_root =
+ (** whether the infer executable looks like we are just running infer unit tests *)
+ let is_running_unit_test =
+   String.is_substring ~substring:"inline_test_runner" exe_basename
++  || (* dune >= 3.0 names the runner with dashes *)
++  String.is_substring ~substring:"inline-test-runner" exe_basename
+   || String.is_substring ~substring:"inferunit" exe_basename
+   || String.equal "run.exe" exe_basename
+   || String.equal "run.bc" exe_basename
+@@ -2562,6 +2564,15 @@ and pulse_max_disjuncts =
+     "Stop exploring new paths after $(i,int) disjunctions in the domain"
+ 
+ 
++and pulse_max_trace_elements =
++  CLOpt.mk_int ~long:"pulse-max-trace-elements" ~default:10000
++    ~in_help:InferCommand.[(Analyze, manual_pulse)]
++    "Stop materialising the value history of a reported issue into its error trace after $(i,int) \
++     trace elements, and mark the trace as truncated at that point. This is a last-resort bound on \
++     the memory one report can use; 0 means no bound. It never changes which issues are reported, \
++     only how much of the explanation is printed."
++
++
+ and pulse_max_heap =
+   CLOpt.mk_int_opt ~long:"pulse-max-heap" ~meta:"int"
+     ~in_help:InferCommand.[(Analyze, manual_pulse)]
+@@ -4583,6 +4594,7 @@ and pulse_log_unknown_calls = !pulse_log_unknown_calls
+ and pulse_max_cfg_size = !pulse_max_cfg_size
+ 
+ and pulse_max_disjuncts = !pulse_max_disjuncts
++and pulse_max_trace_elements = !pulse_max_trace_elements
+ 
+ and pulse_max_heap = !pulse_max_heap
+ 
+diff --git a/infer/src/base/Config.mli b/infer/src/base/Config.mli
+index 1875b35..f6028ec 100644
+--- a/infer/src/base/Config.mli
++++ b/infer/src/base/Config.mli
+@@ -636,6 +636,8 @@ val pulse_max_cfg_size : int
+ 
+ val pulse_max_disjuncts : int
+ 
++val pulse_max_trace_elements : int
++
+ val pulse_max_heap : int option
+ 
+ val pulse_model_abort : string list
+diff --git a/infer/src/base/Stats.ml b/infer/src/base/Stats.ml
+index 37c5ee9..65ac3eb 100644
+--- a/infer/src/base/Stats.ml
++++ b/infer/src/base/Stats.ml
+@@ -187,6 +187,7 @@ type t =
+   ; mutable summary_cache_evictions: IntCounter.t
+   ; mutable memory_pressure_reliefs: IntCounter.t
+   ; mutable pulse_oom_aborts: IntCounter.t
++  ; mutable pulse_traces_truncated: IntCounter.t
+   ; mutable timings: TimingsStat.t
+   ; mutable longest_proc_duration_heap: LongestProcDurationHeap.t
+   ; mutable process_times: TimeCounter.t
+@@ -276,7 +277,8 @@ let pp fmt stats =
+     ~pulse_summaries_with_some_unreachable_returns_percent:(pp_percent_field fmt)
+     ~timeouts:(pp_int_field fmt) ~summary_cache_evictions:(pp_int_field fmt)
+     ~memory_pressure_reliefs:(pp_int_field fmt)
+-    ~pulse_oom_aborts:(pp_int_field fmt) ~restart_scheduler_useful_time:(pp_time_counter_field fmt)
++    ~pulse_oom_aborts:(pp_int_field fmt) ~pulse_traces_truncated:(pp_int_field fmt)
++    ~restart_scheduler_useful_time:(pp_time_counter_field fmt)
+     ~restart_scheduler_total_time:(pp_time_counter_field fmt)
+     ~spec_store_times:(pp_time_counter_field fmt) ~topl_reachable_calls:(pp_int_field fmt)
+     ~timings:(pp_serialized_field TimingsStat.deserialize Timings.pp fmt)
+@@ -461,6 +463,8 @@ let get_memory_pressure_reliefs () = global_stats.memory_pressure_reliefs
+ 
+ let incr_pulse_oom_aborts () = incr Fields.pulse_oom_aborts
+ 
++let incr_pulse_traces_truncated () = incr Fields.pulse_traces_truncated
++
+ let add_timing timeable t =
+   update_with Fields.timings ~f:(function timings ->
+       TimingsStat.T (Timings.add timeable t (TimingsStat.deserialize timings)) )
+diff --git a/infer/src/base/Stats.mli b/infer/src/base/Stats.mli
+index d71e0b7..85edc05 100644
+--- a/infer/src/base/Stats.mli
++++ b/infer/src/base/Stats.mli
+@@ -66,6 +66,8 @@ val get_memory_pressure_reliefs : unit -> int
+ 
+ val incr_pulse_oom_aborts : unit -> unit
+ 
++val incr_pulse_traces_truncated : unit -> unit
++
+ val add_timing : Timeable.t -> float -> unit
+ 
+ val set_process_times : ExecutionDuration.t -> unit
+diff --git a/infer/src/pulse/PulseValueHistory.ml b/infer/src/pulse/PulseValueHistory.ml
+index 0252126..da16663 100644
+--- a/infer/src/pulse/PulseValueHistory.ml
++++ b/infer/src/pulse/PulseValueHistory.ml
+@@ -156,7 +156,19 @@ let binary_op bop hist1 hist2 = BinaryOp (bop, hist1, hist2) |> cell_ids_first
+ 
+ let from_cell_id id hist = FromCellIds (CellId.Set.singleton id, hist) |> cell_ids_first
+ 
+-let multiplex hists = Multiplex hists |> cell_ids_first
++let multiplex hists =
++  (* drop [Epoch] members (they contribute no event) and members that are physically shared with
++     one we already have: keeping them costs traversal time and memory but adds nothing, see
++     [pop_least_timestamp] *)
++  let rec dedup acc = function
++    | [] ->
++        acc
++    | Epoch :: hists' ->
++        dedup acc hists'
++    | hist :: hists' ->
++        if List.mem ~equal:phys_equal acc hist then dedup acc hists' else dedup (hist :: acc) hists'
++  in
++  Multiplex (dedup [] hists) |> cell_ids_first
+ 
+ let unknown_call f actuals location timestamp =
+   UnknownCall {f; actuals; location; timestamp} |> cell_ids_first
+@@ -211,47 +223,67 @@ let timestamp_of_event = function
+       timestamp
+ 
+ 
++(** Merge several histories in decreasing timestamp order, one timestamp at a time.
++
++    Histories are DAGs, not trees: [binary_op bop h h] stores the *same* [h] as both children, and
++    more generally a value that is used twice contributes the same physical sub-history to both
++    users. Expanding such a node into both of its children without noticing the sharing costs time
++    and memory exponential in the number of shared nodes, which is enough to abort the process with
++    [Fatal error: out of memory] on a procedure that merely does [x = x + x] a couple of dozen
++    times. [treated_hists] holds the histories already expanded during this round so that each
++    physically distinct node is expanded once; this is lossless, since an already-expanded node
++    would contribute exactly the same events again. *)
+ let pop_least_timestamp ~main_only hists0 =
+-  let rec aux orig_hists_prefix curr_ts_hists_prefix latest_events (highest_t : Timestamp.t option)
+-      hists =
+-    match (highest_t, hists) with
+-    | _, [] ->
++  let rec aux treated_hists orig_hists_prefix curr_ts_hists_prefix latest_events
++      (highest_t : Timestamp.t option) hists =
++    match hists with
++    | [] ->
+         (latest_events, curr_ts_hists_prefix)
+-    | _, Epoch :: hists ->
+-        aux orig_hists_prefix curr_ts_hists_prefix latest_events highest_t hists
+-    | _, FromCellIds (_, hist) :: hists ->
+-        aux orig_hists_prefix curr_ts_hists_prefix latest_events highest_t (hist :: hists)
+-    | _, InContext {main} :: hists when main_only ->
+-        aux orig_hists_prefix curr_ts_hists_prefix latest_events highest_t (main :: hists)
+-    | _, InContext {main; context} :: hists ->
+-        aux orig_hists_prefix curr_ts_hists_prefix latest_events highest_t
+-          (main :: List.rev_append context hists)
+-    | _, BinaryOp (_, hist1, hist2) :: hists ->
+-        aux orig_hists_prefix curr_ts_hists_prefix latest_events highest_t (hist1 :: hist2 :: hists)
+-    | _, Multiplex hists' :: hists ->
+-        aux orig_hists_prefix curr_ts_hists_prefix latest_events highest_t (hists' @ hists)
+-    | _, UnknownCall {f; location; timestamp} :: hists ->
+-        (* cheat a bit: transform an [UnknownCall] history into a singleton [Call] history *)
+-        aux orig_hists_prefix curr_ts_hists_prefix latest_events highest_t
+-          (Sequence (Call {f; location; timestamp; in_call= Epoch}, Epoch) :: hists)
+-    | None, (Sequence (event, hist') as hist) :: hists ->
+-        aux (hist :: orig_hists_prefix) (hist' :: orig_hists_prefix) [event]
+-          (Some (timestamp_of_event event))
+-          hists
+-    | Some highest_ts, (Sequence (event, hist') as hist) :: hists
+-      when (timestamp_of_event event :> int) > (highest_ts :> int) ->
+-        aux (hist :: orig_hists_prefix) (hist' :: orig_hists_prefix) [event]
+-          (Some (timestamp_of_event event))
+-          hists
+-    | Some highest_ts, (Sequence (event, _) as hist) :: hists
+-      when (timestamp_of_event event :> int) < (highest_ts :> int) ->
+-        aux (hist :: orig_hists_prefix) (hist :: curr_ts_hists_prefix) latest_events highest_t hists
+-    | Some _, (Sequence (event, hist') as hist) :: hists
+-    (* when  timestamp_of_event _event = highest_ts *) ->
+-        aux (hist :: orig_hists_prefix) (hist' :: curr_ts_hists_prefix) (event :: latest_events)
+-          highest_t hists
++    | hist :: hists when List.mem ~equal:phys_equal treated_hists hist ->
++        aux treated_hists orig_hists_prefix curr_ts_hists_prefix latest_events highest_t hists
++    | hist :: hists -> (
++        let treated_hists = hist :: treated_hists in
++        match (highest_t, hist) with
++        | _, Epoch ->
++            aux treated_hists orig_hists_prefix curr_ts_hists_prefix latest_events highest_t hists
++        | _, FromCellIds (_, hist) ->
++            aux treated_hists orig_hists_prefix curr_ts_hists_prefix latest_events highest_t
++              (hist :: hists)
++        | _, InContext {main} when main_only ->
++            aux treated_hists orig_hists_prefix curr_ts_hists_prefix latest_events highest_t
++              (main :: hists)
++        | _, InContext {main; context} ->
++            aux treated_hists orig_hists_prefix curr_ts_hists_prefix latest_events highest_t
++              (main :: List.rev_append context hists)
++        | _, BinaryOp (_, hist1, hist2) ->
++            aux treated_hists orig_hists_prefix curr_ts_hists_prefix latest_events highest_t
++              (hist1 :: hist2 :: hists)
++        | _, Multiplex hists' ->
++            aux treated_hists orig_hists_prefix curr_ts_hists_prefix latest_events highest_t
++              (hists' @ hists)
++        | _, UnknownCall {f; location; timestamp} ->
++            (* cheat a bit: transform an [UnknownCall] history into a singleton [Call] history *)
++            aux treated_hists orig_hists_prefix curr_ts_hists_prefix latest_events highest_t
++              (Sequence (Call {f; location; timestamp; in_call= Epoch}, Epoch) :: hists)
++        | None, (Sequence (event, hist') as hist) ->
++            aux treated_hists (hist :: orig_hists_prefix) (hist' :: orig_hists_prefix) [event]
++              (Some (timestamp_of_event event))
++              hists
++        | Some highest_ts, (Sequence (event, hist') as hist)
++          when (timestamp_of_event event :> int) > (highest_ts :> int) ->
++            aux treated_hists (hist :: orig_hists_prefix) (hist' :: orig_hists_prefix) [event]
++              (Some (timestamp_of_event event))
++              hists
++        | Some highest_ts, (Sequence (event, _) as hist)
++          when (timestamp_of_event event :> int) < (highest_ts :> int) ->
++            aux treated_hists (hist :: orig_hists_prefix) (hist :: curr_ts_hists_prefix)
++              latest_events highest_t hists
++        | Some _, (Sequence (event, hist') as hist)
++        (* when  timestamp_of_event _event = highest_ts *) ->
++            aux treated_hists (hist :: orig_hists_prefix) (hist' :: curr_ts_hists_prefix)
++              (event :: latest_events) highest_t hists )
+   in
+-  aux [] [] [] None hists0
++  aux [] [] [] [] None hists0
+ 
+ 
+ type iter_event =
+@@ -483,20 +515,57 @@ let is_taint_event = function
+       true
+ 
+ 
++(* raised to stop [rev_iter] once [--pulse-max-trace-elements] elements have been produced *)
++exception Trace_budget_exhausted
++
++(** Materialise [history] into an error trace, in chronological order.
++
++    With the sharing-aware traversal of [pop_least_timestamp] this is linear in the size of the
++    history DAG, so the bound below is a last-resort backstop rather than the mechanism that keeps
++    reporting affordable: it fires only for a history that is genuinely that large, and never for
++    the shared-DAG shapes that used to make this function blow up exponentially. When it does fire
++    it is deterministic (the oldest events are the ones dropped, because [rev_iter] walks from the
++    most recent event backwards) and it is stated in the trace itself, so a truncated explanation
++    can never be mistaken for a complete one. Truncating a trace changes no analysis result: the
++    issue is still reported, at the same place, with the same type. *)
+ let add_to_errlog ?(include_taint_events = false) ~nesting history errlog =
+   let nesting = ref nesting in
+   let errlog = ref errlog in
++  let budget = Config.pulse_max_trace_elements in
++  let produced = ref 0 in
++  let last_location = ref None in
++  let truncated = ref false in
++  let spend location =
++    if budget > 0 && !produced >= budget then (
++      truncated := true ;
++      raise_notrace Trace_budget_exhausted ) ;
++    incr produced ;
++    last_location := Some location
++  in
+   let one_iter_event = function
+     | Event event ->
+-        if include_taint_events || not (is_taint_event event) then
+-          errlog := add_event_to_errlog ~nesting:!nesting event !errlog
++        if include_taint_events || not (is_taint_event event) then (
++          spend (location_of_event event) ;
++          errlog := add_event_to_errlog ~nesting:!nesting event !errlog )
+     | EnterCall _ ->
+         decr nesting
+     | ReturnFromCall (call, location) ->
++        spend location ;
+         errlog := add_returned_from_call_to_errlog ~nesting:!nesting call location !errlog ;
+         incr nesting
+   in
+-  rev_iter ~main_only:false history ~f:one_iter_event ;
++  (try rev_iter ~main_only:false history ~f:one_iter_event
++   with Trace_budget_exhausted -> () ) ;
++  if !truncated then (
++    Stats.incr_pulse_traces_truncated () ;
++    let location = Option.value !last_location ~default:Location.dummy in
++    let description =
++      F.asprintf
++        "earlier history not shown: this value's history reached the %d-element trace limit \
++         (--pulse-max-trace-elements); the issue itself is unaffected"
++        budget
++    in
++    errlog := Errlog.make_trace_element !nesting location description [] :: !errlog ) ;
+   !errlog
+ 
+ 
+diff --git a/infer/src/pulse/unit/PulseValueHistoryTest.ml b/infer/src/pulse/unit/PulseValueHistoryTest.ml
+index 2ec5268..1d42b8d 100644
+--- a/infer/src/pulse/unit/PulseValueHistoryTest.ml
++++ b/infer/src/pulse/unit/PulseValueHistoryTest.ml
+@@ -59,6 +59,12 @@ let iter_print_history history =
+   F.printf "@]"
+ 
+ 
++let count_history_events history =
++  let n = ref 0 in
++  (ValueHistory.iter ~main_only:false history) ~f:(function Event _ -> incr n | _ -> ()) ;
++  F.printf "%d events" !n
++
++
+ let%test_module "iteration order" =
+   ( module struct
+     let f = CallEvent.Model "f"
+@@ -85,4 +91,27 @@ let%test_module "iteration order" =
+       ++ (ev 8 ^:: ev 5 ^:: ev 2 ^::^ ev 0)
+       |> iter_print_history ;
+       [%expect {|ev0;ev1;ev2;ev3;ev4;ev5;ev6;ev7;ev8;ev9;ev10|}]
++
++
++    let%expect_test "physically shared branches are expanded once" =
++      (* [h ++ h] stores the *same* [h] on both sides, so the history is a DAG with [n] nodes but
++         2^[n] root-to-leaf paths. Iterating it has to stay linear in the number of nodes: before
++         [pop_least_timestamp] pruned physically-equal histories this test would have taken time
++         and memory exponential in [n] and aborted the process with "Fatal error: out of memory".
++         [n = 60] is far past the point where that happens. *)
++      let rec double n hist = if n <= 0 then hist else double (n - 1) (hist ++ hist) in
++      double 60 (ev 2 ^:: ev 1 ^::^ ev 0) |> iter_print_history ;
++      [%expect {|ev0;ev1;ev2|}]
++
++
++    let%expect_test "sharing reached through different parents is expanded once" =
++      (* the same history below two *different* parents, rather than as both children of one
++         [BinaryOp]; each level doubles the number of root-to-leaf paths just the same. Timestamps
++         keep increasing towards the root, as the representation invariant requires. *)
++      let rec nest n t hist =
++        if n <= 0 then hist
++        else nest (n - 1) (t + 2) ((ev (t + 1) ^:: hist) ++ (ev (t + 2) ^:: hist))
++      in
++      nest 30 2 (ev 2 ^:: ev 1 ^::^ ev 0) |> count_history_events ;
++      [%expect {|63 events|}]
+   end )

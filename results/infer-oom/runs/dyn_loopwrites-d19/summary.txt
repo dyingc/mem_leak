@@ -1,0 +1,7 @@
+exit=0 wall_s=3.2 peak_rss_KiB=332312
+report.json: present, 0 issues
+fatal/oom lines: /home/edong/VSCode/papers/mem_leak/output/oom/runs/dyn_loopwrites-d19/stderr.txt:0 /home/edong/VSCode/papers/mem_leak/output/oom/runs/dyn_loopwrites-d19/infer-out/logs:0 
+compaction lines: 0
+top_heap_words(main_process_full): 32109056 = 0.239231 GiB
+timeouts/skips: 2 log lines mention timeout
+post: MemAvailable_GiB=23.0 load1=1.26 du_out=980K

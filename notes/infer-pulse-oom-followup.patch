@@ -1,18 +1,56 @@
 diff --git a/infer/src/absint/AbstractInterpreter.ml b/infer/src/absint/AbstractInterpreter.ml
-index 5082ab1..e928412 100644
+index 5082ab1..1b17b81 100644
 --- a/infer/src/absint/AbstractInterpreter.ml
 +++ b/infer/src/absint/AbstractInterpreter.ml
-@@ -312,6 +312,9 @@ struct
+@@ -311,7 +311,22 @@ struct
+          && T.NonDisjDomain.leq ~lhs:(snd lhs) ~rhs:(snd rhs)
  
  
-     let widen ~prev ~next ~num_iters =
+-    let widen ~prev ~next ~num_iters =
++    let rec widen ~prev ~next ~num_iters =
 +      (* widening joins up to [disjunct_limit] disjuncts of both states and runs outside the
 +         per-instruction checks *)
 +      ignore (MemoryPressure.check_sampled () : int option) ;
++      let op_heap_before = if HeapTrace.ops_enabled () then (Gc.quick_stat ()).heap_words else 0 in
++      let widen_result = widen_ ~prev ~next ~num_iters in
++      ( if HeapTrace.ops_enabled () then
++          HeapTrace.log_op ~kind:"widen" ~node:"-" ~loc:"-"
++            ~disjuncts_in:(List.length (fst prev) + List.length (fst next))
++            ~disjuncts_out:(List.length (fst widen_result))
++            ~dropped:0 ~heap_before:op_heap_before ~heap_after:(Gc.quick_stat ()).heap_words
++            ~detail:(Printf.sprintf "iteration %d" num_iters) ) ;
++      widen_result
++
++
++    and widen_ ~prev ~next ~num_iters =
        let max_iter =
          match DConfig.widen_policy with UnderApproximateAfterNumIterations max_iter -> max_iter
        in
-@@ -416,6 +419,9 @@ struct
+@@ -399,7 +414,23 @@ struct
+     (List.map ~f:T.DisjDomain.exceptional_to_normal l, nd)
+ 
+ 
++  let instr_kind (instr : Sil.instr) =
++    match instr with
++    | Load _ ->
++        "load"
++    | Store _ ->
++        "store"
++    | Prune _ ->
++        "branch"
++    | Call _ ->
++        "call"
++    | Metadata _ ->
++        "metadata"
++
++
+   let exec_instr (pre_disjuncts, non_disj) analysis_data node _ instr =
++    let op_heap_before = if HeapTrace.ops_enabled () then (Gc.quick_stat ()).heap_words else 0 in
++    let op_disjuncts_in = if HeapTrace.ops_enabled () then List.length pre_disjuncts else 0 in
+     (* [remaining_disjuncts] is the number of remaining disjuncts taking into account disjuncts
+        already recorded in the post of a node (and therefore that will stay there).  It is always
+        set from [exec_node_instrs], so [remaining_disjuncts] should always be [Some _]. *)
+@@ -416,6 +447,9 @@ struct
                ~f:(fun () ->
                  (* check timeout once per disjunct to execute instead of once for all disjuncts *)
                  Timer.check_timeout () ;
@@ -22,7 +60,22 @@ index 5082ab1..e928412 100644
                  let disjuncts', non_disj' =
                    T.exec_instr (pre_disjunct, non_disj) analysis_data node instr
                  in
-@@ -621,6 +627,9 @@ module AbstractInterpreterCommon (TransferFunctions : NodeTransferFunctions) = s
+@@ -431,6 +465,14 @@ struct
+       else List.fold ~init:T.NonDisjDomain.bottom ~f:T.NonDisjDomain.join non_disj_astates
+     in
+     let non_disj = add_dropped_disjuncts dropped non_disj in
++    ( if HeapTrace.ops_enabled () then
++        HeapTrace.log_op ~kind:(instr_kind instr)
++          ~node:"-"
++          ~loc:(F.asprintf "%a" Location.pp_file_pos (Sil.location_of_instr instr))
++          ~disjuncts_in:op_disjuncts_in ~disjuncts_out:(List.length disjuncts)
++          ~dropped:(List.length dropped) ~heap_before:op_heap_before
++          ~heap_after:(Gc.quick_stat ()).heap_words
++          ~detail:(F.asprintf "%a" (Sil.pp_instr ~print_types:false Pp.text) instr) ) ;
+     (disjuncts, non_disj)
+ 
+ 
+@@ -621,6 +663,9 @@ module AbstractInterpreterCommon (TransferFunctions : NodeTransferFunctions) = s
                logged_error := false ;
                Ok post
              with exn ->
@@ -32,7 +85,7 @@ index 5082ab1..e928412 100644
                (* delay reraising to get a chance to write the debug HTML *)
                let backtrace = Caml.Printexc.get_raw_backtrace () in
                Error (exn, backtrace, instr) )
-@@ -632,6 +641,7 @@ module AbstractInterpreterCommon (TransferFunctions : NodeTransferFunctions) = s
+@@ -632,6 +677,7 @@ module AbstractInterpreterCommon (TransferFunctions : NodeTransferFunctions) = s
            ( match exn with
            | RestartSchedulerException.ProcnameAlreadyLocked _
            | MissingDependencyException.MissingDependencyException
@@ -41,10 +94,10 @@ index 5082ab1..e928412 100644
                (* this isn't an error; don't log it *)
                ()
 diff --git a/infer/src/absint/HeapTrace.ml b/infer/src/absint/HeapTrace.ml
-index 7dfcfde..5463656 100644
+index 7dfcfde..0d6ae40 100644
 --- a/infer/src/absint/HeapTrace.ml
 +++ b/infer/src/absint/HeapTrace.ml
-@@ -1,131 +1,240 @@
+@@ -1,131 +1,260 @@
  (*
 - * Diagnostic per-procedure managed-heap trace. Inert unless the environment variable
 - * INFER_HEAP_TRACE=<path prefix> is set; then one line per event is appended to
@@ -121,25 +174,14 @@ index 7dfcfde..5463656 100644
 +      * 1024 * 1024 / (Sys.word_size_in_bits / 8) )
 +  in
 +  fun () -> Lazy.force v
- 
--let last_cache_measure_heap = ref 0
- 
--let log_cache_stats ~event ?proc () =
--  match Lazy.force channel with
--  | None ->
--      ()
--  | Some oc ->
--      let entries, words = !cache_stats () in
--      Printf.fprintf oc "%.3f %s cache_entries=%d cache_words=%d proc=%s\n" (Unix.gettimeofday ())
--        event entries words (Option.value proc ~default:"-") ;
--      Out_channel.flush oc
++
++
 +(* Set by the backend. These are deliberately two hooks: counting the entries is O(1), while
 +   measuring the words reachable from the cache walks the whole live graph and costs as much as a
 +   minor collection. Calling the expensive one on every record made a traced run of a Vim
 +   translation unit ten times slower than an untraced one. *)
 +let cache_entries : (unit -> int) ref = ref (fun () -> 0)
- 
--let log ~event ?(nesting = 0) ?file ?proc () =
++
 +let cache_reachable_words : (unit -> int) ref = ref (fun () -> -1)
 +
 +(* process memory from /proc/self/statm: total program size and resident set, in pages *)
@@ -170,16 +212,26 @@ index 7dfcfde..5463656 100644
 +      |> Option.value ~default:(-1)
 +    with _ -> -1
 +
-+
-+let last_cache_measure_heap = ref 0
-+
+ 
+ let last_cache_measure_heap = ref 0
+ 
+-let log_cache_stats ~event ?proc () =
+-  match Lazy.force channel with
+-  | None ->
+-      ()
+-  | Some oc ->
+-      let entries, words = !cache_stats () in
+-      Printf.fprintf oc "%.3f %s cache_entries=%d cache_words=%d proc=%s\n" (Unix.gettimeofday ())
+-        event entries words (Option.value proc ~default:"-") ;
+-      Out_channel.flush oc
 +let measure_cache_words heap_words =
 +  let entries = !cache_entries () in
 +  if Lazy.force force_cache_words || heap_words - !last_cache_measure_heap >= 32 * 1024 * 1024 then (
 +    last_cache_measure_heap := heap_words ;
 +    (entries, !cache_reachable_words ()) )
 +  else (entries, -1)
-+
+ 
+-let log ~event ?(nesting = 0) ?file ?proc () =
 +
 +let json_escape s =
 +  String.concat_map s ~f:(fun c ->
@@ -334,16 +386,27 @@ index 7dfcfde..5463656 100644
 -      * 1024 * 1024 / 8 )
 -  in
 -  fun () -> Lazy.force v
-+let log_instr ~heap_before ~heap_after ~child_growth ~proc ~n_out ~instr =
-+  if enabled () then
-+    emit ~procedure:proc
++(* Operation-level trace: one record per abstract operation, with how many disjuncts went in and
++   came out and how much the heap moved. This is what tells you *which* primitive operation
++   multiplies the abstract state -- a branch, a load, a field read, a call, a join or a widen --
++   rather than only that the procedure as a whole grew. Off unless INFER_HEAP_TRACE_OPS is set,
++   because it records every instruction. *)
++let ops_traced = lazy (Option.is_some (getenv "INFER_HEAP_TRACE_OPS"))
++
++let ops_enabled () = enabled () && Lazy.force ops_traced
++
++let log_op ~kind ~node ~loc ~disjuncts_in ~disjuncts_out ~dropped ~heap_before ~heap_after ~detail =
++  if ops_enabled () then
++    emit
 +      ~extra:
-+        (Printf.sprintf ",\"heap_before\":%d,\"heap_after\":%d,\"child_growth\":%d,\"n_out\":%d,\"instr\":\"%s\""
-+           heap_before heap_after child_growth n_out (json_escape instr) )
-+      "instr-burst"
++        (Printf.sprintf
++           ",\"kind\":\"%s\",\"node\":\"%s\",\"loc\":\"%s\",\"disjuncts_in\":%d,\"disjuncts_out\":%d,\"dropped\":%d,\"heap_before\":%d,\"heap_after\":%d,\"detail\":\"%s\""
++           (json_escape kind) (json_escape node) (json_escape loc) disjuncts_in disjuncts_out
++           dropped heap_before heap_after (json_escape detail) )
++      "op"
  
  
--let log_instr ~heap_before ~heap_after ~child_growth ~proc ~n_out ~instr =
+ let log_instr ~heap_before ~heap_after ~child_growth ~proc ~n_out ~instr =
 -  match Lazy.force channel with
 -  | None ->
 -      ()
@@ -353,6 +416,14 @@ index 7dfcfde..5463656 100644
 -        (Unix.gettimeofday ()) heap_before heap_after child_growth n_out proc
 -        (String.filter instr ~f:(fun c -> not (Char.equal c '\n'))) ;
 -      Out_channel.flush oc
++  if enabled () then
++    emit ~procedure:proc
++      ~extra:
++        (Printf.sprintf ",\"heap_before\":%d,\"heap_after\":%d,\"child_growth\":%d,\"n_out\":%d,\"instr\":\"%s\""
++           heap_before heap_after child_growth n_out (json_escape instr) )
++      "instr-burst"
++
++
 +(* stack of frames for nested on-demand analyses: (heap at start, growth of direct children) *)
 +let frames : (int * int ref) list ref = ref []
 +

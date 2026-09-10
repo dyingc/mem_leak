@@ -76,12 +76,43 @@ python3 results/infer-oom/tools/analyze_jsonl.py <prefix>.<pid>.jsonl
 | 最后一条是 `instr-burst`，`heap_after - heap_before - child_growth` 很大 | 单条指令的自身分配很大，指令文本就在记录里 |
 | 完全没有 `instr-burst` 却 OOM | 增长分散在大量小指令上，把阈值调低再跑：`INFER_HEAP_TRACE_INSTR_MB=8` |
 
+## 2b. 定位到**哪条原语操作**把状态乘起来（新增）
+
+`INFER_HEAP_TRACE` 只能告诉你哪个过程在涨。要回答"是分支、载入、字段读、调用、join 还是 widen
+把抽象状态乘起来的"，加上 `INFER_HEAP_TRACE_OPS=1` 再跑一次：
+
+```bash
+INFER_HEAP_TRACE=<前缀> INFER_HEAP_TRACE_OPS=1 <guarded runner> …
+python3 results/infer-oom/tools/analyze_ops.py <前缀>.<pid>.jsonl
+```
+
+每条抽象操作产生一条 `"phase":"op"` 记录，额外字段：
+
+```
+kind          load | store | branch | call | metadata | widen
+loc           源码位置（宏展开后的行列）
+disjuncts_in  这条指令收到的 disjunct 数（Pulse 逐 disjunct 执行，通常是 1）
+disjuncts_out 这条指令产出的 disjunct 数 —— 大于 1 就是它在乘状态
+dropped       因 --pulse-max-disjuncts 被丢弃的数量
+heap_before / heap_after   该操作前后的主堆字数
+detail        指令文本（不含源码内容）
+```
+
+`analyze_ops.py` 直接给出三张表：按操作类型汇总的总增长/最坏单次增长/disjunct 净变化；
+按源码位置排序的总增长（带该位置最坏的那条指令文本）；以及**把 disjunct 乘得最多的前 10 条操作**。
+
+这正是把 bisect 从"哪个宏"推进到"哪条原语"的工具：不需要再删代码，跑一次就能看到
+是转换后的嵌套字段读、还是它后面的条件 prune，在把一个 disjunct 变成很多个。
+
+代价：每条指令一条记录（本机夹具 61 310 条 / 10 秒），只在需要时开。
+
 ## 3. 需要更细时的开关
 
 | 环境变量 | 作用 | 代价 |
 |---|---|---|
 | `INFER_HEAP_TRACE=<前缀>` | 打开 JSONL 追踪 | 低 |
 | `INFER_HEAP_TRACE_INSTR_MB=<n>` | 指令级突增阈值（默认 64 MB） | 调低会显著增加记录量 |
+| `INFER_HEAP_TRACE_OPS=1` | 每条抽象操作一条记录，含 disjunct 进出与丢弃数（见 §2b） | 中高，每条指令一条记录 |
 | `INFER_HEAP_TRACE_LEVEL=2` | 额外记录每次摘要缓存命中/未命中 | **很高**，只在怀疑缓存时用 |
 | `INFER_HEAP_TRACE_SMAPS=1` | 记录 `private_dirty_kib`（读 `smaps_rollup`） | 高，内核要遍历页表 |
 | `INFER_HEAP_TRACE_CACHE_WORDS=1` | 每条记录都测缓存可达字数 | **极高**，会遍历整个存活对象图；默认只在堆涨了 256 MB 时测一次 |
@@ -105,6 +136,25 @@ python3 results/infer-oom/tools/check_completeness.py <results-dir> --infer <inf
 
 - 每过程 CPU 超时（`--timeout`）：`logs` 里只有一行 debug 的 `TIMEOUT in pulse after …`；
 - CFG 超过 `--pulse-max-cfg-size`：`logs` 里只有一行 `Skipped large procedure (…, size:N)`。
+
+## 4b. 已经排除的几种形状（省得重复试）
+
+本机用通用夹具做过的对照，都在 `results/infer-oom/runs/` 里：
+
+| 形状 | 峰值 | 结论 |
+|---|---|---|
+| 6–7 层调用链，共享对象 | 0.89 GB | 深度本身无效 |
+| 6 层调用链，每个调用点独立子对象 | 0.26 GB | disjunct 上限把每个摘要卡住 |
+| 单过程 1800 语句、CFG 1.4 万节点 | 2.54 GB | 有效，但那是 CFG 规模，不是过程内爆炸 |
+| 宏密集、CFG 1.3 万节点（8 行源码） | 0.49 GB | **分支密度本身不是放大器** |
+| 宏密集、CFG 83 万节点、放开 CFG 上限 | 2.32 GB | 放开上限也没爆 |
+| 条件查找+间接取值+转换+3 层嵌套字段读（±写入、±循环），CFG 1 万节点 | 0.28–0.34 GB | 未复现 19/20 悬崖 |
+
+也就是说：**光有条件查找、指针转换、嵌套字段读、写入和循环还不够**。还缺至少一个要素，
+用 §2b 的操作级追踪在真实用例上跑一次，应该能直接指出它是什么。
+
+另外一个副产品发现：宏密集代码非常容易越过 `--pulse-max-cfg-size`（570 行源码 → 83 万 CFG 节点）
+而被**静默跳过**，那是召回损失而不是 OOM，只有 §4 的完整性脚本能查出来。
 
 ## 5. 上限该设多大
 

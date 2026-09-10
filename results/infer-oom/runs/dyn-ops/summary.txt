@@ -1,0 +1,7 @@
+exit=0 wall_s=10.2 peak_rss_KiB=351384
+report.json: present, 0 issues
+fatal/oom lines: /home/edong/VSCode/papers/mem_leak/output/oom/runs/dyn-ops/stderr.txt:0 /home/edong/VSCode/papers/mem_leak/output/oom/runs/dyn-ops/infer-out/logs:0 
+compaction lines: 0
+top_heap_words(main_process_full): 34171904 = 0.254601 GiB
+timeouts/skips: 2 log lines mention timeout
+post: MemAvailable_GiB=22.9 load1=1.45 du_out=984K

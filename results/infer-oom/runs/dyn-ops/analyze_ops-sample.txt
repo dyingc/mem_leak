@@ -1,0 +1,33 @@
+61310 operation records
+
+-- by operation kind: count / total growth / worst single / net disjunct change
+  metadata      26124         0.0 MiB       0.0 MiB  +0
+  load          20569         0.0 MiB       0.0 MiB  +0
+  store          4364         0.0 MiB       0.0 MiB  +0
+  branch        10250         0.0 MiB       0.0 MiB  -4670
+  widen             3         0.0 MiB       0.0 MiB  -41
+
+-- top source locations by total heap growth
+       total     worst      n maxdisj dropped  kind  location  instruction
+         0.0       0.0   2921       1       0  metadata DUMMY from src/base/Location.ml:-1           SKIP
+         0.0       0.0      3       1       0  metadata y0.c:4:3                                     EXIT_SCOPE(n$2288,k); [line 4, column 3]
+         0.0       0.0      1       1       0  load     y0.c:4:13                                    n$2288=*&k: [line 4, column 13]
+         0.0       0.0      1       1       0  store    y0.c:4:3                                     *&acc:=n$2288 [line 4, column 3]
+         0.0       0.0      2       1       0  load     y0.c:5:8                                     n$2285=*&e: [line 5, column 8]
+         0.0       0.0      2       1       0  branch   y0.c:5:8                                     PRUNE(n$2285, false); [line 5, column 8]
+         0.0       0.0      4       1       0  metadata y0.c:5:8                                     EXIT_SCOPE(n$2285); [line 5, column 8]
+         0.0       0.0      1       1       0  store    y0.c:5:11                                    *&return:=0 [line 5, column 11]
+         0.0       0.0      1       1       0  metadata y0.c:5:11                                    APPLY_ABSTRACTION; [line 5, column 11]
+         0.0       0.0     40       1       0  load     y0.c:6:10                                    n$1=*&e: [line 6, column 10]
+         0.0       0.0     40       1       0  branch   y0.c:6:10                                    PRUNE(!n$1, false); [line 6, column 10]
+         0.0       0.0     60       1       0  metadata y0.c:6:10                                    EXIT_SCOPE(n$1,e); [line 6, column 10]
+         0.0       0.0    860       1       0  load     y0.c:7:12                                    n$2282=*&0$?%__sil_tmpSIL_temp_conditional___n$2247: [line 7, column 12]
+         0.0       0.0    240       1       0  branch   y0.c:7:12                                    PRUNE(!n$2275, false); [line 7, column 12]
+         0.0       0.0    620       1       0  metadata y0.c:7:12                                    APPLY_ABSTRACTION; [line 7, column 12]
+         0.0       0.0    180       1       0  store    y0.c:7:12                                    *&0$?%__sil_tmpSIL_temp_conditional___n$2247:=n$2281 [line 7, column 12]
+         0.0       0.0     20       1       0  load     y0.c:7:5                                     n$2283=*&acc: [line 7, column 5]
+         0.0       0.0     20       1       0  store    y0.c:7:5                                     *&acc:=(n$2283 + n$2282) [line 7, column 5]
+         0.0       0.0     40       1       0  metadata y0.c:7:5                                     EXIT_SCOPE(n$2282,n$2283,0$?%__sil_tmpSIL_temp_conditional___n$2247); [line 7, column 5]
+         0.0       0.0    585       1       0  load     y0.c:8:12                                    n$2245=*&0$?%__sil_tmpSIL_temp_conditional___n$2210: [line 8, column 12]
+
+-- operations that multiplied the disjuncts the most (out - in)

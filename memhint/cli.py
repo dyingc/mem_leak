@@ -45,6 +45,9 @@ def main(argv: list[str] | None = None) -> int:
             s.add_argument("--max-callees", type=int, default=50,
                            help="callee bodies to put in the validation prompt (0 disables)")
             s.add_argument("--max-callee-lines", type=int, default=1000, help="lines kept per callee body")
+            s.add_argument("--adjacent-findings", action="store_true",
+                           help="on each REJECTED function, make a second LLM call asking whether some other "
+                                "allocation in the shown code leaks; emitted with source=llm-adjacent")
 
     args = ap.parse_args(argv)
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO,
@@ -62,7 +65,8 @@ def main(argv: list[str] | None = None) -> int:
     elif args.cmd == "stage3":
         from .pipeline import Stage3
         Stage3(args.project, args.out, args.analyzer, args.vanilla, args.workers, args.budget, args.skip_llm,
-               args.tag, args.hints, args.max_callees, args.max_callee_lines).run()
+               args.tag, args.hints, args.max_callees, args.max_callee_lines,
+               args.adjacent_findings).run()
     return 0
 
 

@@ -217,6 +217,70 @@ Output rules:
 """
 
 
+SYSTEM_ADJACENT = (
+    "Role: You are a senior static-analysis engineer specializing in C/C++ memory-safety. "
+    "You are auditing a function that a static analyzer flagged, after the specific allocation it "
+    "named was reviewed and found not to be a defect.")
+
+
+def build_adjacent_prompt(project: str, func: FunctionInfo, items: list, reason: str,
+                          callees: str = "") -> str:
+    """Second call, fired only on a rejection.
+
+    Analyzers are more reliable about *whether* a function leaks than about *which* allocation
+    leaks: on `parse_generic_func_type_args` two Infer configurations pointed at two different
+    lines and only one of them made the LLM see the real `ret_free` leak. This prompt never asks
+    about the numbered reports -- they are presented as settled -- so the model cannot re-litigate
+    them, and the first call's context is not polluted by a second task. See
+    results/llm-attribution/README.md for the measurements behind this split.
+    """
+    lines = func.code.splitlines()
+    bug_lines = {r.warning.line - func.start_line for r in items}
+    src = "\n".join(l + ("   // <-- analyzer pointed here" if i in bug_lines else "")
+                     for i, l in enumerate(lines))
+    pointed = "\n".join(f"  - line {r.warning.line}: {r.warning.message}" for r in items)
+    return f"""A static analyzer reported a memory leak in the function below. A reviewer has already
+examined the exact allocation the analyzer named and concluded it is NOT a leak:
+
+**Analyzer pointed at:**
+{pointed}
+**Reviewer's conclusion:** not a defect -- {reason}
+
+That conclusion is settled. Do not re-examine those allocations and do not argue about them.
+
+Analyzers are more reliable about *whether* a function leaks than about *which* allocation leaks:
+the report is often triggered a few lines away from the real defect, or on a value whose ownership
+actually moves through a callee. So your one job is different from the reviewer's:
+
+**Is there some OTHER heap allocation in this function that leaks?**
+
+**Project:** {project}
+**File:** {func.file}
+**Function:** {func.name}
+
+**Function source:**
+```c
+{src}
+```
+{callees}
+Consider every heap allocation this function makes or receives ownership of, including memory
+returned through a pointer-to-pointer out-parameter of a callee. For each, ask whether some
+execution path -- especially an early return on an error or allocation failure -- leaves it neither
+freed nor stored anywhere the caller can reach.
+
+Report a finding ONLY if you can name (a) the allocating call and the variable holding it, and
+(b) the concrete path that drops it, both visible in the code above. Do not report a possibility
+you cannot trace. Most functions have no leak; an empty list is the expected and correct answer.
+
+Respond with a single JSON object, no other text:
+  {{"findings": [{{"line": <int>, "alloc": "<call and variable>", "path": "<path that drops it>", "confidence": 0.0-1.0}}]}}
+
+Output rules:
+  - findings: [] when you find nothing traceable. Never include the allocations listed above.
+  - alloc and path: ONE short sentence each.
+"""
+
+
 @dataclass
 class LLMVerdict:
     function: str
@@ -226,16 +290,44 @@ class LLMVerdict:
     reason: str
     bug_indices: list[int]
     items: list[Z3Result]
+    adjacent: list[dict] = field(default_factory=list)
 
     def to_dict(self) -> dict:
-        return {"function": self.function, "file": self.file, "verdict": self.verdict, "confidence": self.confidence,
-                "reason": self.reason, "bug_indices": self.bug_indices,
-                "warnings": [r.to_dict() for r in self.items]}
+        d = {"function": self.function, "file": self.file, "verdict": self.verdict, "confidence": self.confidence,
+             "reason": self.reason, "bug_indices": self.bug_indices,
+             "warnings": [r.to_dict() for r in self.items]}
+        if self.adjacent:
+            d["adjacent"] = self.adjacent
+        return d
+
+
+def _adjacent_call(project: str, func: FunctionInfo, items: list, reason: str, ctx: str,
+                   llm: LLM) -> list[dict]:
+    """Ask, in a fresh context, whether some OTHER allocation in this function leaks."""
+    prompt = build_adjacent_prompt(project, func, items, reason, ctx)
+    try:
+        d = parse_json(llm.chat(SYSTEM_ADJACENT, prompt, tag=f"adjacent-{func.name}"))
+    except Exception as e:
+        log.warning("adjacent %s failed: %s", func.name, e)
+        return []
+    out = []
+    for f in (d.get("findings") or [])[:5]:
+        try:
+            line = int(f.get("line"))
+        except (TypeError, ValueError):
+            continue
+        if not (func.start_line <= line <= func.end_line):
+            continue          # a line outside the function is a hallucinated location
+        out.append({"line": line, "alloc": str(f.get("alloc", ""))[:300],
+                    "path": str(f.get("path", ""))[:400],
+                    "confidence": float(f.get("confidence", 0) or 0)})
+    return out
 
 
 def llm_verify(project: str, results: list[Z3Result], locator: FunctionLocator, llm: LLM,
                workers: int = 8, callees: CalleeIndex | None = None,
-               max_callees: int = 50, max_callee_lines: int = 1000) -> list[LLMVerdict]:
+               max_callees: int = 50, max_callee_lines: int = 1000,
+               adjacent: bool = False) -> list[LLMVerdict]:
     groups: dict[tuple[str, str], list[Z3Result]] = {}
     for r in results:
         if r.feasible and r.function:
@@ -253,8 +345,11 @@ def llm_verify(project: str, results: list[Z3Result], locator: FunctionLocator, 
             text = llm.chat(SYSTEM, prompt + "\nReturn ONLY the JSON object.", tag=f"verify-{func.name}-retry")
             d = parse_json(text)
         idx = [int(i) for i in d.get("bug_indices", []) or [] if str(i).isdigit()]
-        return LLMVerdict(func.name, key[0], bool(d.get("verdict")), float(d.get("confidence", 0) or 0),
-                          str(d.get("reason", "")), idx, items)
+        v = LLMVerdict(func.name, key[0], bool(d.get("verdict")), float(d.get("confidence", 0) or 0),
+                       str(d.get("reason", "")), idx, items)
+        if adjacent and not v.verdict:
+            v.adjacent = _adjacent_call(project, func, items, v.reason, ctx, llm)
+        return v
 
     out: list[LLMVerdict] = []
     with ThreadPoolExecutor(max_workers=workers) as ex:
@@ -266,4 +361,8 @@ def llm_verify(project: str, results: list[Z3Result], locator: FunctionLocator, 
                 log.error("verify %s failed: %s", futs[fut], e)
     n_true = sum(v.verdict for v in out)
     log.info("Phase 6: %d/%d functions confirmed by LLM, $%.3f", n_true, len(out), llm.usage.cost_usd)
+    if adjacent:
+        n_f = sum(len(v.adjacent) for v in out)
+        log.info("Phase 6b: %d adjacent findings in %d of %d rejected functions",
+                 n_f, sum(1 for v in out if v.adjacent), len(out) - n_true)
     return sorted(out, key=lambda v: (v.file, v.function))

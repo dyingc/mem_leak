@@ -182,12 +182,14 @@ class Stage3:
     def __init__(self, project: Path, out: Path, analyzer: str, vanilla: bool = False,
                  workers: int = 8, budget_usd: float | None = 20.0, skip_llm: bool = False,
                  tag: str | None = None, hints_file: Path | None = None,
-                 max_callees: int = 50, max_callee_lines: int = 1000):
+                 max_callees: int = 50, max_callee_lines: int = 1000,
+                 adjacent_findings: bool = False):
         self.project, self.out, self.analyzer, self.vanilla = project, out, analyzer, vanilla
         self.hints_file = hints_file
         self.dir = run_dir(out, analyzer, vanilla, tag)
         self.workers, self.skip_llm = workers, skip_llm
         self.max_callees, self.max_callee_lines = max_callees, max_callee_lines
+        self.adjacent_findings = adjacent_findings
         self.llm = None if skip_llm else LLM(cache_dir=out / "llm_cache", budget_usd=budget_usd)
 
     def run(self) -> list:
@@ -206,18 +208,30 @@ class Stage3:
             cb_path = self.out / "codebase.json"
             callees = CalleeIndex(loc, json.loads(cb_path.read_text()) if cb_path.exists() else None)
             verdicts = llm_verify(self.project.name, z3r, loc, self.llm, self.workers, callees,
-                                  self.max_callees, self.max_callee_lines)
+                                  self.max_callees, self.max_callee_lines, self.adjacent_findings)
             _dump(self.dir / "llm_verdicts.json", [v.to_dict() for v in verdicts])
+            n_adj = 0
             for v in verdicts:
                 if v.verdict:
                     items = [v.items[i - 1] for i in v.bug_indices if 0 < i <= len(v.items)] or v.items
                     for r in items:
                         bugs.append({"file": v.file, "function": v.function, "line": r.warning.line,
                                      "analyzer": self.analyzer, "rule": r.warning.rule, "message": r.warning.message,
-                                     "llm_reason": v.reason, "confidence": v.confidence, "z3_path_lines": r.path_lines})
+                                     "llm_reason": v.reason, "confidence": v.confidence, "z3_path_lines": r.path_lines,
+                                     "source": "analyzer"})
+                # An adjacent finding is the LLM's own, at a line the analyzer never reported: it has
+                # passed no Z3 feasibility check, so it is kept separable from the analyzer's bugs.
+                for f in v.adjacent:
+                    n_adj += 1
+                    bugs.append({"file": v.file, "function": v.function, "line": f["line"],
+                                 "analyzer": self.analyzer, "rule": "LLM_ADJACENT", "message": f["alloc"],
+                                 "llm_reason": f["path"], "confidence": f["confidence"], "z3_path_lines": [],
+                                 "source": "llm-adjacent"})
             _dump(self.dir / "bugs.json", bugs)
             stats.update(n_llm_functions=len(verdicts), n_llm_confirmed_functions=sum(v.verdict for v in verdicts),
                          n_bugs=len(bugs), llm=self.llm.usage.to_dict())
+            if self.adjacent_findings:
+                stats.update(n_adjacent_findings=n_adj, n_bugs_analyzer=len(bugs) - n_adj)
         _dump(self.dir / "stage3_stats.json", stats)
         log.info("Stage 3 [%s]: %s", self.analyzer, stats)
         return bugs

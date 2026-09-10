@@ -86,10 +86,18 @@ INFER_HEAP_TRACE=<前缀> INFER_HEAP_TRACE_OPS=1 <guarded runner> …
 python3 results/infer-oom/tools/analyze_ops.py <前缀>.<pid>.jsonl
 ```
 
-每条抽象操作产生一条 `"phase":"op"` 记录，额外字段：
+三类记录：`op-start`（操作开始前）、`op`（成功结束后）、`op-error`（抛异常时）。
+**`op-start` 是唯一能指认致命操作的记录**——`Fatal error: out of memory` 是运行时直接 abort，
+不是异常，所以 try/with 和"成功后记录"都抓不到它。为控制体积，`op-start` 只在堆超过
+`INFER_HEAP_TRACE_OPS_START_MB`（默认 512）之后才写。
+
+每条记录的额外字段：
 
 ```
+procedure     当前正在分析的过程（嵌套按需分析会正确恢复外层的名字）
 kind          load | store | branch | call | metadata | widen
+              前缀 node- 的是该 CFG 节点上所有 disjunct 的汇总，无前缀的是单个 disjunct
+node          CFG 节点号
 loc           源码位置（宏展开后的行列）
 disjuncts_in  这条指令收到的 disjunct 数（Pulse 逐 disjunct 执行，通常是 1）
 disjuncts_out 这条指令产出的 disjunct 数 —— 大于 1 就是它在乘状态
@@ -98,7 +106,8 @@ heap_before / heap_after   该操作前后的主堆字数
 detail        指令文本（不含源码内容）
 ```
 
-`analyze_ops.py` 直接给出三张表：按操作类型汇总的总增长/最坏单次增长/disjunct 净变化；
+`analyze_ops.py` 首先判定**追踪停止时是否正好卡在某条操作里**，若是则直接打印该操作的
+过程、类型、位置、节点、当时堆大小与指令文本——这就是致命操作。随后给出三张表：按操作类型汇总的总增长/最坏单次增长/disjunct 净变化；
 按源码位置排序的总增长（带该位置最坏的那条指令文本）；以及**把 disjunct 乘得最多的前 10 条操作**。
 
 这正是把 bisect 从"哪个宏"推进到"哪条原语"的工具：不需要再删代码，跑一次就能看到

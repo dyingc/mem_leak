@@ -1,5 +1,5 @@
 diff --git a/infer/src/absint/AbstractInterpreter.ml b/infer/src/absint/AbstractInterpreter.ml
-index 5082ab1..1b17b81 100644
+index 5082ab1..9836969 100644
 --- a/infer/src/absint/AbstractInterpreter.ml
 +++ b/infer/src/absint/AbstractInterpreter.ml
 @@ -311,7 +311,22 @@ struct
@@ -26,10 +26,12 @@ index 5082ab1..1b17b81 100644
        let max_iter =
          match DConfig.widen_policy with UnderApproximateAfterNumIterations max_iter -> max_iter
        in
-@@ -399,7 +414,23 @@ struct
+@@ -399,7 +414,25 @@ struct
      (List.map ~f:T.DisjDomain.exceptional_to_normal l, nd)
  
  
++  let node_id_string node = F.asprintf "%a" CFG.Node.pp_id (CFG.Node.id node)
++
 +  let instr_kind (instr : Sil.instr) =
 +    match instr with
 +    | Load _ ->
@@ -50,23 +52,51 @@ index 5082ab1..1b17b81 100644
      (* [remaining_disjuncts] is the number of remaining disjuncts taking into account disjuncts
         already recorded in the post of a node (and therefore that will stay there).  It is always
         set from [exec_node_instrs], so [remaining_disjuncts] should always be [Some _]. *)
-@@ -416,6 +447,9 @@ struct
+@@ -416,9 +449,37 @@ struct
                ~f:(fun () ->
                  (* check timeout once per disjunct to execute instead of once for all disjuncts *)
                  Timer.check_timeout () ;
 +                (* relieve memory pressure losslessly; whether to give up is decided by the
 +                   checker's own transfer function, which knows how to record the omission *)
 +                ignore (MemoryPressure.check_sampled () : int option) ;
++                let op_node = if HeapTrace.ops_enabled () then node_id_string node else "-" in
++                let op_loc =
++                  if HeapTrace.ops_enabled () then
++                    F.asprintf "%a" Location.pp_file_pos (Sil.location_of_instr instr)
++                  else "-"
++                in
++                let op_detail =
++                  if HeapTrace.ops_enabled () then
++                    F.asprintf "%a" (Sil.pp_instr ~print_types:false Pp.text) instr
++                  else ""
++                in
++                let op_heap = if HeapTrace.ops_enabled () then (Gc.quick_stat ()).heap_words else 0 in
++                HeapTrace.log_op_start ~kind:(instr_kind instr) ~node:op_node ~loc:op_loc
++                  ~disjuncts_in:1 ~heap_before:op_heap ~detail:op_detail ;
                  let disjuncts', non_disj' =
-                   T.exec_instr (pre_disjunct, non_disj) analysis_data node instr
+-                  T.exec_instr (pre_disjunct, non_disj) analysis_data node instr
++                  try T.exec_instr (pre_disjunct, non_disj) analysis_data node instr
++                  with exn ->
++                    HeapTrace.log_op_error ~kind:(instr_kind instr) ~node:op_node ~loc:op_loc
++                      ~disjuncts_in:1 ~heap_before:op_heap ~detail:op_detail
++                      ~exn:(Exn.to_string exn) ;
++                    raise exn
                  in
-@@ -431,6 +465,14 @@ struct
++                HeapTrace.log_op ~kind:(instr_kind instr) ~node:op_node ~loc:op_loc
++                  ~disjuncts_in:1
++                  ~disjuncts_out:(List.length disjuncts')
++                  ~dropped:0 ~heap_before:op_heap
++                  ~heap_after:(if HeapTrace.ops_enabled () then (Gc.quick_stat ()).heap_words else 0)
++                  ~detail:op_detail ;
+                 ( if Config.write_html then
+                     let n = List.length disjuncts' in
+                     L.d_printfln "@[Got %d disjunct%s back@]" n (if Int.equal n 1 then "" else "s")
+@@ -431,6 +492,13 @@ struct
        else List.fold ~init:T.NonDisjDomain.bottom ~f:T.NonDisjDomain.join non_disj_astates
      in
      let non_disj = add_dropped_disjuncts dropped non_disj in
 +    ( if HeapTrace.ops_enabled () then
-+        HeapTrace.log_op ~kind:(instr_kind instr)
-+          ~node:"-"
++        HeapTrace.log_op ~kind:("node-" ^ instr_kind instr) ~node:(node_id_string node)
 +          ~loc:(F.asprintf "%a" Location.pp_file_pos (Sil.location_of_instr instr))
 +          ~disjuncts_in:op_disjuncts_in ~disjuncts_out:(List.length disjuncts)
 +          ~dropped:(List.length dropped) ~heap_before:op_heap_before
@@ -75,7 +105,7 @@ index 5082ab1..1b17b81 100644
      (disjuncts, non_disj)
  
  
-@@ -621,6 +663,9 @@ module AbstractInterpreterCommon (TransferFunctions : NodeTransferFunctions) = s
+@@ -621,6 +689,9 @@ module AbstractInterpreterCommon (TransferFunctions : NodeTransferFunctions) = s
                logged_error := false ;
                Ok post
              with exn ->
@@ -85,7 +115,7 @@ index 5082ab1..1b17b81 100644
                (* delay reraising to get a chance to write the debug HTML *)
                let backtrace = Caml.Printexc.get_raw_backtrace () in
                Error (exn, backtrace, instr) )
-@@ -632,6 +677,7 @@ module AbstractInterpreterCommon (TransferFunctions : NodeTransferFunctions) = s
+@@ -632,6 +703,7 @@ module AbstractInterpreterCommon (TransferFunctions : NodeTransferFunctions) = s
            ( match exn with
            | RestartSchedulerException.ProcnameAlreadyLocked _
            | MissingDependencyException.MissingDependencyException
@@ -94,10 +124,10 @@ index 5082ab1..1b17b81 100644
                (* this isn't an error; don't log it *)
                ()
 diff --git a/infer/src/absint/HeapTrace.ml b/infer/src/absint/HeapTrace.ml
-index 7dfcfde..0d6ae40 100644
+index 7dfcfde..ad64e79 100644
 --- a/infer/src/absint/HeapTrace.ml
 +++ b/infer/src/absint/HeapTrace.ml
-@@ -1,131 +1,260 @@
+@@ -1,131 +1,308 @@
  (*
 - * Diagnostic per-procedure managed-heap trace. Inert unless the environment variable
 - * INFER_HEAP_TRACE=<path prefix> is set; then one line per event is appended to
@@ -141,30 +171,27 @@ index 7dfcfde..0d6ae40 100644
 +
 +
 +let enabled () = Option.is_some (Lazy.force channel)
- 
++
 +let level = lazy (match getenv "INFER_HEAP_TRACE_LEVEL" with Some s -> (try int_of_string s with _ -> 1) | None -> 1)
  
--let compact_mode = lazy (Sys.getenv "INFER_HEAP_TRACE_COMPACT")
 +let cache_ops_traced () = Lazy.force level >= 2
  
--let compact_at_target_end = lazy (Option.is_some (Lazy.force compact_mode))
+-let compact_mode = lazy (Sys.getenv "INFER_HEAP_TRACE_COMPACT")
 +let smaps_enabled = lazy (Option.is_some (getenv "INFER_HEAP_TRACE_SMAPS"))
+ 
+-let compact_at_target_end = lazy (Option.is_some (Lazy.force compact_mode))
++let force_cache_words = lazy (Option.is_some (getenv "INFER_HEAP_TRACE_CACHE_WORDS"))
  
 -let compact_at_toplevel_proc =
 -  lazy (Option.exists (Lazy.force compact_mode) ~f:(String.equal "toplevel"))
-+let force_cache_words = lazy (Option.is_some (getenv "INFER_HEAP_TRACE_CACHE_WORDS"))
-+
 +let compact_at_target_end = lazy (Option.is_some (getenv "INFER_HEAP_TRACE_COMPACT"))
  
 -(* diagnostic knob: clear the in-memory summary cache after every top-level procedure of a file *)
  let clear_summary_cache_per_toplevel_proc =
 -  lazy (Option.is_some (Sys.getenv "INFER_CLEAR_SUMMARY_CACHE_PER_PROC"))
 +  lazy (Option.is_some (getenv "INFER_CLEAR_SUMMARY_CACHE_PER_PROC"))
- 
--let enabled () = Option.is_some (Lazy.force channel)
- 
--(* hook set by the backend to measure the summary cache: (entries, reachable words) *)
--let cache_stats : (unit -> int * int) ref = ref (fun () -> (0, 0))
++
++
 +let instr_burst_words =
 +  let v =
 +    lazy
@@ -196,8 +223,11 @@ index 7dfcfde..0d6ae40 100644
 +    | _ ->
 +        (-1, -1)
 +  with _ -> (-1, -1)
-+
-+
+ 
+-let enabled () = Option.is_some (Lazy.force channel)
+ 
+-(* hook set by the backend to measure the summary cache: (entries, reachable words) *)
+-let cache_stats : (unit -> int * int) ref = ref (fun () -> (0, 0))
 +let read_private_dirty () =
 +  if not (Lazy.force smaps_enabled) then -1
 +  else
@@ -314,12 +344,6 @@ index 7dfcfde..0d6ae40 100644
 +
 +let log_cache_op ~event ~proc ?(payload_bytes = -1) () =
 +  if enabled () && cache_ops_traced () then emit ~procedure:proc ~payload_bytes event
-+
-+
-+(** always traced (not only at level 2): storing a summary is where a large payload is
-+    serialized, marshalled and copied into SQLite *)
-+let log_store ~event ~proc ?(payload_bytes = -1) () =
-+  if enabled () then emit ~procedure:proc ~payload_bytes event
  
 -let log_proc ~event ~nesting callee_pname (attrs : ProcAttributes.t) =
 -  if enabled () then (
@@ -340,6 +364,12 @@ index 7dfcfde..0d6ae40 100644
 -      ~file:(SourceFile.to_string attrs.translation_unit)
 -      ~proc:(Procname.to_string callee_pname) () )
 +
++(** always traced (not only at level 2): storing a summary is where a large payload is
++    serialized, marshalled and copied into SQLite *)
++let log_store ~event ~proc ?(payload_bytes = -1) () =
++  if enabled () then emit ~procedure:proc ~payload_bytes event
++
++
 +let log_compact ~reason ~f =
 +  if not (enabled ()) then f ()
 +  else (
@@ -358,10 +388,10 @@ index 7dfcfde..0d6ae40 100644
        Gc.compact () ;
 -      log ~event:"target-done-compacted" ~file:target () ) )
 +      emit ~source_file:target "target-done-compacted" ) )
-+
+ 
  
 +let target_start ~target = if enabled () then emit ~source_file:target "target-start"
- 
++
  let toplevel_proc_done ~proc =
    if enabled () then (
 -    log ~event:"toplevel-done" ~proc () ;
@@ -395,14 +425,62 @@ index 7dfcfde..0d6ae40 100644
 +
 +let ops_enabled () = enabled () && Lazy.force ops_traced
 +
++(* The runtime aborts with "Fatal error: out of memory" instead of raising, so neither a record
++   written after the operation succeeds nor a try/with can identify the operation that was in
++   flight when the process died. Only a record written *before* the operation can. Writing one for
++   every operation doubles an already large trace, so they start once the heap passes a watermark,
++   which is where the interesting operations are. *)
++let ops_start_watermark_words =
++  lazy
++    ( (match getenv "INFER_HEAP_TRACE_OPS_START_MB" with
++      | Some s -> ( try int_of_string s with _ -> 512 )
++      | None -> 512 )
++    * 1024 * 1024 / (Sys.word_size_in_bits / 8) )
++
++
++(** the procedure currently being analysed, kept as a stack so nested on-demand analyses restore
++    the caller's name when they finish *)
++let proc_stack : string list ref = ref []
++
++let push_proc name = if enabled () then proc_stack := name :: !proc_stack
++
++let pop_proc () = if enabled () then match !proc_stack with _ :: tl -> proc_stack := tl | [] -> ()
++
++let current_proc () = match !proc_stack with name :: _ -> name | [] -> "-"
++
++let op_extra ~kind ~node ~loc ~disjuncts_in ~disjuncts_out ~dropped ~heap_before ~heap_after ~detail
++    =
++  Printf.sprintf
++    ",\"kind\":\"%s\",\"node\":\"%s\",\"loc\":\"%s\",\"disjuncts_in\":%d,\"disjuncts_out\":%d,\"dropped\":%d,\"heap_before\":%d,\"heap_after\":%d,\"detail\":\"%s\""
++    (json_escape kind) (json_escape node) (json_escape loc) disjuncts_in disjuncts_out dropped
++    heap_before heap_after (json_escape detail)
++
++
++let log_op_start ~kind ~node ~loc ~disjuncts_in ~heap_before ~detail =
++  if ops_enabled () && heap_before >= Lazy.force ops_start_watermark_words then
++    emit ~procedure:(current_proc ())
++      ~extra:
++        (op_extra ~kind ~node ~loc ~disjuncts_in ~disjuncts_out:(-1) ~dropped:(-1) ~heap_before
++           ~heap_after:(-1) ~detail )
++      "op-start"
++
++
++let log_op_error ~kind ~node ~loc ~disjuncts_in ~heap_before ~detail ~exn =
++  if ops_enabled () then
++    emit ~procedure:(current_proc ())
++      ~extra:
++        ( op_extra ~kind ~node ~loc ~disjuncts_in ~disjuncts_out:(-1) ~dropped:(-1) ~heap_before
++            ~heap_after:(Gc.quick_stat ()).heap_words ~detail
++        ^ Printf.sprintf ",\"exn\":\"%s\"" (json_escape exn) )
++      "op-error"
++
++
 +let log_op ~kind ~node ~loc ~disjuncts_in ~disjuncts_out ~dropped ~heap_before ~heap_after ~detail =
 +  if ops_enabled () then
-+    emit
++    emit ~procedure:(current_proc ())
 +      ~extra:
-+        (Printf.sprintf
-+           ",\"kind\":\"%s\",\"node\":\"%s\",\"loc\":\"%s\",\"disjuncts_in\":%d,\"disjuncts_out\":%d,\"dropped\":%d,\"heap_before\":%d,\"heap_after\":%d,\"detail\":\"%s\""
-+           (json_escape kind) (json_escape node) (json_escape loc) disjuncts_in disjuncts_out
-+           dropped heap_before heap_after (json_escape detail) )
++        (op_extra ~kind ~node ~loc ~disjuncts_in ~disjuncts_out ~dropped ~heap_before ~heap_after
++           ~detail )
 +      "op"
  
  
@@ -631,32 +709,34 @@ index 8b138db..186dc73 100644
  
    val get : lazy_payloads:bool -> AnalysisRequest.t -> Procname.t -> t option
 diff --git a/infer/src/backend/ondemand.ml b/infer/src/backend/ondemand.ml
-index 02b5c96..787e165 100644
+index 02b5c96..89a69ab 100644
 --- a/infer/src/backend/ondemand.ml
 +++ b/infer/src/backend/ondemand.ml
-@@ -150,7 +150,9 @@ let run_proc_analysis exe_env tenv analysis_req ?specialization ?caller_pname ca
+@@ -150,7 +150,10 @@ let run_proc_analysis exe_env tenv analysis_req ?specialization ?caller_pname ca
      L.progress "[%d] run_proc_analysis %a -> %a@." !nesting (Pp.option Procname.pp) caller_pname
        Procname.pp callee_pname ;
    let preprocess () =
 -    HeapTrace.log_proc ~event:"start" ~nesting:!nesting callee_pname callee_attributes ;
 +    HeapTrace.log_proc ~event:"proc-start" ~nesting:!nesting callee_pname callee_attributes ;
 +    HeapTrace.push_frame () ;
++    HeapTrace.push_proc (Procname.to_string callee_pname) ;
 +    MemoryPressure.enter_procedure () ;
      incr nesting ;
      let source_file = callee_attributes.ProcAttributes.translation_unit in
      update_taskbar (Some callee_pname) (Some source_file) ;
-@@ -169,7 +171,9 @@ let run_proc_analysis exe_env tenv analysis_req ?specialization ?caller_pname ca
+@@ -169,7 +172,10 @@ let run_proc_analysis exe_env tenv analysis_req ?specialization ?caller_pname ca
    in
    let postprocess summary =
      decr nesting ;
 -    HeapTrace.log_proc ~event:"end" ~nesting:!nesting callee_pname callee_attributes ;
 +    MemoryPressure.exit_procedure () ;
 +    HeapTrace.pop_frame () ;
++    HeapTrace.pop_proc () ;
 +    HeapTrace.log_proc ~event:"proc-end" ~nesting:!nesting callee_pname callee_attributes ;
      (* copy the previous recursion edges over to the new summary if doing a replay analysis so that
         subsequent replay analyses can pick them up too *)
      Option.iter !edges_to_ignore ~f:(fun edges_to_ignore ->
-@@ -199,7 +203,7 @@ let run_proc_analysis exe_env tenv analysis_req ?specialization ?caller_pname ca
+@@ -199,7 +205,7 @@ let run_proc_analysis exe_env tenv analysis_req ?specialization ?caller_pname ca
      in
      let new_summary = {summary with stats; payloads} in
      let new_summary = Summary.OnDisk.store analysis_req new_summary in
@@ -665,13 +745,14 @@ index 02b5c96..787e165 100644
      remove_active callee_pname ;
      log_elapsed_time () ;
      new_summary
-@@ -218,6 +222,9 @@ let run_proc_analysis exe_env tenv analysis_req ?specialization ?caller_pname ca
+@@ -218,6 +224,10 @@ let run_proc_analysis exe_env tenv analysis_req ?specialization ?caller_pname ca
      final_callee_summary
    with exn -> (
      let backtrace = Printexc.get_backtrace () in
 +    HeapTrace.log_proc ~event:"proc-exception" ~nesting:!nesting callee_pname callee_attributes ;
 +    MemoryPressure.exit_procedure () ;
 +    HeapTrace.pop_frame () ;
++    HeapTrace.pop_proc () ;
      IExn.reraise_if exn ~f:(fun () ->
          match exn with
          | RestartSchedulerException.ProcnameAlreadyLocked _

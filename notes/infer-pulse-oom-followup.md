@@ -241,6 +241,33 @@ CFG 都控制在 1 万节点、过程确实被分析（摘要 302 KB），但峰
 本机夹具上验证：10 秒的运行产生 61 310 条记录，覆盖 20 569 次 load、10 250 次 branch、
 4 364 次 store、3 次 widen。用法见 `notes/infer-oom-diagnostics-howto.md` §2b。
 
+## 5d. 操作追踪的三处修正（对方反馈后）
+
+对方在真实用例上跑了 19 与 20 两次带操作追踪的分析，指出三处限制，已全部修正：
+
+| 限制 | 修正 |
+|---|---|
+| 记录里 `procedure` 为空 | 按需分析维护一个过程名栈，嵌套返回时恢复外层名字；每条记录带 `procedure` |
+| `node` 恒为 `-` | 用 `CFG.Node.pp_id` 记录 CFG 节点号；逐 disjunct 的记录与节点级汇总分别标记（`load` 对 `node-load`） |
+| 只在操作成功后记录，抓不到致命那一步 | 新增 `op-start` 与 `op-error`。**关键**：`Fatal error: out of memory` 是运行时 abort 而非异常，try/with 抓不到，只有操作**开始前**的记录能指认它。`op-start` 在堆超过 `INFER_HEAP_TRACE_OPS_START_MB`（默认 512）后才写，避免体积翻倍 |
+
+`analyze_ops.py` 相应升级：先判定追踪停止时是否卡在某条操作里，若是则直接打印该操作的过程、
+类型、位置、节点、当时堆大小与指令文本。该脚本此前因 `.gitignore` 的 `tools/` 规则**未能入库**
+（`results/infer-oom/tools/` 下 16 个脚本全部被忽略），已加例外规则修正。
+
+**他们的关键数据**：真实用例中最大的堆增长点是一条**嵌套字段 load**，`disjuncts_in=1`、
+`disjuncts_out=1`，单次操作增长达 0.95 GiB。另有一处更早的调用点在 19 与 20 两种配置下分别
+产出 19 与 20 个后继状态，是目前唯一的 fan-out 线索，但因果关系未证。
+
+**本机对这条 load 的一个候选解释（未证实）**：`Pulse.ml` 的 `Load` 分支里，
+`set_global_astates` 会在**每次载入全局常量或全局函数指针时重新内联其初始化器**
+（`dispatch_call` 到 `__infer_globals_initializer_*`），上游还留着
+`TODO: Initial global constants only once`。一张大的全局事件/调度表因此可能在每次被读到时
+重新物化进抽象状态。但它只匹配 `Lvar pvar`（整体载入全局变量），本机用 `table[i].v0`
+（`Lindex`）构造的夹具走不到该路径，峰值仅 0.31 GB，**假设未证实**。
+用新的 `op-start` 记录里的 `detail` 可以直接判定：若那条 load 的指令文本形如
+`n$X=*&<全局名>`，即走的这条路径。
+
 ## 6. 遗留阻塞
 
 1. **目标压力用例本身仍未在本机复现。** 本机最大的通用夹具在 8 GiB 上限下不会越界；

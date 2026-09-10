@@ -1,0 +1,39 @@
+171302 records: 116306 completed, 54996 started, 0 failed
+
+-- the trace ends on a completed operation, so the process was not killed inside one
+
+-- by operation kind: count / total growth / worst single / net disjunct change
+  node-metadata    26124       402.6 MiB      13.6 MiB  +0
+  node-load     20569       344.7 MiB      36.1 MiB  +0
+  node-branch    10250       255.1 MiB      31.4 MiB  -4670
+  load          20569       190.3 MiB      36.1 MiB  +0
+  metadata      19813       185.2 MiB      11.8 MiB  +0
+  branch        10250       102.8 MiB      11.8 MiB  -4670
+  node-store     4364        73.2 MiB      11.8 MiB  +0
+  store          4364        26.6 MiB       8.9 MiB  +0
+  widen             3         0.0 MiB       0.0 MiB  -41
+
+-- top source locations by total heap growth
+       total     worst      n maxdisj dropped  kind  location  instruction
+        48.3      11.8   2921       1       0  node-metadata DUMMY from src/base/Location.ml:-1           END_BRANCHES
+        47.6      10.3    332       1       0  node-load y0.c:10:12                                   n$2144=*&e: [line 10, column 12]
+        42.8      10.3    312       1       0  node-metadata y0.c:12:12                                   EXIT_SCOPE(n$2098); [line 12, column 12]
+        41.6      11.8    310       1       0  node-metadata y0.c:18:12                                   EXIT_SCOPE(n$1935,n$1936); [line 18, column 12]
+        40.0      10.3    380       1       0  node-metadata y0.c:9:12                                    EXIT_SCOPE(n$2199,0$?%__sil_tmpSIL_temp_conditional___n$2177); [line 9, column 12]
+        36.1      36.1     19       1       0  load     y0.c:84:10                                   n$0=*&acc: [line 84, column 10]
+        36.1      36.1     19       1       0  node-load y0.c:84:10                                   n$0=*&acc: [line 84, column 10]
+        34.3      10.3    332       1       0  load     y0.c:10:12                                   n$2144=*&e: [line 10, column 12]
+        34.2      10.3    276       1       0  node-load y0.c:12:12                                   n$2123=*&e: [line 12, column 12]
+        33.3      11.8    200       1       0  metadata y0.c:18:12                                   EXIT_SCOPE(n$1935,n$1936); [line 18, column 12]
+        31.4      31.4    200       1       0  node-branch y0.c:8:12                                    PRUNE(n$2216, true); [line 8, column 12]
+        30.0      11.8    276       1       0  node-load y0.c:14:12                                   n$2052=*&e: [line 14, column 12]
+        29.6      10.3    168       1       0  node-branch y0.c:10:12                                   PRUNE(!n$2166, false); [line 10, column 12]
+        27.3      27.3    270       1       0  node-load y0.c:78:12                                   n$111=*&e: [line 78, column 12]
+        27.0      10.3    282       1       0  node-load y0.c:23:12                                   n$1784=*n$1783.ctl: [line 23, column 12]
+        25.1      10.3    338       1       0  node-load y0.c:19:12                                   n$1870=*&e: [line 19, column 12]
+        24.0      11.8    354       1       0  node-load y0.c:17:12                                   n$1954=*n$1953.inner: [line 17, column 12]
+        24.0      11.8    160       1       0  node-branch y0.c:22:12                                   PRUNE(n$1819, true); [line 22, column 12]
+        23.4       8.9    160       1       0  node-branch y0.c:15:12                                   PRUNE(n$1985, true); [line 15, column 12]
+        23.4      11.8    160       1       0  node-branch y0.c:12:12                                   PRUNE(!n$2096, false); [line 12, column 12]
+
+-- operations that multiplied the disjuncts the most (out - in)

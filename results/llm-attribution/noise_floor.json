@@ -1,0 +1,255 @@
+{
+ "n_samples": 3,
+ "rows": [
+  {
+   "function": "general_beval_cb",
+   "recorded": true,
+   "samples": [
+    true,
+    true,
+    true
+   ],
+   "stable": true
+  },
+  {
+   "function": "clip_wl_init_buffer_store",
+   "recorded": true,
+   "samples": [
+    true,
+    true,
+    true
+   ],
+   "stable": true
+  },
+  {
+   "function": "f_cmdcomplete_info",
+   "recorded": true,
+   "samples": [
+    true,
+    true,
+    true
+   ],
+   "stable": true
+  },
+  {
+   "function": "dict_extend_func",
+   "recorded": true,
+   "samples": [
+    true,
+    true,
+    true
+   ],
+   "stable": true
+  },
+  {
+   "function": "eval8",
+   "recorded": true,
+   "samples": [
+    true,
+    true,
+    true
+   ],
+   "stable": true
+  },
+  {
+   "function": "get_matches_in_str",
+   "recorded": true,
+   "samples": [
+    false,
+    true,
+    false
+   ],
+   "stable": false
+  },
+  {
+   "function": "heredoc_get",
+   "recorded": true,
+   "samples": [
+    true,
+    true,
+    true
+   ],
+   "stable": true
+  },
+  {
+   "function": "expand_findfunc",
+   "recorded": true,
+   "samples": [
+    true,
+    true,
+    true
+   ],
+   "stable": true
+  },
+  {
+   "function": "change_indent",
+   "recorded": true,
+   "samples": [
+    true,
+    true,
+    true
+   ],
+   "stable": true
+  },
+  {
+   "function": "json_encode_lsp_msg",
+   "recorded": true,
+   "samples": [
+    true,
+    true,
+    true
+   ],
+   "stable": true
+  },
+  {
+   "function": "list_extend_func",
+   "recorded": true,
+   "samples": [
+    true,
+    true,
+    true
+   ],
+   "stable": true
+  },
+  {
+   "function": "netbeans_file_activated",
+   "recorded": true,
+   "samples": [
+    true,
+    true,
+    true
+   ],
+   "stable": true
+  },
+  {
+   "function": "socket_server_send_reply",
+   "recorded": true,
+   "samples": [
+    true,
+    true,
+    true
+   ],
+   "stable": true
+  },
+  {
+   "function": "string_reduce",
+   "recorded": true,
+   "samples": [
+    true,
+    true,
+    true
+   ],
+   "stable": true
+  },
+  {
+   "function": "u_read_undo",
+   "recorded": true,
+   "samples": [
+    true,
+    true,
+    true
+   ],
+   "stable": true
+  },
+  {
+   "function": "add_defer",
+   "recorded": true,
+   "samples": [
+    true,
+    true,
+    true
+   ],
+   "stable": true
+  },
+  {
+   "function": "add_interface_from_super_class",
+   "recorded": true,
+   "samples": [
+    true,
+    true,
+    true
+   ],
+   "stable": true
+  },
+  {
+   "function": "compile_catch",
+   "recorded": true,
+   "samples": [
+    false,
+    false,
+    false
+   ],
+   "stable": true
+  },
+  {
+   "function": "compile_for",
+   "recorded": true,
+   "samples": [
+    true,
+    true,
+    true
+   ],
+   "stable": true
+  },
+  {
+   "function": "compile_def_function_body",
+   "recorded": true,
+   "samples": [
+    true,
+    true,
+    true
+   ],
+   "stable": true
+  },
+  {
+   "function": "reserve_local",
+   "recorded": true,
+   "samples": [
+    false,
+    true,
+    false
+   ],
+   "stable": false
+  },
+  {
+   "function": "exe_newdict",
+   "recorded": true,
+   "samples": [
+    true,
+    true,
+    true
+   ],
+   "stable": true
+  },
+  {
+   "function": "compile_dict",
+   "recorded": true,
+   "samples": [
+    true,
+    true,
+    true
+   ],
+   "stable": true
+  },
+  {
+   "function": "barline_parse",
+   "recorded": true,
+   "samples": [
+    true,
+    true,
+    true
+   ],
+   "stable": true
+  }
+ ],
+ "unstable": 2,
+ "total": 24,
+ "usage": {
+  "calls": 72,
+  "cache_hits": 0,
+  "prompt_tokens": 322032,
+  "cached_tokens": 302633,
+  "completion_tokens": 26877,
+  "cost_usd": 0.0422
+ }
+}

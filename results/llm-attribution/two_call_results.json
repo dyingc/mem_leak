@@ -1,0 +1,501 @@
+{
+ "positive": {
+  "call1": {
+   "verdict": false,
+   "confidence": 0.96,
+   "reason": "The parsed type is tracked by gfatab->gfat_arg_types, which retains ownership for cleanup on these paths.",
+   "bug_indices": []
+  },
+  "call2": {
+   "findings": [
+    {
+     "line": 313,
+     "alloc": "type_name(type_arg, &ret_free) allocates auxiliary name storage held in ret_free.",
+     "path": "If ret_free is non-NULL and alloc(STRLEN(ret_name) + 1) at line 325 fails, the function returns without freeing ret_free.",
+     "confidence": 0.99
+    }
+   ]
+  }
+ },
+ "controls": [
+  {
+   "function": "f_prompt_setcallback",
+   "file": "src/job.c",
+   "call1_verdict": false,
+   "n_findings": 0,
+   "findings": []
+  },
+  {
+   "function": "dict_filter_map",
+   "file": "src/dict.c",
+   "call1_verdict": false,
+   "n_findings": 0,
+   "findings": []
+  },
+  {
+   "function": "count_common_word",
+   "file": "src/spell.c",
+   "call1_verdict": false,
+   "n_findings": 0,
+   "findings": []
+  },
+  {
+   "function": "ex_type",
+   "file": "src/vim9class.c",
+   "call1_verdict": false,
+   "n_findings": 0,
+   "findings": []
+  },
+  {
+   "function": "generate_AUTOLOAD",
+   "file": "src/vim9instr.c",
+   "call1_verdict": false,
+   "n_findings": 0,
+   "findings": []
+  },
+  {
+   "function": "set_string_option_global",
+   "file": "src/optionstr.c",
+   "call1_verdict": false,
+   "n_findings": 0,
+   "findings": []
+  },
+  {
+   "function": "list_one_var",
+   "file": "src/evalvars.c",
+   "call1_verdict": false,
+   "n_findings": 0,
+   "findings": []
+  },
+  {
+   "function": "split_message",
+   "file": "src/popupmenu.c",
+   "call1_verdict": false,
+   "n_findings": 1,
+   "findings": [
+    {
+     "line": 1718,
+     "alloc": "The first vim_strsave call stores its allocation in (*array)->pum_text.",
+     "path": "When height is clamped to 1, the second vim_strsave call overwrites the same slot and drops the first pointer.",
+     "confidence": 0.99
+    }
+   ]
+  },
+  {
+   "function": "buf_copy_options",
+   "file": "src/option.c",
+   "call1_verdict": false,
+   "n_findings": 1,
+   "findings": [
+    {
+     "line": 7402,
+     "alloc": "`vim_strsave(p_csl)` is assigned to `buf->b_p_csl`.",
+     "path": "On a later copy, `free_buf_options()` omits `b_p_csl` and the subsequent assignment overwrites the old pointer.",
+     "confidence": 0.99
+    }
+   ]
+  },
+  {
+   "function": "truncate_line",
+   "file": "src/change.c",
+   "call1_verdict": false,
+   "n_findings": 0,
+   "findings": []
+  },
+  {
+   "function": "deleteFoldMarkers",
+   "file": "src/fold.c",
+   "call1_verdict": false,
+   "n_findings": 0,
+   "findings": []
+  },
+  {
+   "function": "blob_filter_map",
+   "file": "src/blob.c",
+   "call1_verdict": false,
+   "n_findings": 0,
+   "findings": []
+  },
+  {
+   "function": "generate_STORE",
+   "file": "src/vim9instr.c",
+   "call1_verdict": false,
+   "n_findings": 0,
+   "findings": []
+  },
+  {
+   "function": "f_popup_notification",
+   "file": "src/popupwin.c",
+   "call1_verdict": false,
+   "n_findings": 0,
+   "findings": []
+  },
+  {
+   "function": "get_padding_border",
+   "file": "src/popupwin.c",
+   "call1_verdict": true,
+   "n_findings": 0,
+   "findings": []
+  },
+  {
+   "function": "stop_insert",
+   "file": "src/edit.c",
+   "call1_verdict": false,
+   "n_findings": 0,
+   "findings": []
+  },
+  {
+   "function": "set_tuple_union_type_on_stack",
+   "file": "src/vim9instr.c",
+   "call1_verdict": false,
+   "n_findings": 0,
+   "findings": []
+  },
+  {
+   "function": "generate_LOCKUNLOCK",
+   "file": "src/vim9instr.c",
+   "call1_verdict": false,
+   "n_findings": 0,
+   "findings": []
+  },
+  {
+   "function": "list_filter_map",
+   "file": "src/list.c",
+   "call1_verdict": false,
+   "n_findings": 1,
+   "findings": [
+    {
+     "line": 2652,
+     "alloc": "eval_expr_typval(..., newtv) returns a heap-owning value in newtv.",
+     "path": "When mapnew() appends newtv and list_append_tv_move() fails to allocate a list item, the loop breaks without clear_tv(&newtv).",
+     "confidence": 0.98
+    }
+   ]
+  },
+  {
+   "function": "ex_throw",
+   "file": "src/ex_eval.c",
+   "call1_verdict": false,
+   "n_findings": 0,
+   "findings": []
+  },
+  {
+   "function": "rename_buffer",
+   "file": "src/ex_cmds.c",
+   "call1_verdict": false,
+   "n_findings": 0,
+   "findings": []
+  },
+  {
+   "function": "f_string",
+   "file": "src/strings.c",
+   "call1_verdict": false,
+   "n_findings": 0,
+   "findings": []
+  },
+  {
+   "function": "f_term_setkill",
+   "file": "src/terminal.c",
+   "call1_verdict": false,
+   "n_findings": 0,
+   "findings": []
+  },
+  {
+   "function": "compile_block",
+   "file": "src/vim9cmds.c",
+   "call1_verdict": false,
+   "n_findings": 0,
+   "findings": []
+  },
+  {
+   "function": "digraph_getlist_appendpair",
+   "file": "src/digraph.c",
+   "call1_verdict": false,
+   "n_findings": 0,
+   "findings": []
+  }
+ ],
+ "tier1_regression": [
+  {
+   "function": "general_beval_cb",
+   "was": true,
+   "now": true,
+   "idx_was": [
+    1
+   ],
+   "idx_now": [
+    1
+   ]
+  },
+  {
+   "function": "clip_wl_init_buffer_store",
+   "was": true,
+   "now": true,
+   "idx_was": [
+    1
+   ],
+   "idx_now": [
+    1
+   ]
+  },
+  {
+   "function": "f_cmdcomplete_info",
+   "was": true,
+   "now": true,
+   "idx_was": [
+    1,
+    2
+   ],
+   "idx_now": [
+    1,
+    2
+   ]
+  },
+  {
+   "function": "dict_extend_func",
+   "was": true,
+   "now": true,
+   "idx_was": [
+    1
+   ],
+   "idx_now": [
+    1
+   ]
+  },
+  {
+   "function": "eval8",
+   "was": true,
+   "now": true,
+   "idx_was": [
+    1,
+    2
+   ],
+   "idx_now": [
+    2
+   ]
+  },
+  {
+   "function": "get_matches_in_str",
+   "was": true,
+   "now": false,
+   "idx_was": [
+    1
+   ],
+   "idx_now": []
+  },
+  {
+   "function": "heredoc_get",
+   "was": true,
+   "now": true,
+   "idx_was": [
+    1
+   ],
+   "idx_now": [
+    1
+   ]
+  },
+  {
+   "function": "expand_findfunc",
+   "was": true,
+   "now": true,
+   "idx_was": [
+    1
+   ],
+   "idx_now": [
+    1
+   ]
+  },
+  {
+   "function": "change_indent",
+   "was": true,
+   "now": true,
+   "idx_was": [
+    1
+   ],
+   "idx_now": [
+    1
+   ]
+  },
+  {
+   "function": "json_encode_lsp_msg",
+   "was": true,
+   "now": true,
+   "idx_was": [
+    1
+   ],
+   "idx_now": [
+    1
+   ]
+  },
+  {
+   "function": "list_extend_func",
+   "was": true,
+   "now": true,
+   "idx_was": [
+    1,
+    2
+   ],
+   "idx_now": [
+    1,
+    2
+   ]
+  },
+  {
+   "function": "netbeans_file_activated",
+   "was": true,
+   "now": true,
+   "idx_was": [
+    1
+   ],
+   "idx_now": [
+    1
+   ]
+  },
+  {
+   "function": "socket_server_send_reply",
+   "was": true,
+   "now": true,
+   "idx_was": [
+    1
+   ],
+   "idx_now": [
+    1
+   ]
+  },
+  {
+   "function": "string_reduce",
+   "was": true,
+   "now": true,
+   "idx_was": [
+    1
+   ],
+   "idx_now": [
+    1
+   ]
+  },
+  {
+   "function": "u_read_undo",
+   "was": true,
+   "now": true,
+   "idx_was": [
+    1,
+    2
+   ],
+   "idx_now": [
+    1,
+    2
+   ]
+  },
+  {
+   "function": "add_defer",
+   "was": true,
+   "now": true,
+   "idx_was": [
+    1
+   ],
+   "idx_now": [
+    1
+   ]
+  },
+  {
+   "function": "add_interface_from_super_class",
+   "was": true,
+   "now": true,
+   "idx_was": [
+    1
+   ],
+   "idx_now": [
+    1
+   ]
+  },
+  {
+   "function": "compile_catch",
+   "was": true,
+   "now": false,
+   "idx_was": [
+    1
+   ],
+   "idx_now": []
+  },
+  {
+   "function": "compile_for",
+   "was": true,
+   "now": true,
+   "idx_was": [
+    1
+   ],
+   "idx_now": [
+    1
+   ]
+  },
+  {
+   "function": "compile_def_function_body",
+   "was": true,
+   "now": true,
+   "idx_was": [
+    1
+   ],
+   "idx_now": [
+    1
+   ]
+  },
+  {
+   "function": "reserve_local",
+   "was": true,
+   "now": true,
+   "idx_was": [
+    1
+   ],
+   "idx_now": [
+    1
+   ]
+  },
+  {
+   "function": "exe_newdict",
+   "was": true,
+   "now": true,
+   "idx_was": [
+    1
+   ],
+   "idx_now": [
+    1
+   ]
+  },
+  {
+   "function": "compile_dict",
+   "was": true,
+   "now": true,
+   "idx_was": [
+    1,
+    2,
+    4
+   ],
+   "idx_now": [
+    1,
+    2,
+    4
+   ]
+  },
+  {
+   "function": "barline_parse",
+   "was": true,
+   "now": true,
+   "idx_was": [
+    1
+   ],
+   "idx_now": [
+    1
+   ]
+  }
+ ],
+ "control_flag_rate": "3/25",
+ "tier1_kept": "22/24",
+ "usage": {
+  "calls": 75,
+  "cache_hits": 0,
+  "prompt_tokens": 234325,
+  "cached_tokens": 0,
+  "completion_tokens": 38086,
+  "cost_usd": 0.0926
+ }
+}

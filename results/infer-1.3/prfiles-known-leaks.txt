@@ -1,0 +1,23 @@
+
+=== output/oom/runs/v13-patched-prfiles/infer-out/report.json  (158 findings, 110 distinct file+procedure)
+  --- the 9 upstream PRs ---
+   miss match.c                f_setmatches                   -- but the file has: ['f_matcharg']
+   HIT  viminfo.c              barline_parse                  ['MEMORY_LEAK_C']   [PR2 viminfo continuation buf]
+   HIT  strings.c              string_reduce                  ['MEMORY_LEAK_C']   [PR3 stale current_funccal (UAR)]
+   miss vim9class.c            ex_class                       -- but the file has: ['add_interface_from_super_class', 'add_member', 'add_members_to_class', 'enum_add_values_member']...
+   HIT  vim9generics.c         parse_generic_func_type_args   ['MEMORY_LEAK_C', 'USE_AFTER_FREE']   [PR5 generic type args]
+   HIT  json.c                 json_encode_lsp_msg            ['MEMORY_LEAK_C']   [PR6 lsp msg buffer]
+   miss ex_docmd.c             ex_redir                       -- but the file has: ['expand_findfunc', 'findfunc_find_file']
+   miss gui_gtk_x11.c          gui_gtk_draw_string            -- but the file has: ['drag_handle_uri_list']
+   miss if_xcmdsrv.c           serverRegisterName             -- but the file has: ['serverSendToVim']
+  => 4/9 exact procedure hits
+  --- job/channel (the 11.9 GB Codeium leak) ---
+   channel.c          channel_exe_cmd                    ['PULSE_UNINITIALIZED_VALUE']
+   channel.c          invoke_callback                    ['PULSE_UNINITIALIZED_VALUE']
+   job.c              f_prompt_setcallback               ['MEMORY_LEAK_C', 'PULSE_UNINITIALIZED_VALUE']
+   job.c              f_prompt_setinterrupt              ['MEMORY_LEAK_C', 'PULSE_UNINITIALIZED_VALUE']
+   job.c              f_prompt_setprompt                 ['MEMORY_LEAK_C']
+   job.c              get_job_options                    ['NULLPTR_DEREFERENCE']
+   job.c              invoke_prompt_callback             ['PULSE_UNINITIALIZED_VALUE']
+   job.c              invoke_prompt_interrupt            ['PULSE_UNINITIALIZED_VALUE']
+   job.c              job_info                           ['MEMORY_LEAK_C']

@@ -220,4 +220,7 @@ __marimo__/
 # MemHint reproduction artifacts
 output/
 tools/
+# the OOM investigation harness is small, generic and meant to be shared
+!results/infer-oom/tools/
+!results/infer-oom/tools/*
 subjects/

@@ -1,0 +1,530 @@
+{
+ "positive": {
+  "current": {
+   "verdict": false,
+   "confidence": 0.97,
+   "reason": "parse_type registers allocated types in gfatab->gfat_arg_types, which owns them for cleanup on success or failure.",
+   "bug_indices": []
+  },
+  "two_tier": {
+   "verdict": false,
+   "confidence": 0.94,
+   "reason": "The parsed type is retained by the type table or generic argument, so the reported parse_type allocation is not leaked.",
+   "bug_indices": [],
+   "other_findings": [
+    {
+     "line": 313,
+     "alloc": "The heap string returned through ret_free by type_name(type_arg, &ret_free)",
+     "path": "For a compound type, if allocation of generic_arg->gt_name at line 324 fails, the function returns at line 326 without freeing ret_free."
+    }
+   ]
+  }
+ },
+ "controls": [
+  {
+   "function": "f_prompt_setcallback",
+   "file": "src/job.c",
+   "verdict": false,
+   "n_other": 0,
+   "other_findings": [],
+   "reason": "The copied callback name remains owned by buf->b_prompt_callback and is freed when that callback is released."
+  },
+  {
+   "function": "dict_filter_map",
+   "file": "src/dict.c",
+   "verdict": false,
+   "n_other": 0,
+   "other_findings": [],
+   "reason": "The funccall allocation is released by remove_funccal on every path after successful creation."
+  },
+  {
+   "function": "count_common_word",
+   "file": "src/spell.c",
+   "verdict": true,
+   "n_other": 0,
+   "other_findings": [],
+   "reason": "The allocated word-count object leaks when hash_add_item returns FAIL before storing its key, and the return value is ignored."
+  },
+  {
+   "function": "ex_type",
+   "file": "src/vim9class.c",
+   "verdict": false,
+   "n_other": 0,
+   "other_findings": [],
+   "reason": "The parsed type is owned by the script's type list, so the trailing-text path does not leak it."
+  },
+  {
+   "function": "generate_AUTOLOAD",
+   "file": "src/vim9instr.c",
+   "verdict": false,
+   "n_other": 0,
+   "other_findings": [],
+   "reason": "vim_strsave returns NULL without allocating memory, so the null-check path cannot leak its result."
+  },
+  {
+   "function": "set_string_option_global",
+   "file": "src/optionstr.c",
+   "verdict": false,
+   "n_other": 0,
+   "other_findings": [],
+   "reason": "The allocated copy is assigned to *p, which takes ownership after the previous global value is freed."
+  },
+  {
+   "function": "list_one_var",
+   "file": "src/evalvars.c",
+   "verdict": false,
+   "n_other": 0,
+   "other_findings": [],
+   "reason": "The allocation returned through tofree is freed by vim_free after list_one_var_a returns."
+  },
+  {
+   "function": "split_message",
+   "file": "src/popupmenu.c",
+   "verdict": false,
+   "n_other": 0,
+   "other_findings": [],
+   "reason": "The reported string allocation is retained in the returned array, and all failure paths free allocated entries and the array."
+  },
+  {
+   "function": "buf_copy_options",
+   "file": "src/option.c",
+   "verdict": false,
+   "n_other": 0,
+   "other_findings": [],
+   "reason": "The allocated string is stored in a buffer option field and is later released by free_buf_options, so it remains owned rather than leaking."
+  },
+  {
+   "function": "truncate_line",
+   "file": "src/change.c",
+   "verdict": false,
+   "n_other": 0,
+   "other_findings": [],
+   "reason": "ml_replace takes ownership of newp when copy is FALSE, so the allocated string is not leaked."
+  },
+  {
+   "function": "deleteFoldMarkers",
+   "file": "src/fold.c",
+   "verdict": false,
+   "n_other": 0,
+   "other_findings": [],
+   "reason": "The reported vim_memsave allocation is retained by the undo machinery rather than becoming unreachable, and no other shown allocation leaks."
+  },
+  {
+   "function": "blob_filter_map",
+   "file": "src/blob.c",
+   "verdict": false,
+   "n_other": 0,
+   "other_findings": [],
+   "reason": "The allocated funccall is released by remove_funccal() on every path after its creation."
+  },
+  {
+   "function": "generate_STORE",
+   "file": "src/vim9instr.c",
+   "verdict": false,
+   "n_other": 0,
+   "other_findings": [],
+   "reason": "The allocated string is stored in the generated instruction and ownership is transferred rather than lost."
+  },
+  {
+   "function": "f_popup_notification",
+   "file": "src/popupwin.c",
+   "verdict": false,
+   "n_other": 0,
+   "other_findings": [],
+   "reason": "The created popup window is linked into the popup list and remains owned by Vim, so ignoring the returned pointer does not leak it."
+  },
+  {
+   "function": "get_padding_border",
+   "file": "src/popupwin.c",
+   "verdict": true,
+   "n_other": 0,
+   "other_findings": [],
+   "reason": "If dictitem_alloc fails inside dict_add_list, the newly allocated list is neither referenced nor freed and becomes unreachable."
+  },
+  {
+   "function": "stop_insert",
+   "file": "src/edit.c",
+   "verdict": false,
+   "n_other": 0,
+   "other_findings": [],
+   "reason": "The returned buffer is either transferred to last_insert or explicitly freed, so neither reported issue is a leak."
+  },
+  {
+   "function": "set_tuple_union_type_on_stack",
+   "file": "src/vim9instr.c",
+   "verdict": false,
+   "n_other": 0,
+   "other_findings": [],
+   "reason": "The returned tuple type is stored on the type stack, so it remains reachable and is not leaked at the reported line."
+  },
+  {
+   "function": "generate_LOCKUNLOCK",
+   "file": "src/vim9instr.c",
+   "verdict": false,
+   "n_other": 0,
+   "other_findings": [],
+   "reason": "The allocated string is transferred to the generated instruction's lu_string field, so it is not leaked at the reported assignment."
+  },
+  {
+   "function": "list_filter_map",
+   "file": "src/list.c",
+   "verdict": false,
+   "n_other": 0,
+   "other_findings": [],
+   "reason": "The funccall allocation is released by remove_funccal() on the cleanup path."
+  },
+  {
+   "function": "ex_throw",
+   "file": "src/ex_eval.c",
+   "verdict": false,
+   "n_other": 0,
+   "other_findings": [],
+   "reason": "The allocated value is freed when throwing fails and ownership transfers to the exception object when throwing succeeds."
+  },
+  {
+   "function": "rename_buffer",
+   "file": "src/ex_cmds.c",
+   "verdict": false,
+   "n_other": 0,
+   "other_findings": [],
+   "reason": "The returned buffer remains owned by the buffer list, so assigning its number does not leak the allocation."
+  },
+  {
+   "function": "f_string",
+   "file": "src/strings.c",
+   "verdict": false,
+   "n_other": 0,
+   "other_findings": [],
+   "reason": "The allocation returned through tv2string is ownership-transferred via tofree, so the copying branch cannot overwrite it; the additional copy is also retained by rettv."
+  },
+  {
+   "function": "f_term_setkill",
+   "file": "src/terminal.c",
+   "verdict": false,
+   "n_other": 0,
+   "other_findings": [],
+   "reason": "The allocated string is stored in term->tl_kill, transferring ownership rather than making it unreachable."
+  },
+  {
+   "function": "compile_block",
+   "file": "src/vim9cmds.c",
+   "verdict": false,
+   "n_other": 0,
+   "other_findings": [],
+   "reason": "The allocated scope is transferred to cctx->ctx_scope, so compile_block does not lose ownership of it."
+  },
+  {
+   "function": "digraph_getlist_appendpair",
+   "file": "src/digraph.c",
+   "verdict": false,
+   "n_other": 0,
+   "other_findings": [],
+   "reason": "The strings allocated by vim_strsave are stored in list items that own them, so the reported allocation is not leaked."
+  }
+ ],
+ "control_flag_rate": "0/25",
+ "tier1_regression": [
+  {
+   "function": "general_beval_cb",
+   "was": true,
+   "now": true,
+   "idx_was": [
+    1
+   ],
+   "idx_now": [
+    1
+   ],
+   "n_other": 0
+  },
+  {
+   "function": "clip_wl_init_buffer_store",
+   "was": true,
+   "now": true,
+   "idx_was": [
+    1
+   ],
+   "idx_now": [
+    1
+   ],
+   "n_other": 0
+  },
+  {
+   "function": "f_cmdcomplete_info",
+   "was": true,
+   "now": true,
+   "idx_was": [
+    1,
+    2
+   ],
+   "idx_now": [
+    1,
+    2
+   ],
+   "n_other": 0
+  },
+  {
+   "function": "dict_extend_func",
+   "was": true,
+   "now": true,
+   "idx_was": [
+    1
+   ],
+   "idx_now": [
+    1
+   ],
+   "n_other": 0
+  },
+  {
+   "function": "eval8",
+   "was": true,
+   "now": true,
+   "idx_was": [
+    1,
+    2
+   ],
+   "idx_now": [
+    2
+   ],
+   "n_other": 0
+  },
+  {
+   "function": "get_matches_in_str",
+   "was": true,
+   "now": true,
+   "idx_was": [
+    1
+   ],
+   "idx_now": [
+    1
+   ],
+   "n_other": 0
+  },
+  {
+   "function": "heredoc_get",
+   "was": true,
+   "now": true,
+   "idx_was": [
+    1
+   ],
+   "idx_now": [
+    1
+   ],
+   "n_other": 0
+  },
+  {
+   "function": "expand_findfunc",
+   "was": true,
+   "now": true,
+   "idx_was": [
+    1
+   ],
+   "idx_now": [
+    1
+   ],
+   "n_other": 0
+  },
+  {
+   "function": "change_indent",
+   "was": true,
+   "now": true,
+   "idx_was": [
+    1
+   ],
+   "idx_now": [
+    1
+   ],
+   "n_other": 0
+  },
+  {
+   "function": "json_encode_lsp_msg",
+   "was": true,
+   "now": true,
+   "idx_was": [
+    1
+   ],
+   "idx_now": [
+    1
+   ],
+   "n_other": 0
+  },
+  {
+   "function": "list_extend_func",
+   "was": true,
+   "now": true,
+   "idx_was": [
+    1,
+    2
+   ],
+   "idx_now": [
+    1,
+    2
+   ],
+   "n_other": 0
+  },
+  {
+   "function": "netbeans_file_activated",
+   "was": true,
+   "now": true,
+   "idx_was": [
+    1
+   ],
+   "idx_now": [
+    1
+   ],
+   "n_other": 0
+  },
+  {
+   "function": "socket_server_send_reply",
+   "was": true,
+   "now": true,
+   "idx_was": [
+    1
+   ],
+   "idx_now": [
+    1
+   ],
+   "n_other": 0
+  },
+  {
+   "function": "string_reduce",
+   "was": true,
+   "now": false,
+   "idx_was": [
+    1
+   ],
+   "idx_now": [],
+   "n_other": 1
+  },
+  {
+   "function": "u_read_undo",
+   "was": true,
+   "now": true,
+   "idx_was": [
+    1,
+    2
+   ],
+   "idx_now": [
+    1,
+    2
+   ],
+   "n_other": 1
+  },
+  {
+   "function": "add_defer",
+   "was": true,
+   "now": true,
+   "idx_was": [
+    1
+   ],
+   "idx_now": [
+    1
+   ],
+   "n_other": 0
+  },
+  {
+   "function": "add_interface_from_super_class",
+   "was": true,
+   "now": true,
+   "idx_was": [
+    1
+   ],
+   "idx_now": [
+    1
+   ],
+   "n_other": 0
+  },
+  {
+   "function": "compile_catch",
+   "was": true,
+   "now": false,
+   "idx_was": [
+    1
+   ],
+   "idx_now": [],
+   "n_other": 0
+  },
+  {
+   "function": "compile_for",
+   "was": true,
+   "now": true,
+   "idx_was": [
+    1
+   ],
+   "idx_now": [
+    1
+   ],
+   "n_other": 0
+  },
+  {
+   "function": "compile_def_function_body",
+   "was": true,
+   "now": true,
+   "idx_was": [
+    1
+   ],
+   "idx_now": [
+    1
+   ],
+   "n_other": 0
+  },
+  {
+   "function": "reserve_local",
+   "was": true,
+   "now": false,
+   "idx_was": [
+    1
+   ],
+   "idx_now": [],
+   "n_other": 0
+  },
+  {
+   "function": "exe_newdict",
+   "was": true,
+   "now": true,
+   "idx_was": [
+    1
+   ],
+   "idx_now": [
+    1
+   ],
+   "n_other": 0
+  },
+  {
+   "function": "compile_dict",
+   "was": true,
+   "now": true,
+   "idx_was": [
+    1,
+    2,
+    4
+   ],
+   "idx_now": [
+    1,
+    2,
+    4
+   ],
+   "n_other": 0
+  },
+  {
+   "function": "barline_parse",
+   "was": true,
+   "now": true,
+   "idx_was": [
+    1
+   ],
+   "idx_now": [
+    1
+   ],
+   "n_other": 0
+  }
+ ],
+ "tier1_kept": "21/24",
+ "usage": {
+  "calls": 41,
+  "cache_hits": 10,
+  "prompt_tokens": 161047,
+  "cached_tokens": 0,
+  "completion_tokens": 26890,
+  "cost_usd": 0.0645
+ }
+}

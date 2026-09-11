@@ -13,7 +13,7 @@ Diff: `list_free.diff`
 ### Problem
 
 `list_alloc()` links every new list header into the global chain used for garbage collection,
-in `list_init()` (`src/list.c`, lines **72–80**):
+in `list_init()` (`src/list.c`, lines **74–79**):
 
 ```c
     // Prepend the list to the list of lists for garbage collection.
@@ -49,8 +49,20 @@ example `tuple2items()` in `src/tuple.c` (line **877**):
 ```
 
 `first_list` is then left pointing at freed memory. The next `list_alloc()` writes through it
-immediately, at `first_list->lv_used_prev = l;`, and a later `garbage_collect()` walks the chain
-into the freed block.
+immediately, and a later `garbage_collect()` walks the chain into the freed block.
+
+Forcing `listitem_alloc()` to fail once under AddressSanitizer, then allocating another list:
+
+```
+ERROR: AddressSanitizer: heap-use-after-free
+WRITE of size 8
+    #0 list_init  list.c:76
+    #1 list_alloc list.c:93
+freed by:
+    vim_free   alloc.c:623   <- blob2items blob.c:334
+previously allocated by:
+    list_alloc list.c:91     <- blob2items blob.c:328
+```
 
 The other six are `list2items()` and `string2items()` in `src/list.c`, `blob2items()` in
 `src/blob.c`, `f_getchangelist()` and `f_getjumplist()` in `src/evalfunc.c`, and
@@ -60,10 +72,14 @@ Patch 9.2.0808 fixed the same mistake in `add_regionpos_range()`.
 
 ### Solution
 
-Use `list_free()` at those seven sites. The append failed, so the list is still empty and its
-reference count is still zero — `list_append_list()` increments only after a successful append.
-In `add_defer_item()` the list comes from `list_alloc_with_items()`, whose items are embedded in
-the same allocation; `list_free_item()` checks `lv_with_items` and does not free them separately.
+Use `list_free()` at those seven sites. The append failed, so no reference was taken:
+`list_append_list()` increments `lv_refcount` only after a successful `list_append()`, and
+`list_insert_tv()` fails before `copy_tv()`. In `add_defer_item()` the list comes from
+`list_alloc_with_items()`, whose `listitem_T`s are embedded in the same allocation;
+`list_free_item()` checks `lv_with_items` and does not free them separately.
+
+`listitem_alloc()` uses `ALLOC_ONE` without an id, so `test_alloc_fail()` cannot reach this path.
+I can add an alloc id to it if you would like a regression test.
 
 ---
 
@@ -99,8 +115,14 @@ references are not released until the next garbage collection:
 call setmatches([{'group': 'Search', 'id': 4, 'priority': 10, 'pos1': [1,1,1], 'pos2': [2,1,1]}])
 ```
 
-With a live `list_T` counter, 1000 such calls keep 3000 lists alive, and 4000 with three
-positions.
+The reference count of a position list can be read directly:
+
+```vim
+let p = [1, 1, 1]
+call setmatches([#{group: 'Search', id: 4, priority: 10, pos1: p, pos2: [2, 1, 1]}])
+call clearmatches()
+echo test_refcount(p)   " 2, expected 1
+```
 
 When a `posN` value is not a List the function returns without releasing `s` at all
 (lines **1146–1147**):
@@ -111,7 +133,16 @@ When a `posN` value is not a List the function returns without releasing `s` at 
 ```
 
 ```vim
-call setmatches([{'group': 'Search', 'id': 4, 'priority': 10, 'pos1': [1,1,1], 'pos2': 'notalist'}])
+let p = [1, 1, 1]
+call setmatches([#{group: 'Search', id: 4, priority: 10, pos1: p, pos2: {}}])
+call clearmatches()
+echo test_refcount(p)   " 2, expected 1
+```
+
+`test_match.vim` already exercises this path, at `Test_setmatches()`:
+
+```vim
+call assert_equal(-1, setmatches([{'group' : 'Search', 'priority' : 10, 'id' : 5, 'pos1' : {}}]))
 ```
 
 ### Solution
@@ -148,5 +179,7 @@ Only built when `BACKSLASH_IN_FILENAME` is defined.
 
 ### Solution
 
-Clear `b_p_csl` in `free_buf_options()`, next to `b_p_cpt` so that the order matches
-`buf_copy_options()`.
+Clear `b_p_csl` in `free_buf_options()`, next to `b_p_cpt`, where `buf_copy_options()` also
+puts it.
+
+I cannot build this path here, but the MS-Windows CI compiles it.

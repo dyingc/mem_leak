@@ -2,6 +2,30 @@
 5d934b1b, PR texts in `tip-9.2.1054/PR_DESCRIPTIONS.md`, red-team review in
 `CHALLENGE_RESPONSE.md`). This file documents the earlier five against a96c3bc1.**
 
+## Status at 2026-09-11
+
+One of the nine is upstream: **`strings.diff` (`string_reduce`) was filed as vim/vim#21255 and
+accepted as patch 9.2.1058**, "string_reduce() leaves a stale funccall on error". The other eight
+are rebased, reviewed and written up, and are waiting on approval to submit -- they do not need
+re-verification.
+
+Re-checked today against upstream master, now at **9.2.1067** (the patch set is still named for
+5d934b1b / 9.2.1054, which is stale but left alone so the review trail stays readable):
+
+- All eight remaining diffs `git apply --check` cleanly at 9.2.1067.
+- Exactly one upstream commit in 9.2.1054..9.2.1067 touches any of the eight target files:
+  `e49b4b5c patch 9.2.1064: Coverity: possible integer underflow in barline_parse()`. That is a
+  different defect in the same function as our #2 -- it changes `n > 0` to `n > 2` in the
+  NL/CR stripping loop and does nothing about the `buf` leak. Our hunk is elsewhere and still
+  applies. Worth knowing that Coverity is currently looking at this function.
+- Spot-checked that the leaking code is still present in `match.c`, `json.c` and `if_xcmdsrv.c`.
+
+These eight are **not** part of `notes/vim-defect-verification-request.md`. That file covers ten
+*new* candidates found later and never verified; these eight already went through the red-team
+review in `CHALLENGE_RESPONSE.md`. The only overlap is a coincidence of file: item 3 there is
+`serverSendToVim`, which lives in `src/if_xcmdsrv.c` alongside our #9 `serverRegisterName`, but is
+a different function and a different defect.
+
 # Draft upstream PRs for vim/vim
 
 Five leaks found by the MemHint reproduction that are still present on `master`

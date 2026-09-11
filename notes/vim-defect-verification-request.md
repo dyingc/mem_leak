@@ -5,6 +5,14 @@ All of these came out of the Infer/LLM pipeline on **Vim 9.2.0015**
 reported upstream. They are listed here so a separate session can check them independently
 before any becomes a PR.
 
+**These ten are new and unverified.** They are not the nine patches from the earlier red-team
+review. Those live in `results/upstream-prs/tip-9.2.1054/`, were reviewed in
+`results/upstream-prs/CHALLENGE_RESPONSE.md`, and one of them is already upstream as patch
+9.2.1058. The other eight are rebased and waiting on approval to submit -- **do not re-verify
+them.** The only overlap is a coincidence of file: item 3 below is `serverSendToVim` in
+`src/if_xcmdsrv.c`, which also holds that set's `serverRegisterName`, but they are different
+functions and different defects.
+
 **What I need from the verification pass, per item:**
 
 1. Confirm or refute the claim by reading the code. Quote `file:line`.

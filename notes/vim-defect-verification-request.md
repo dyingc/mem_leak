@@ -14,6 +14,36 @@ before any becomes a PR.
    Vim has no fault-injection harness, so "not testable" is an acceptable answer.
 5. Flag anything where my stated reasoning is wrong even if the conclusion happens to hold.
 
+## How to run this
+
+Launch **ten subagents, one per item**. They are independent -- each touches a different file --
+so run them concurrently rather than one at a time. Give each subagent:
+
+- the item verbatim, including its "Question that decides..." paragraph where present;
+- the two facts below about garbage collection, in full. Both cost me a wrong conclusion, and a
+  subagent that does not know them will re-derive the same mistakes;
+- the source tree path, read-only;
+- the instruction to quote `file:line` for every assertion and to answer **UNCERTAIN** rather than
+  guess when the code does not settle something. A confident wrong answer here is worse than an
+  admitted gap, because these go upstream.
+
+Tell each one explicitly that my reasoning may be wrong even where the conclusion is right, and
+that saying so is part of the job.
+
+**Then check the results yourself before reporting.** Do not just concatenate what comes back. At
+minimum:
+
+- Re-read the source for any item a subagent marked REAL, at least far enough to confirm the
+  specific line it rests on. These become upstream patches with our names on them.
+- Items 3, 4 and 6 are memory-safety claims and item 3 additionally carries a security assessment.
+  Verify those yourself rather than delegating the final call.
+- Watch for subagents that simply restate my framing. If one comes back agreeing with every word
+  of an item, that is a signal to look at it again, not a confirmation.
+- Reconcile contradictions. Items 1, 4 and 9 all touch `src/list.c` ownership rules; if two
+  subagents describe those rules differently, one of them is wrong and it matters.
+- Say which items you could **not** settle, and why. An honest "unresolved" list is more useful
+  than ten green checkmarks.
+
 **Two facts to apply throughout — both cost me a wrong conclusion earlier:**
 
 - `list_T` and `dict_T` are **garbage collected**. `list_alloc()` returns refcount 0 and

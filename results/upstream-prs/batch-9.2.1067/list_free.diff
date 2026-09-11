@@ -1,0 +1,83 @@
+diff --git a/src/blob.c b/src/blob.c
+index 3f741740..1f9d470e 100644
+--- a/src/blob.c
++++ b/src/blob.c
+@@ -331,7 +331,7 @@ blob2items(typval_T *argvars, typval_T *rettv)
+ 
+ 	if (list_append_list(rettv->vval.v_list, l2) == FAIL)
+ 	{
+-	    vim_free(l2);
++	    list_free(l2);
+ 	    return;
+ 	}
+ 
+diff --git a/src/evalfunc.c b/src/evalfunc.c
+index aa537e10..d0d8e302 100644
+--- a/src/evalfunc.c
++++ b/src/evalfunc.c
+@@ -5670,7 +5670,7 @@ f_getchangelist(typval_T *argvars, typval_T *rettv)
+ 	return;
+     if (list_append_list(rettv->vval.v_list, l) == FAIL)
+     {
+-	vim_free(l);
++	list_free(l);
+ 	return;
+     }
+ 
+@@ -5910,7 +5910,7 @@ f_getjumplist(typval_T *argvars, typval_T *rettv)
+ 	return;
+     if (list_append_list(rettv->vval.v_list, l) == FAIL)
+     {
+-	vim_free(l);
++	list_free(l);
+ 	return;
+     }
+ 
+diff --git a/src/list.c b/src/list.c
+index 42833354..372aa88a 100644
+--- a/src/list.c
++++ b/src/list.c
+@@ -1147,7 +1147,7 @@ list2items(typval_T *argvars, typval_T *rettv)
+ 	    break;
+ 	if (list_append_list(rettv->vval.v_list, l2) == FAIL)
+ 	{
+-	    vim_free(l2);
++	    list_free(l2);
+ 	    break;
+ 	}
+ 	if (list_append_number(l2, idx) == FAIL
+@@ -1183,7 +1183,7 @@ string2items(typval_T *argvars, typval_T *rettv)
+ 	    break;
+ 	if (list_append_list(rettv->vval.v_list, l2) == FAIL)
+ 	{
+-	    vim_free(l2);
++	    list_free(l2);
+ 	    break;
+ 	}
+ 	if (list_append_number(l2, idx) == FAIL
+diff --git a/src/tuple.c b/src/tuple.c
+index 8e5a9fcf..8fd670c4 100644
+--- a/src/tuple.c
++++ b/src/tuple.c
+@@ -874,7 +874,7 @@ tuple2items(typval_T *argvars, typval_T *rettv)
+ 
+ 	if (list_append_list(rettv->vval.v_list, l) == FAIL)
+ 	{
+-	    vim_free(l);
++	    list_free(l);
+ 	    break;
+ 	}
+ 	if (list_append_number(l, idx) == FAIL
+diff --git a/src/vim9execute.c b/src/vim9execute.c
+index f2f324cb..2fc6cc9f 100644
+--- a/src/vim9execute.c
++++ b/src/vim9execute.c
+@@ -1104,7 +1104,7 @@ add_defer_item(int var_idx, int argcount, ectx_T *ectx)
+     listval.v_lock = 0;
+     if (list_insert_tv(defer_l, &listval, defer_l->lv_first) == FAIL)
+     {
+-	vim_free(l);
++	list_free(l);
+ 	return NULL;
+     }
+ 

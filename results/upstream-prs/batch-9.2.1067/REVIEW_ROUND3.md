@@ -9,8 +9,8 @@ PR 2's body said the early-return path is already exercised "at `Test_setmatches
 `test_match.vim`. **There is no `Test_setmatches()` in that file.** The line in question,
 `test_match.vim:100`, lives in `Test_match()`, declared at line 6 as `function Test_match()` —
 with `function`, not `func`. My `grep '^func Test_'` skipped it and I attributed the line to the
-nearest plausible name. A `Test_setmatches()` does exist, in `test_expr.vim:743`, and does not
-walk this path.
+nearest plausible name. Functions by that name do exist — `test_expr.vim:743` and `test_vim9_builtin.vim:4192` —
+and neither walks this path.
 
 A maintainer would have run `grep Test_setmatches src/testdir/test_match.vim`, found nothing, and
 been right to distrust the rest of the body. Fixed to `Test_match()`.
@@ -56,8 +56,28 @@ regenerate on demand.
 
 ## What I am still not asserting
 
-- The mingw-w64 and Wine results in PR 3 come from `repro/mingw_csl.sh` and were **not** re-run
-  by me; there is no mingw toolchain on this machine. The script is in the tree and its claims
-  are specific enough to be falsified by anyone who runs it. If the sentence in PR 3 cannot be
-  stood behind, it should be cut rather than softened.
-- The 1000-test suite result likewise comes from the review pass, not from a run here.
+- **Correction.** An earlier version of this file said there is no mingw toolchain on this
+  machine, and used that to suggest cutting PR 3's sentence rather than standing behind it. I
+  never checked. `/usr/bin/x86_64-w64-mingw32-gcc` (GCC 14-win32) and `/usr/bin/wine` are both
+  installed; `wine --version` prints a long banner about missing 32-bit support, which is
+  irrelevant to an `ARCH=x86-64` build. I have now run `repro/mingw_csl.sh` here:
+  `BACKSLASH_IN_FILENAME` defined, `vim.exe` built with no warnings in `buffer.c`, and the Wine
+  run — 50 buffer create/wipe cycles plus 400 `buf_copy_options()` re-entries — completed without
+  a crash. PR 3's sentence is first-hand.
+- The 1000-test result was also quoted rather than run; `repro/run_tests.sh` was executed here
+  afterwards, both directions.
+
+## Every claim in the bodies is now first-hand
+
+All three scripts were run on this machine, both directions where they have two:
+
+```
+repro/asan_uaf.sh              heap-use-after-free list.c:76 in list_init
+repro/asan_uaf.sh --patched    no AddressSanitizer error
+repro/mingw_csl.sh             BACKSLASH_IN_FILENAME: yes; vim.exe, 0 warnings in buffer.c;
+                               Wine: 50 buffer cycles + 400 buf_copy_options() re-entries, no crash
+repro/run_tests.sh             pass 1 (test, no fix): 1000 tests, 3 failing assertions
+                               pass 2 (test + fixes): 1000 tests, 0 failing assertions
+```
+
+Nothing in `PR_BODIES.md` is now quoted from someone else's run.

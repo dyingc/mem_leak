@@ -142,7 +142,7 @@ call clearmatches()
 echo test_refcount(p)   " 2, expected 1
 ```
 
-`test_match.vim` already exercises this path, in `Test_match()`:
+`test_match.vim` already reaches this path, in `Test_match()`, without noticing the leak:
 
 ```vim
 call assert_equal(-1, setmatches([{'group' : 'Search', 'priority' : 10, 'id' : 5, 'pos1' : {}}]))

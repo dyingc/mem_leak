@@ -1,61 +1,69 @@
-# PR texts — batch against vim/vim master at patch 9.2.1067 (`90fdb790`)
+# PR bodies — against vim/vim master at patch 9.2.1067 (`90fdb790`)
 
-Three independent PRs, in submission order. All three diffs `git apply --check` cleanly at
-9.2.1067; `list_free.diff` and `buffer_csl.diff` were generated against that tree, `match.diff`
-carries over from the 9.2.1054 set unchanged.
-
-No `version.c` change in any of them — the maintainer assigns the patch number.
+Same shape as vim/vim#21255: `### Problem`, then `### Solution`. Nothing else — no test
+rationale, no severity commentary, no notes to the maintainer. Line numbers are 9.2.1067.
 
 ---
 
-## PR 1 — `Fix use-after-free when a list append fails in several functions`
+## PR 1 — `Fix use-after-free when appending a new list fails`
 
 Files: `src/tuple.c`, `src/list.c`, `src/blob.c`, `src/evalfunc.c`, `src/vim9execute.c`
-Diff: `list_free.diff` (7 lines changed)
-Test: none, matching patch 9.2.0808 which fixed the same mistake at another site.
+Diff: `list_free.diff`
 
+### Problem
+
+`list_alloc()` links every new list header into the global chain used for garbage collection,
+in `list_init()` (`src/list.c`, lines **72–80**):
+
+```c
+    // Prepend the list to the list of lists for garbage collection.
+    if (first_list != NULL)
+	first_list->lv_used_prev = l;
+    l->lv_used_prev = NULL;
+    l->lv_used_next = first_list;
+    first_list = l;
 ```
-Problem:  Seven functions free a freshly allocated list with vim_free() when
-          appending it fails.  list_alloc() has already linked the header into
-          the global list of lists used for garbage collection, and only
-          list_free_list() unlinks it, so first_list is left pointing at freed
-          memory.
-Solution: Free those lists with list_free(), as add_regionpos_range() does
-          since patch 9.2.0808.
+
+The only code that unlinks it again is `list_free_list()` (lines **269–275**), reached through
+`list_free()`:
+
+```c
+    // Remove the list from the list of lists for garbage collection.
+    if (l->lv_used_prev == NULL)
+	first_list = l->lv_used_next;
+    else
+	l->lv_used_prev->lv_used_next = l->lv_used_next;
+    if (l->lv_used_next != NULL)
+	l->lv_used_next->lv_used_prev = l->lv_used_prev;
 ```
 
-Body:
+Seven functions release such a header with a plain `vim_free()` when appending it fails, for
+example `tuple2items()` in `src/tuple.c` (line **877**):
 
-> `list_alloc()` calls `list_init()`, which prepends the new header to `first_list`
-> (`list.c:72-80`). The only code that unlinks it again is `list_free_list()`
-> (`list.c:264-276`), reached through `list_free()`. Releasing the header with a plain
-> `vim_free()` therefore leaves a dangling entry in that chain.
->
-> The first write through the stale pointer does not have to wait for a garbage collection:
-> the very next `list_alloc()` executes `first_list->lv_used_prev = l;` at `list.c:75`.
->
-> This is the same mistake patch 9.2.0808 fixed in `add_regionpos_range()`, whose message
-> already states that these lists must be freed with `list_free()` "so they are unlinked from
-> the garbage-collection chain". The seven sites below were missed then:
->
-> | File | Function |
-> |------|----------|
-> | `src/tuple.c` | `tuple2items()` |
-> | `src/list.c` | `list2items()` |
-> | `src/list.c` | `string2items()` |
-> | `src/blob.c` | `blob2items()` |
-> | `src/evalfunc.c` | `f_getchangelist()` |
-> | `src/evalfunc.c` | `f_getjumplist()` |
-> | `src/vim9execute.c` | `add_defer_item()` |
->
-> Calling `list_free()` here is safe: the append failed, so the list is still empty and its
-> reference count is still zero — `list_append_list()` increments only after a successful
-> append. In `add_defer_item()` the list comes from `list_alloc_with_items()`, whose items are
-> embedded in the same allocation; `list_free_item()` checks `lv_with_items` and does not free
-> them separately (`list.c`), so `list_free()` is correct there too.
->
-> Reached only when `listitem_alloc()` returns NULL, i.e. on allocation failure, which is why
-> there is no test — the same reason patch 9.2.0808 carries none.
+```c
+	if (list_append_list(rettv->vval.v_list, l) == FAIL)
+	{
+	    vim_free(l);
+	    break;
+	}
+```
+
+`first_list` is then left pointing at freed memory. The next `list_alloc()` writes through it
+immediately, at `first_list->lv_used_prev = l;`, and a later `garbage_collect()` walks the chain
+into the freed block.
+
+The other six are `list2items()` and `string2items()` in `src/list.c`, `blob2items()` in
+`src/blob.c`, `f_getchangelist()` and `f_getjumplist()` in `src/evalfunc.c`, and
+`add_defer_item()` in `src/vim9execute.c`.
+
+Patch 9.2.0808 fixed the same mistake in `add_regionpos_range()`.
+
+### Solution
+
+Use `list_free()` at those seven sites. The append failed, so the list is still empty and its
+reference count is still zero — `list_append_list()` increments only after a successful append.
+In `add_defer_item()` the list comes from `list_alloc_with_items()`, whose items are embedded in
+the same allocation; `list_free_item()` checks `lv_with_items` and does not free them separately.
 
 ---
 
@@ -64,33 +72,52 @@ Body:
 File: `src/match.c`
 Diff: `match.diff`, test in `match_test.diff`
 
-```
-Problem:  f_setmatches() increments lv_refcount of the position list "s"
-          once for every "posN" entry it appends, but match_add() does not
-          keep a reference and list_unref() is called only once.  With two
-          or more positions the list, and the position lists it holds a
-          reference to, are not released until the next garbage collection.
-          When a "posN" value is not a List the function returns without
-          releasing "s" at all.
-Solution: Take one reference right after list_alloc(), drop the per-item
-          increment, and list_unref() the list on the early return.
+### Problem
+
+In `f_setmatches()` in `src/match.c`, a list is allocated to collect the positions of a match
+created by `matchaddpos()` (line **1135**):
+
+```c
+		    s = list_alloc();
+		    if (s == NULL)
+			return;
 ```
 
-Body:
+and its reference count is then incremented once for every `posN` entry appended to it
+(line **1150**):
 
-> ```vim
-> call setmatches([{'group': 'Search', 'id': 4, 'priority': 10, 'pos1': [1,1,1], 'pos2': [2,1,1]}])
-> call setmatches([{'group': 'Search', 'id': 4, 'priority': 10, 'pos1': [1,1,1], 'pos2': 'notalist'}])
-> ```
->
-> Measured with a live `list_T` counter: 1000 calls with two positions keep 3000 lists alive,
-> with three positions 4000, and with a non-List `pos2` 2000.
->
-> Note this is a reference-counting error with a bounded effect, **not** a permanent leak.
-> LeakSanitizer does not see it because `list_init()` keeps every list on `first_list`, and a
-> garbage collection does reclaim them. The added test asserts the reference count directly
-> rather than looking for a leak. Same class as patch 9.2.0065 (`recorded_changes` in
-> `invoke_sync_listeners()`).
+```c
+			list_append_tv(s, &di->di_tv);
+			s->lv_refcount++;
+```
+
+`match_add()` does not keep a reference, and `list_unref(s)` is called only once after the loop.
+With two or more positions the count never reaches zero, so the list and the position lists it
+references are not released until the next garbage collection:
+
+```vim
+call setmatches([{'group': 'Search', 'id': 4, 'priority': 10, 'pos1': [1,1,1], 'pos2': [2,1,1]}])
+```
+
+With a live `list_T` counter, 1000 such calls keep 3000 lists alive, and 4000 with three
+positions.
+
+When a `posN` value is not a List the function returns without releasing `s` at all
+(lines **1146–1147**):
+
+```c
+			if (di->di_tv.v_type != VAR_LIST)
+			    return;
+```
+
+```vim
+call setmatches([{'group': 'Search', 'id': 4, 'priority': 10, 'pos1': [1,1,1], 'pos2': 'notalist'}])
+```
+
+### Solution
+
+Take one reference right after `list_alloc()`, drop the per-item increment, and `list_unref()`
+the list on the early return.
 
 ---
 
@@ -98,29 +125,28 @@ Body:
 
 File: `src/buffer.c`
 Diff: `buffer_csl.diff`
-Test: none — the code is inside `#ifdef BACKSLASH_IN_FILENAME`, so it does not build on the
-platforms the test suite runs on here.
 
+### Problem
+
+`buf_copy_options()` in `src/option.c` allocates the buffer-local value of `'completeslash'`
+(line **7946**):
+
+```c
+#ifdef BACKSLASH_IN_FILENAME
+	    buf->b_p_csl = vim_strsave(p_csl);
+	    COPY_OPT_SCTX(buf, BV_CSL);
+#endif
 ```
-Problem:  free_buf_options() does not clear 'completeslash'.  buf_copy_options()
-          allocates b_p_csl but nothing ever frees it, so the old value is lost
-          every time a buffer's options are copied again, and again when the
-          buffer is freed.
-Solution: Clear b_p_csl in free_buf_options(), next to b_p_cpt so the order
-          matches buf_copy_options().
-```
 
-Body:
+`free_buf_options()` in `src/buffer.c` clears every other buffer-local string option, but not
+this one. `grep b_p_csl src/buffer.c` returns nothing. So the previous value is dropped each time
+a buffer's options are copied again, and once more when the buffer itself is freed.
 
-> `free_buf_options()` clears every other buffer-local string option; `b_p_csl` is the only one
-> missing. `buf_copy_options()` assigns it with `vim_strsave(p_csl)` under
-> `#ifdef BACKSLASH_IN_FILENAME`, so on those builds the previous value is dropped on each
-> re-copy and again at buffer teardown. Unlike most leaks of this kind it does not need an
-> allocation failure to happen.
->
-> The option was added in patch 8.1.1769, which did not touch `src/buffer.c`; the free has been
-> missing since then.
->
-> Windows-only, so I have not been able to run it — the fix is by inspection, placed to mirror
-> the copy order in `buf_copy_options()` (`b_p_cpt`, then `b_p_csl`, then `b_p_cfu`), and
-> `b_p_csl` is declared under the same `#ifdef` in `structs.h`.
+The option was added in patch 8.1.1769, whose file list does not include `src/buffer.c`.
+
+Only built when `BACKSLASH_IN_FILENAME` is defined.
+
+### Solution
+
+Clear `b_p_csl` in `free_buf_options()`, next to `b_p_cpt` so that the order matches
+`buf_copy_options()`.

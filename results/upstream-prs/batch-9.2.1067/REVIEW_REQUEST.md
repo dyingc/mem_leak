@@ -17,7 +17,9 @@ spend time on it.
 
 For each patch: is it **correct**, is it **minimal**, and does the **PR text** describe it
 accurately? A wrong claim in the text is as bad as a wrong line of code here — these go to a
-maintainer who will read the text first.
+maintainer who will read the text first. The bodies follow vim/vim#21255: a `### Problem` section
+quoting the code with line numbers, then a short `### Solution`. Every line number and every code
+quote in them should be checked against 9.2.1067.
 
 Be specific about `file:line`. If something cannot be settled from the code, say UNCERTAIN
 rather than guessing.
@@ -88,9 +90,10 @@ rewritten and the test matters.
 
 ## Also worth your scepticism
 
-- **PR 1 has no test and PR 3 has no test.** My justification is that PR 1's path needs an
-  allocation failure (precedent: 9.2.0808 carries no test) and PR 3's code does not build here.
-  Is that going to satisfy a maintainer, or should something be written anyway?
+- **PR 1 and PR 3 carry no test.** PR 1's path needs an allocation failure and PR 3's code is
+  not built on Linux, so I do not see how to write one for either. The bodies say nothing about
+  this -- if the maintainer asks, we answer then. Tell me if you can see a test I have missed;
+  that is a better outcome than an explanation for its absence.
 - **Is filing three at once a mistake?** They touch unrelated files, but they come from one
   author on the same day.
 - Anything in `PR_BODIES.md` that overstates severity, or that a reviewer would read as claiming

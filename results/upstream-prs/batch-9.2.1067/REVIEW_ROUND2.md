@@ -22,8 +22,10 @@ of them held:
   not reset the pointer, and `free_buf_options()` really has three call sites
   (`buffer.c:1102`, `option.c:7881`, `option.c:7902`), so it can run twice on one buffer.
   `clear_string_option()` is the only one of the three that is safe.
-- `b_p_cpt` really is the 35th of 55 `clear_string_option()` calls in `free_buf_options()` while
-  sitting near the front of `buf_copy_options()`, so "the order matches" was overstated.
+- `b_p_cpt` sits near the front of `buf_copy_options()` but well down `free_buf_options()`, so
+  "the order matches" was overstated. (My own count of "35th of 55" was wrong — it is the 40th of
+  60. The regex I used excluded the `b_s.b_p_*` entries, which come earlier. The conclusion is
+  unaffected, but the number was.)
 
 The ASan trace could not be reproduced here — there is no ASan build on this machine — but its
 seven line references all land exactly where this bug would put them (`list.c:76` the UAF write,

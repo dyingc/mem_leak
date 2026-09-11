@@ -1,7 +1,9 @@
 # PR bodies — against vim/vim master at patch 9.2.1067 (`90fdb790`)
 
-Same shape as vim/vim#21255: `### Problem`, then `### Solution`. Nothing else — no test
-rationale, no severity commentary, no notes to the maintainer. Line numbers are 9.2.1067.
+Same shape as vim/vim#21255: `### Problem`, then `### Solution`. No severity commentary and no
+justification for what is missing. PR 1 and PR 3 each end with one sentence offering the
+maintainer something concrete — an alloc id for a regression test, and what was run on Windows —
+which is a different thing from explaining an absence. Line numbers are 9.2.1067.
 
 ---
 
@@ -51,7 +53,8 @@ example `tuple2items()` in `src/tuple.c` (line **877**):
 `first_list` is then left pointing at freed memory. The next `list_alloc()` writes through it
 immediately, and a later `garbage_collect()` walks the chain into the freed block.
 
-Forcing `listitem_alloc()` to fail once under AddressSanitizer, then allocating another list:
+Forcing `listitem_alloc()` to fail once with a debugger, under AddressSanitizer, then
+allocating another list:
 
 ```
 ERROR: AddressSanitizer: heap-use-after-free
@@ -139,7 +142,7 @@ call clearmatches()
 echo test_refcount(p)   " 2, expected 1
 ```
 
-`test_match.vim` already exercises this path, at `Test_setmatches()`:
+`test_match.vim` already exercises this path, in `Test_match()`:
 
 ```vim
 call assert_equal(-1, setmatches([{'group' : 'Search', 'priority' : 10, 'id' : 5, 'pos1' : {}}]))
@@ -182,4 +185,6 @@ Only built when `BACKSLASH_IN_FILENAME` is defined.
 Clear `b_p_csl` in `free_buf_options()`, next to `b_p_cpt`, where `buf_copy_options()` also
 puts it.
 
-I cannot build this path here, but the MS-Windows CI compiles it.
+Cross-compiled with mingw-w64 and exercised under Wine: `:set completeslash=`, 50 buffer
+create/wipe cycles, and 400 `buf_copy_options()` re-entries with `'cpo'` containing `S` — no
+crash.

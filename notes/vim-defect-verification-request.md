@@ -94,6 +94,11 @@ that is then used at 433-434 (`name = loosename`), read at 443/446, and freed ag
 Reaching it needs the registry to change between iterations, so it is race-dependent -- but the
 missing `loosename = NULL` is unconditional.
 
+**Question that decides whether this is a security issue:** can `VimRegistry` be written by
+anything other than an X client on the same display? My assessment below says no, and that is what
+makes this an ordinary bug rather than a disclosure case. If you find a path where the property is
+influenced from outside the display's trust domain, that assessment is wrong -- say so.
+
 ## 4. `vim_free()` where `list_free()` is required -- dangling entry left on `first_list`
 
 `src/tuple.c:875-879`, `src/list.c:1145-1149` (`list2items`), `src/list.c:1181-1185`
@@ -144,6 +149,12 @@ to `max_height` at 1711-1712. With `Rows` 4 or 5, `height` becomes 1, and then
 write to the same slot, dropping the first string. With `Rows <= 3`, `height` is 0 or negative and
 the second write goes to index -1, which is worse than a leak. Please check whether `Rows` can
 actually be that small while balloon evaluation is active.
+
+**Question that decides whether this is a security issue:** is the out-of-bounds write reachable
+through the *message* rather than through `Rows`? `split_message` is also called from
+`balloon_split()` (src/evalfunc.c:3688), which a script can call directly, and in some setups the
+balloon text comes from an LSP server. My reading is that the overflow depends only on `Rows`, i.e.
+on the user's own window size, and that the message cannot drive it. Confirm or refute that.
 
 ## 7. `home_replace()` never frees `homedir_env_orig`
 
@@ -200,6 +211,38 @@ success path too -- which contradicts that comment. Both are speculative until s
 platform this still builds on.
 
 ---
+
+## Security relevance
+
+Three of the ten are memory-safety bugs rather than plain leaks: **3** (use-after-free and
+double-free), **6** (out-of-bounds write), **4** (use-after-free on the next `garbage_collect()`).
+
+My assessment is that **none of them warrants a security disclosure** and all three should go
+through ordinary pull requests. The test I applied is whether attacker-controlled input crosses a
+trust boundary, not how severe the bug class sounds:
+
+- **3** requires the attacker to already be an X client on the same display. X11 maintains no
+  isolation between clients on one display by design -- such a client can already grab the
+  keyboard, inject events with XTEST, and read other windows. Being able to corrupt Vim's memory
+  adds nothing to that capability. The realistic trigger is a crashed or buggy client leaving a
+  malformed registry entry, which makes this a robustness problem. SSH X forwarding and containers
+  with a mounted X socket do not change this: a hostile client on such a display already owns the
+  session.
+- **6** depends on `Rows`, the user's own window size. Not attacker-controlled.
+- **4** requires `listitem_alloc()` to fail, i.e. memory exhaustion. Not practically controllable.
+
+For contrast, Vim's actual CVEs are overwhelmingly of the form "open this file" or "source this
+script" -- content that does cross a boundary. None of these three is that.
+
+Two findings would overturn this, and each is flagged in its item above: a way to influence
+`VimRegistry` from outside the display's trust domain (3), or an out-of-bounds write in
+`split_message` driven by the message rather than by `Rows` (6). If either holds, stop and say so
+before anything is filed publicly.
+
+Regardless of the verdict, the PR descriptions for 3, 4 and 6 should state plainly that the bug is
+a use-after-free or an out-of-bounds write and not merely a leak, and leave it to the maintainers
+to escalate if they disagree with the assessment above. That costs nothing and puts the decision
+with the people whose call it is.
 
 ## Items I checked and concluded are NOT defects
 

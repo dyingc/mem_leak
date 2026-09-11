@@ -1,0 +1,2613 @@
+{
+ "run": "infer-v13argn",
+ "n": 3,
+ "rows": [
+  {
+   "function": "get_arglist_as_rettv",
+   "file": "src/arglist.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 4120,
+   "chn_chars": 3503
+  },
+  {
+   "function": "f_blob2list",
+   "file": "src/blob.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 3353,
+   "chn_chars": 2787
+  },
+  {
+   "function": "buflist_new",
+   "file": "src/buffer.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 33447,
+   "chn_chars": 10572
+  },
+  {
+   "function": "open_buffer",
+   "file": "src/buffer.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 110109,
+   "chn_chars": 13493
+  },
+  {
+   "function": "may_record_change",
+   "file": "src/change.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 5137,
+   "chn_chars": 3377
+  },
+  {
+   "function": "dict_add_callback",
+   "file": "src/dict.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 4198,
+   "chn_chars": 3401
+  },
+  {
+   "function": "general_beval_cb",
+   "file": "src/beval.c",
+   "kind": "chain",
+   "cur_votes": [
+    true,
+    true,
+    true
+   ],
+   "chn_votes": [
+    true,
+    true,
+    true
+   ],
+   "cur": true,
+   "chn": true,
+   "cur_chars": 7128,
+   "chn_chars": 7815
+  },
+  {
+   "function": "f_listener_add",
+   "file": "src/change.c",
+   "kind": "chain",
+   "cur_votes": [
+    true,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 9732,
+   "chn_chars": 5544
+  },
+  {
+   "function": "stop_insert",
+   "file": "src/edit.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 17500,
+   "chn_chars": 6700
+  },
+  {
+   "function": "blob2items",
+   "file": "src/blob.c",
+   "kind": "chain",
+   "cur_votes": [
+    true,
+    true,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": true,
+   "chn": false,
+   "cur_chars": 5088,
+   "chn_chars": 4126
+  },
+  {
+   "function": "eval_addtuple",
+   "file": "src/eval.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 7130,
+   "chn_chars": 3575
+  },
+  {
+   "function": "buf_set_name",
+   "file": "src/buffer.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 5006,
+   "chn_chars": 3358
+  },
+  {
+   "function": "dict2list",
+   "file": "src/dict.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 9202,
+   "chn_chars": 5548
+  },
+  {
+   "function": "list2fpos",
+   "file": "src/eval.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 5730,
+   "chn_chars": 17227
+  },
+  {
+   "function": "f_deletebufline",
+   "file": "src/evalbuffer.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 8917,
+   "chn_chars": 6140
+  },
+  {
+   "function": "get_buffer_lines",
+   "file": "src/evalbuffer.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 7982,
+   "chn_chars": 4085
+  },
+  {
+   "function": "f_getcellpixels",
+   "file": "src/evalfunc.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 6028,
+   "chn_chars": 5065
+  },
+  {
+   "function": "f_expand",
+   "file": "src/evalfunc.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 17816,
+   "chn_chars": 4821
+  },
+  {
+   "function": "f_getchangelist",
+   "file": "src/evalfunc.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 7645,
+   "chn_chars": 4554
+  },
+  {
+   "function": "f_balloon_split",
+   "file": "src/evalfunc.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 7614,
+   "chn_chars": 7103
+  },
+  {
+   "function": "getpos_both",
+   "file": "src/evalfunc.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 10278,
+   "chn_chars": 5493
+  },
+  {
+   "function": "invoke_sync_listeners",
+   "file": "src/change.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 5695,
+   "chn_chars": 3391
+  },
+  {
+   "function": "f_inputsave",
+   "file": "src/evalfunc.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 3490,
+   "chn_chars": 3071
+  },
+  {
+   "function": "f_getbufinfo",
+   "file": "src/evalbuffer.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 7339,
+   "chn_chars": 3908
+  },
+  {
+   "function": "f_searchpairpos",
+   "file": "src/evalfunc.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 6228,
+   "chn_chars": 3490
+  },
+  {
+   "function": "f_screenchars",
+   "file": "src/evalfunc.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 5543,
+   "chn_chars": 3343
+  },
+  {
+   "function": "f_srand",
+   "file": "src/evalfunc.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 6255,
+   "chn_chars": 4396
+  },
+  {
+   "function": "f_searchpos",
+   "file": "src/evalfunc.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 7675,
+   "chn_chars": 3613
+  },
+  {
+   "function": "f_spellbadword",
+   "file": "src/evalfunc.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 26949,
+   "chn_chars": 5464
+  },
+  {
+   "function": "f_synconcealed",
+   "file": "src/evalfunc.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 8687,
+   "chn_chars": 5889
+  },
+  {
+   "function": "f_tabpagebuflist",
+   "file": "src/evalfunc.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 4080,
+   "chn_chars": 3079
+  },
+  {
+   "function": "f_virtcol",
+   "file": "src/evalfunc.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 12398,
+   "chn_chars": 4142
+  },
+  {
+   "function": "win_id2tabwin",
+   "file": "src/evalwindow.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 3944,
+   "chn_chars": 3525
+  },
+  {
+   "function": "assert_error",
+   "file": "src/evalvars.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 4865,
+   "chn_chars": 4137
+  },
+  {
+   "function": "f_getwinpos",
+   "file": "src/evalwindow.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 4875,
+   "chn_chars": 3687
+  },
+  {
+   "function": "f_win_id2tabwin",
+   "file": "src/evalwindow.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 3626,
+   "chn_chars": 3556
+  },
+  {
+   "function": "add_regionpos_range",
+   "file": "src/evalfunc.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 6445,
+   "chn_chars": 5864
+  },
+  {
+   "function": "f_win_screenpos",
+   "file": "src/evalwindow.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 4354,
+   "chn_chars": 3474
+  },
+  {
+   "function": "f_getwininfo",
+   "file": "src/evalwindow.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 7016,
+   "chn_chars": 4274
+  },
+  {
+   "function": "findfunc_find_file",
+   "file": "src/ex_docmd.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 6601,
+   "chn_chars": 6518
+  },
+  {
+   "function": "eval_addlist",
+   "file": "src/eval.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    true
+   ],
+   "chn_votes": [
+    true,
+    true,
+    true
+   ],
+   "cur": false,
+   "chn": true,
+   "cur_chars": 6369,
+   "chn_chars": 6358
+  },
+  {
+   "function": "f_winlayout",
+   "file": "src/evalwindow.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 4807,
+   "chn_chars": 4678
+  },
+  {
+   "function": "f_gettabinfo",
+   "file": "src/evalwindow.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 4845,
+   "chn_chars": 3212
+  },
+  {
+   "function": "foldCreateMarkers",
+   "file": "src/fold.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 5257,
+   "chn_chars": 5981
+  },
+  {
+   "function": "foldSplit",
+   "file": "src/fold.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 4580,
+   "chn_chars": 4511
+  },
+  {
+   "function": "f_readdirex",
+   "file": "src/filepath.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 9056,
+   "chn_chars": 3410
+  },
+  {
+   "function": "helptags_one",
+   "file": "src/help.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 20371,
+   "chn_chars": 21426
+  },
+  {
+   "function": "cs_add_common",
+   "file": "src/if_cscope.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 28944,
+   "chn_chars": 11140
+  },
+  {
+   "function": "serverSendToVim",
+   "file": "src/if_xcmdsrv.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    true
+   ],
+   "chn_votes": [
+    false,
+    false,
+    true
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 14060,
+   "chn_chars": 8831
+  },
+  {
+   "function": "do_helptags",
+   "file": "src/help.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 16810,
+   "chn_chars": 16938
+  },
+  {
+   "function": "f_prompt_setinterrupt",
+   "file": "src/job.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 8092,
+   "chn_chars": 5284
+  },
+  {
+   "function": "f_prompt_setcallback",
+   "file": "src/job.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 8086,
+   "chn_chars": 5279
+  },
+  {
+   "function": "json_encode_lsp_msg",
+   "file": "src/json.c",
+   "kind": "chain",
+   "cur_votes": [
+    true,
+    true,
+    true
+   ],
+   "chn_votes": [
+    true,
+    true,
+    true
+   ],
+   "cur": true,
+   "chn": true,
+   "cur_chars": 4208,
+   "chn_chars": 2864
+  },
+  {
+   "function": "string2items",
+   "file": "src/list.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 5822,
+   "chn_chars": 4890
+  },
+  {
+   "function": "f_tuple2list",
+   "file": "src/list.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 3525,
+   "chn_chars": 2957
+  },
+  {
+   "function": "item_compare",
+   "file": "src/list.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 7317,
+   "chn_chars": 4370
+  },
+  {
+   "function": "f_matcharg",
+   "file": "src/match.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 5200,
+   "chn_chars": 3857
+  },
+  {
+   "function": "get_framelayout",
+   "file": "src/evalwindow.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    true,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 5511,
+   "chn_chars": 4574
+  },
+  {
+   "function": "mch_call_shell_fork",
+   "file": "src/os_unix.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 60157,
+   "chn_chars": 23694
+  },
+  {
+   "function": "vimlist_remove",
+   "file": "src/list.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 3849,
+   "chn_chars": 4084
+  },
+  {
+   "function": "list2items",
+   "file": "src/list.c",
+   "kind": "chain",
+   "cur_votes": [
+    true,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 5643,
+   "chn_chars": 4958
+  },
+  {
+   "function": "f_popup_list",
+   "file": "src/popupwin.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 3367,
+   "chn_chars": 2800
+  },
+  {
+   "function": "add_mark",
+   "file": "src/mark.c",
+   "kind": "chain",
+   "cur_votes": [
+    true,
+    true,
+    true
+   ],
+   "chn_votes": [
+    true,
+    true,
+    true
+   ],
+   "cur": true,
+   "chn": true,
+   "cur_chars": 5356,
+   "chn_chars": 3876
+  },
+  {
+   "function": "get_complete_info",
+   "file": "src/insexpand.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    true
+   ],
+   "chn_votes": [
+    true,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 13060,
+   "chn_chars": 7762
+  },
+  {
+   "function": "source_all_matches",
+   "file": "src/scriptfile.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 7373,
+   "chn_chars": 14853
+  },
+  {
+   "function": "option_set_callback_func",
+   "file": "src/option.c",
+   "kind": "chain",
+   "cur_votes": [
+    true,
+    true,
+    true
+   ],
+   "chn_votes": [
+    false,
+    false,
+    true
+   ],
+   "cur": true,
+   "chn": false,
+   "cur_chars": 13198,
+   "chn_chars": 6120
+  },
+  {
+   "function": "f_sign_define",
+   "file": "src/sign.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 5806,
+   "chn_chars": 3993
+  },
+  {
+   "function": "f_sign_placelist",
+   "file": "src/sign.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 6890,
+   "chn_chars": 3163
+  },
+  {
+   "function": "f_sign_undefine",
+   "file": "src/sign.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 4715,
+   "chn_chars": 3979
+  },
+  {
+   "function": "get_moved_list",
+   "file": "src/popupwin.c",
+   "kind": "chain",
+   "cur_votes": [
+    true,
+    true,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": true,
+   "chn": false,
+   "cur_chars": 4201,
+   "chn_chars": 3712
+  },
+  {
+   "function": "f_sign_unplacelist",
+   "file": "src/sign.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 5455,
+   "chn_chars": 3062
+  },
+  {
+   "function": "hgr_search_files_in_dir",
+   "file": "src/quickfix.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 9368,
+   "chn_chars": 15460
+  },
+  {
+   "function": "qf_setprop_qftf",
+   "file": "src/quickfix.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 7645,
+   "chn_chars": 5805
+  },
+  {
+   "function": "get_buffer_signs",
+   "file": "src/sign.c",
+   "kind": "chain",
+   "cur_votes": [
+    true,
+    true,
+    true
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": true,
+   "chn": false,
+   "cur_chars": 3812,
+   "chn_chars": 3141
+  },
+  {
+   "function": "f_term_getsize",
+   "file": "src/terminal.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 4450,
+   "chn_chars": 3492
+  },
+  {
+   "function": "f_term_list",
+   "file": "src/terminal.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 3084,
+   "chn_chars": 2798
+  },
+  {
+   "function": "f_getcellwidths",
+   "file": "src/mbyte.c",
+   "kind": "chain",
+   "cur_votes": [
+    true,
+    true,
+    true
+   ],
+   "chn_votes": [
+    true,
+    false,
+    false
+   ],
+   "cur": true,
+   "chn": false,
+   "cur_chars": 4930,
+   "chn_chars": 4703
+  },
+  {
+   "function": "add_llist_tags",
+   "file": "src/tag.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 10736,
+   "chn_chars": 5468
+  },
+  {
+   "function": "f_reltime",
+   "file": "src/time.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 6309,
+   "chn_chars": 4214
+  },
+  {
+   "function": "string_filter_map",
+   "file": "src/strings.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 9545,
+   "chn_chars": 4470
+  },
+  {
+   "function": "f_string",
+   "file": "src/strings.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 5459,
+   "chn_chars": 2765
+  },
+  {
+   "function": "f_timer_start",
+   "file": "src/time.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 10189,
+   "chn_chars": 6397
+  },
+  {
+   "function": "add_timer_info",
+   "file": "src/time.c",
+   "kind": "chain",
+   "cur_votes": [
+    true,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 5730,
+   "chn_chars": 3415
+  },
+  {
+   "function": "u_read_undo",
+   "file": "src/undo.c",
+   "kind": "chain",
+   "cur_votes": [
+    true,
+    true,
+    true
+   ],
+   "chn_votes": [
+    true,
+    true,
+    true
+   ],
+   "cur": true,
+   "chn": true,
+   "cur_chars": 23948,
+   "chn_chars": 14533
+  },
+  {
+   "function": "copy_lambda_to_global_func",
+   "file": "src/userfunc.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 13564,
+   "chn_chars": 7321
+  },
+  {
+   "function": "call_dfunc",
+   "file": "src/vim9execute.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 24682,
+   "chn_chars": 10424
+  },
+  {
+   "function": "get_tag_details",
+   "file": "src/tag.c",
+   "kind": "chain",
+   "cur_votes": [
+    true,
+    true,
+    true
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": true,
+   "chn": false,
+   "cur_chars": 4695,
+   "chn_chars": 3895
+  },
+  {
+   "function": "exe_concat",
+   "file": "src/vim9execute.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 5555,
+   "chn_chars": 4187
+  },
+  {
+   "function": "call_partial",
+   "file": "src/vim9execute.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 12740,
+   "chn_chars": 4674
+  },
+  {
+   "function": "compile_for",
+   "file": "src/vim9cmds.c",
+   "kind": "chain",
+   "cur_votes": [
+    true,
+    true,
+    true
+   ],
+   "chn_votes": [
+    false,
+    true,
+    true
+   ],
+   "cur": true,
+   "chn": true,
+   "cur_chars": 33745,
+   "chn_chars": 13453
+  },
+  {
+   "function": "add_defer_item",
+   "file": "src/vim9execute.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 4423,
+   "chn_chars": 3062
+  },
+  {
+   "function": "tuple2items",
+   "file": "src/tuple.c",
+   "kind": "chain",
+   "cur_votes": [
+    true,
+    true,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": true,
+   "chn": false,
+   "cur_chars": 4277,
+   "chn_chars": 3091
+  },
+  {
+   "function": "read_viminfo_bufferlist",
+   "file": "src/viminfo.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 14462,
+   "chn_chars": 5414
+  },
+  {
+   "function": "generate_funcref",
+   "file": "src/vim9expr.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 12734,
+   "chn_chars": 11708
+  },
+  {
+   "function": "list_typval2type",
+   "file": "src/vim9type.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 8444,
+   "chn_chars": 8350
+  },
+  {
+   "function": "tuple_foreach",
+   "file": "src/tuple.c",
+   "kind": "null",
+   "a_votes": [
+    false,
+    false,
+    false
+   ],
+   "b_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false
+  },
+  {
+   "function": "generate_LOADV",
+   "file": "src/vim9instr.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 4314,
+   "chn_chars": 2790
+  },
+  {
+   "function": "xdl_prepare_env",
+   "file": "src/xdiff/xprepare.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 6378,
+   "chn_chars": 7113
+  },
+  {
+   "function": "obj_method_prologue",
+   "file": "src/vim9compile.c",
+   "kind": "null",
+   "a_votes": [
+    false,
+    false,
+    false
+   ],
+   "b_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false
+  },
+  {
+   "function": "ex_wlrestore",
+   "file": "src/wayland.c",
+   "kind": "chain",
+   "cur_votes": [
+    false,
+    false,
+    false
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false,
+   "cur_chars": 10762,
+   "chn_chars": 7271
+  },
+  {
+   "function": "mch_dirname",
+   "file": "src/os_unix.c",
+   "kind": "null",
+   "a_votes": [
+    false,
+    false,
+    false
+   ],
+   "b_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false
+  },
+  {
+   "function": "generate_NEWTUPLE",
+   "file": "src/vim9instr.c",
+   "kind": "null",
+   "a_votes": [
+    false,
+    false,
+    false
+   ],
+   "b_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false
+  },
+  {
+   "function": "compile_while",
+   "file": "src/vim9cmds.c",
+   "kind": "chain",
+   "cur_votes": [
+    true,
+    true,
+    true
+   ],
+   "chn_votes": [
+    true,
+    false,
+    false
+   ],
+   "cur": true,
+   "chn": false,
+   "cur_chars": 11007,
+   "chn_chars": 6750
+  },
+  {
+   "function": "compile_if",
+   "file": "src/vim9cmds.c",
+   "kind": "null",
+   "a_votes": [
+    false,
+    false,
+    false
+   ],
+   "b_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false
+  },
+  {
+   "function": "f_undotree",
+   "file": "src/undo.c",
+   "kind": "chain",
+   "cur_votes": [
+    true,
+    true,
+    true
+   ],
+   "chn_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": true,
+   "chn": false,
+   "cur_chars": 6142,
+   "chn_chars": 5323
+  },
+  {
+   "function": "did_set_pumborder",
+   "file": "src/optionstr.c",
+   "kind": "null",
+   "a_votes": [
+    true,
+    true,
+    true
+   ],
+   "b_votes": [
+    true,
+    true,
+    true
+   ],
+   "cur": true,
+   "chn": true
+  },
+  {
+   "function": "report_pending",
+   "file": "src/ex_eval.c",
+   "kind": "null",
+   "a_votes": [
+    false,
+    false,
+    false
+   ],
+   "b_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false
+  },
+  {
+   "function": "add_keyword",
+   "file": "src/syntax.c",
+   "kind": "null",
+   "a_votes": [
+    true,
+    true,
+    false
+   ],
+   "b_votes": [
+    false,
+    false,
+    true
+   ],
+   "cur": true,
+   "chn": false
+  },
+  {
+   "function": "set_string_option_global",
+   "file": "src/optionstr.c",
+   "kind": "null",
+   "a_votes": [
+    false,
+    false,
+    false
+   ],
+   "b_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false
+  },
+  {
+   "function": "get_matches_in_str",
+   "file": "src/evalfunc.c",
+   "kind": "null",
+   "a_votes": [
+    false,
+    false,
+    false
+   ],
+   "b_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false
+  },
+  {
+   "function": "count_common_word",
+   "file": "src/spell.c",
+   "kind": "null",
+   "a_votes": [
+    false,
+    false,
+    true
+   ],
+   "b_votes": [
+    true,
+    false,
+    true
+   ],
+   "cur": false,
+   "chn": true
+  },
+  {
+   "function": "prop_type_set",
+   "file": "src/textprop.c",
+   "kind": "null",
+   "a_votes": [
+    false,
+    false,
+    false
+   ],
+   "b_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false
+  },
+  {
+   "function": "f_popup_create",
+   "file": "src/popupwin.c",
+   "kind": "null",
+   "a_votes": [
+    false,
+    false,
+    false
+   ],
+   "b_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false
+  },
+  {
+   "function": "read_sofo_section",
+   "file": "src/spellfile.c",
+   "kind": "null",
+   "a_votes": [
+    false,
+    false,
+    false
+   ],
+   "b_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false
+  },
+  {
+   "function": "generate_OLDSCRIPT",
+   "file": "src/vim9instr.c",
+   "kind": "null",
+   "a_votes": [
+    false,
+    false,
+    false
+   ],
+   "b_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false
+  },
+  {
+   "function": "f_setcharsearch",
+   "file": "src/evalfunc.c",
+   "kind": "null",
+   "a_votes": [
+    false,
+    false,
+    false
+   ],
+   "b_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false
+  },
+  {
+   "function": "compile_variable_range",
+   "file": "src/vim9cmds.c",
+   "kind": "null",
+   "a_votes": [
+    true,
+    true,
+    true
+   ],
+   "b_votes": [
+    true,
+    true,
+    true
+   ],
+   "cur": true,
+   "chn": true
+  },
+  {
+   "function": "get_tagstack",
+   "file": "src/tag.c",
+   "kind": "null",
+   "a_votes": [
+    true,
+    true,
+    true
+   ],
+   "b_votes": [
+    true,
+    true,
+    true
+   ],
+   "cur": true,
+   "chn": true
+  },
+  {
+   "function": "generate_LOAD",
+   "file": "src/vim9instr.c",
+   "kind": "null",
+   "a_votes": [
+    false,
+    false,
+    false
+   ],
+   "b_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false
+  },
+  {
+   "function": "add_popup_dicts",
+   "file": "src/popupwin.c",
+   "kind": "null",
+   "a_votes": [
+    false,
+    false,
+    false
+   ],
+   "b_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false
+  },
+  {
+   "function": "prop_add_common",
+   "file": "src/textprop.c",
+   "kind": "null",
+   "a_votes": [
+    false,
+    false,
+    false
+   ],
+   "b_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false
+  },
+  {
+   "function": "has_profiling",
+   "file": "src/debugger.c",
+   "kind": "null",
+   "a_votes": [
+    true,
+    true,
+    false
+   ],
+   "b_votes": [
+    true,
+    false,
+    false
+   ],
+   "cur": true,
+   "chn": false
+  },
+  {
+   "function": "handle_pushline",
+   "file": "src/terminal.c",
+   "kind": "null",
+   "a_votes": [
+    false,
+    false,
+    false
+   ],
+   "b_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false
+  },
+  {
+   "function": "generate_STORE",
+   "file": "src/vim9instr.c",
+   "kind": "null",
+   "a_votes": [
+    false,
+    false,
+    false
+   ],
+   "b_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false
+  },
+  {
+   "function": "qf_getprop_items",
+   "file": "src/quickfix.c",
+   "kind": "null",
+   "a_votes": [
+    true,
+    true,
+    true
+   ],
+   "b_votes": [
+    true,
+    false,
+    true
+   ],
+   "cur": true,
+   "chn": true
+  },
+  {
+   "function": "parse_diff_optarg",
+   "file": "src/diff.c",
+   "kind": "null",
+   "a_votes": [
+    false,
+    false,
+    false
+   ],
+   "b_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false
+  },
+  {
+   "function": "generate_STOREOPT",
+   "file": "src/vim9instr.c",
+   "kind": "null",
+   "a_votes": [
+    false,
+    false,
+    false
+   ],
+   "b_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false
+  },
+  {
+   "function": "generate_FUNCREF",
+   "file": "src/vim9instr.c",
+   "kind": "null",
+   "a_votes": [
+    false,
+    false,
+    false
+   ],
+   "b_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false
+  },
+  {
+   "function": "f_mapset",
+   "file": "src/map.c",
+   "kind": "null",
+   "a_votes": [
+    false,
+    false,
+    false
+   ],
+   "b_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false
+  },
+  {
+   "function": "object_required_error",
+   "file": "src/vim9execute.c",
+   "kind": "null",
+   "a_votes": [
+    false,
+    false,
+    false
+   ],
+   "b_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false
+  },
+  {
+   "function": "f_blob2str",
+   "file": "src/strings.c",
+   "kind": "null",
+   "a_votes": [
+    false,
+    false,
+    false
+   ],
+   "b_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false
+  },
+  {
+   "function": "apply_move_options",
+   "file": "src/popupwin.c",
+   "kind": "null",
+   "a_votes": [
+    false,
+    false,
+    false
+   ],
+   "b_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false
+  },
+  {
+   "function": "generate_DEF",
+   "file": "src/vim9instr.c",
+   "kind": "null",
+   "a_votes": [
+    false,
+    false,
+    false
+   ],
+   "b_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false
+  },
+  {
+   "function": "exe_newdict",
+   "file": "src/vim9execute.c",
+   "kind": "null",
+   "a_votes": [
+    true,
+    true,
+    true
+   ],
+   "b_votes": [
+    true,
+    true,
+    true
+   ],
+   "cur": true,
+   "chn": true
+  },
+  {
+   "function": "f_prompt_setprompt",
+   "file": "src/job.c",
+   "kind": "null",
+   "a_votes": [
+    false,
+    false,
+    false
+   ],
+   "b_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false
+  },
+  {
+   "function": "ex_throw",
+   "file": "src/ex_eval.c",
+   "kind": "null",
+   "a_votes": [
+    false,
+    false,
+    false
+   ],
+   "b_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false
+  },
+  {
+   "function": "vim9_declare_scriptvar",
+   "file": "src/vim9script.c",
+   "kind": "null",
+   "a_votes": [
+    false,
+    false,
+    false
+   ],
+   "b_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false
+  },
+  {
+   "function": "reserve_local",
+   "file": "src/vim9compile.c",
+   "kind": "null",
+   "a_votes": [
+    false,
+    false,
+    false
+   ],
+   "b_votes": [
+    false,
+    false,
+    false
+   ],
+   "cur": false,
+   "chn": false
+  },
+  {
+   "function": "f_cmdcomplete_info",
+   "file": "src/cmdexpand.c",
+   "kind": "null",
+   "a_votes": [
+    true,
+    true,
+    true
+   ],
+   "b_votes": [
+    true,
+    true,
+    true
+   ],
+   "cur": true,
+   "chn": true
+  },
+  {
+   "function": "menuitem_getinfo",
+   "file": "src/menu.c",
+   "kind": "null",
+   "a_votes": [
+    true,
+    true,
+    true
+   ],
+   "b_votes": [
+    false,
+    true,
+    true
+   ],
+   "cur": true,
+   "chn": true
+  }
+ ],
+ "t2f": [
+  "blob2items",
+  "option_set_callback_func",
+  "get_moved_list",
+  "get_buffer_signs",
+  "f_getcellwidths",
+  "get_tag_details",
+  "tuple2items",
+  "compile_while",
+  "f_undotree"
+ ],
+ "f2t": [
+  "eval_addlist"
+ ],
+ "null_flips": [
+  "add_keyword",
+  "count_common_word",
+  "has_profiling"
+ ],
+ "usage": {
+  "calls": 840,
+  "cache_hits": 0,
+  "prompt_tokens": 2085960,
+  "cached_tokens": 1416939,
+  "completion_tokens": 355740,
+  "cost_usd": 0.589
+ }
+}

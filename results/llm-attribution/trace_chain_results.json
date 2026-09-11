@@ -1,0 +1,118 @@
+{
+ "current": {
+  "prompt_chars": 14060,
+  "correct": "0/6",
+  "samples": [
+   {
+    "verdict": false,
+    "confidence": 0.99,
+    "reason": "The loose name is freed on invalid-window retries and on successful lookup, while a None result does not allocate it."
+   },
+   {
+    "verdict": false,
+    "confidence": 0.97,
+    "reason": "The allocated loose name is freed on the invalid-window path or later after use, so it is not leaked at the reported check."
+   },
+   {
+    "verdict": false,
+    "confidence": 0.99,
+    "reason": "LookupName allocates loosename only when it also returns a valid window, and that pointer is freed on all relevant paths."
+   },
+   {
+    "verdict": false,
+    "confidence": 0.97,
+    "reason": "LookupName allocates loosename only when it finds a matching window, so the w == None path does not leave that allocation leaked."
+   },
+   {
+    "verdict": false,
+    "confidence": 0.97,
+    "reason": "The allocation of loosename occurs only when LookupName finds a matching serial entry and therefore returns its non-None window, while invalid-window paths free it."
+   },
+   {
+    "verdict": false,
+    "confidence": 0.99,
+    "reason": "LookupName allocates loosename only when it finds a matching window, and serverSendToVim frees it on every such non-invalid return path."
+   }
+  ]
+ },
+ "chain": {
+  "prompt_chars": 7410,
+  "correct": "4/6",
+  "samples": [
+   {
+    "verdict": true,
+    "confidence": 0.99,
+    "reason": "The allocated loosename is not freed when LookupName returns no window and the function exits early."
+   },
+   {
+    "verdict": true,
+    "confidence": 0.99,
+    "reason": "The fallback name allocated by LookupName is not freed when no window is found and the function returns."
+   },
+   {
+    "verdict": true,
+    "confidence": 0.99,
+    "reason": "LookupName can allocate loosename while returning None, and the w == None path returns without freeing it."
+   },
+   {
+    "verdict": false,
+    "confidence": 0.95,
+    "reason": "LookupName only assigns loosename when it has resolved a non-None window, and all such paths eventually free it."
+   },
+   {
+    "verdict": true,
+    "confidence": 0.98,
+    "reason": "The fallback name can be allocated by LookupName and remains unfreed when the returned window is None."
+   },
+   {
+    "verdict": false,
+    "confidence": 0.86,
+    "reason": "The allocated alias is only produced when LookupName also resolves a non-None window, so the reported w == None path cannot retain it."
+   }
+  ]
+ },
+ "both": {
+  "prompt_chars": 15580,
+  "correct": "1/6",
+  "samples": [
+   {
+    "verdict": false,
+    "confidence": 0.99,
+    "reason": "The allocation occurs only when a valid loose-match window is found, and that pointer is freed on invalid-window retries or after use."
+   },
+   {
+    "verdict": false,
+    "confidence": 0.97,
+    "reason": "The fallback name is allocated only when a non-None window is found, and it is freed on invalid-window or normal-use paths."
+   },
+   {
+    "verdict": true,
+    "confidence": 0.9,
+    "reason": "A matching serial entry can allocate loosename while still yielding Window None, and the early return does not free it."
+   },
+   {
+    "verdict": false,
+    "confidence": 0.99,
+    "reason": "The fallback name is freed on invalid-window retries or after constructing the property, and no allocation occurs when the final window is None."
+   },
+   {
+    "verdict": false,
+    "confidence": 0.99,
+    "reason": "The fallback allocation occurs only when LookupName returns a non-None window, and all such allocations are later freed."
+   },
+   {
+    "verdict": false,
+    "confidence": 0.99,
+    "reason": "A loose-name allocation implies a non-None window and is freed on the normal send path or when the window is invalid."
+   }
+  ]
+ },
+ "usage": {
+  "calls": 18,
+  "cache_hits": 0,
+  "prompt_tokens": 66270,
+  "cached_tokens": 55180,
+  "completion_tokens": 9647,
+  "cost_usd": 0.0149
+ }
+}

@@ -1,0 +1,24 @@
+{
+ "n_extracted": 11956,
+ "n_macros": 1345,
+ "n_candidates": 9318,
+ "n_files": 291,
+ "candidate_mode": "pointer-prefilter",
+ "n_rules_chars": 0,
+ "phase2_batches": 466,
+ "phase2_failed": 0,
+ "phase2_seconds": 800,
+ "phase2_llm": {
+  "calls": 466,
+  "cache_hits": 0,
+  "prompt_tokens": 6145721,
+  "cached_tokens": 0,
+  "completion_tokens": 508125,
+  "cost_usd": 1.8389
+ },
+ "n_summaries": 1573,
+ "n_summary_functions": 1484,
+ "phase3_seconds": 24,
+ "n_validated": 599,
+ "n_validated_functions": 582
+}

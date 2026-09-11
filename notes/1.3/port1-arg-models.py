@@ -159,8 +159,24 @@ NEW_HEAD = '''  let map_context_tenv f (x, _) = f x in
             +match_regexp r
             <>$ any_arg $+ any_arg $+ any_arg $+ any_arg $+ any_arg $+ any_arg $+ any_arg
             $+ capt_arg $+...$--> model
+        | 8 ->
+            +match_regexp r
+            <>$ any_arg $+ any_arg $+ any_arg $+ any_arg $+ any_arg $+ any_arg $+ any_arg $+ any_arg
+            $+ capt_arg $+...$--> model
+        | 9 ->
+            +match_regexp r
+            <>$ any_arg $+ any_arg $+ any_arg $+ any_arg $+ any_arg $+ any_arg $+ any_arg $+ any_arg $+ any_arg
+            $+ capt_arg $+...$--> model
+        | 10 ->
+            +match_regexp r
+            <>$ any_arg $+ any_arg $+ any_arg $+ any_arg $+ any_arg $+ any_arg $+ any_arg $+ any_arg $+ any_arg $+ any_arg
+            $+ capt_arg $+...$--> model
+        | 11 ->
+            +match_regexp r
+            <>$ any_arg $+ any_arg $+ any_arg $+ any_arg $+ any_arg $+ any_arg $+ any_arg $+ any_arg $+ any_arg $+ any_arg $+ any_arg
+            $+ capt_arg $+...$--> model
         | _ ->
-            Logging.die UserError "%s: argument index %d not supported (max 7)" option_name n )
+            Logging.die UserError "%s: argument index %d not supported (max 11)" option_name n )
   in
   let free_arg_matchers =
     arg_n_matchers "--pulse-model-free-arg-pattern" free Config.pulse_model_free_arg_pattern

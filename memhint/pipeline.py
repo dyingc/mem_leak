@@ -40,11 +40,16 @@ def hints_from_json(d: dict) -> list[Summary]:
 
 class Stage1:
     def __init__(self, project: Path, out: Path, source_root: Path | None = None,
-                 workers: int = 8, budget_usd: float | None = 20.0):
+                 workers: int = 8, budget_usd: float | None = 20.0,
+                 rules_file: Path | None = None, all_functions: bool = False):
         self.project = project
         self.out = out
         self.source_root = source_root
         self.workers = workers
+        # Project-supplied memory-management rules. Empty by default, which reproduces the prompt
+        # exactly; the text is passed through untouched (see summarize.rules_block).
+        self.rules = rules_file.read_text() if rules_file else ""
+        self.all_functions = all_functions
         out.mkdir(parents=True, exist_ok=True)
         self.llm = LLM(cache_dir=out / "llm_cache", budget_usd=budget_usd)
         self.stats: dict = {}
@@ -60,9 +65,11 @@ class Stage1:
             cb = Codebase.extract(self.project, self.source_root)
             _dump(p, cb.to_dict())
             log.info("Phase 1: %d functions in %.0fs", len(cb.functions), time.time() - t0)
-        cands = cb.candidates()
+        cands = cb.candidates(self.all_functions)
         self.stats.update(n_extracted=len(cb.functions), n_macros=sum(f.is_macro for f in cb.functions.values()),
-                          n_candidates=len(cands), n_files=cb.n_files)
+                          n_candidates=len(cands), n_files=cb.n_files,
+                          candidate_mode="all-non-macro" if self.all_functions else "pointer-prefilter",
+                          n_rules_chars=len(self.rules.strip()))
         return cb
 
     # Phase 2 ------------------------------------------------------------
@@ -73,7 +80,8 @@ class Stage1:
             log.info("Phase 2: loaded %d raw hints from %s", len(raw), p)
         else:
             t0 = time.time()
-            r = generate_summaries(cb, self.llm, workers=self.workers)
+            r = generate_summaries(cb, self.llm, cb.candidates(self.all_functions),
+                                   workers=self.workers, rules=self.rules)
             raw = r.summaries
             _dump(p, hints_to_json(raw))
             self.stats.update(phase2_batches=r.n_batches, phase2_failed=r.n_failed,

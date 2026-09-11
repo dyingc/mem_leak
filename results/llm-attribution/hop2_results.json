@@ -1,0 +1,4781 @@
+{
+ "run": "infer-v13argn",
+ "scopes": {
+  "neighbor": {
+   "rows": [
+    {
+     "function": "open_buffer",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The memfile is owned by the buffer after ml_open succeeds and is released when the buffer is unloaded or wiped.",
+     "reason_now": "The memfile remains owned by the buffer and is freed when the buffer is unloaded, wiped, or Vim exits.",
+     "growth": 5607,
+     "helpers": [
+      "N_",
+      "set_rw_fname",
+      "apply_autocmds_exarg",
+      "STRLEN",
+      "filemess",
+      "msg_end",
+      "after_pathsep",
+      "S_ISREG",
+      "S_ISFIFO",
+      "S_ISSOCK",
+      "S_ISCHR",
+      "mch_open",
+      "S_ISDIR",
+      "mch_nodetype",
+      "set_file_options",
+      "mch_stat"
+     ]
+    },
+    {
+     "function": "f_blob2list",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated list items remain owned by the result list referenced through rettv and are freed with it.",
+     "reason_now": "The allocated list items are owned by the result list and remain reachable through rettv for the caller to release.",
+     "growth": 433,
+     "helpers": [
+      "list_append"
+     ]
+    },
+    {
+     "function": "blob_filter_map",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated function-call context is released by remove_funccal() on every path after its creation.",
+     "reason_now": "The funccall allocation is always released by remove_funccal when fc is non-null, including loop-break paths.",
+     "growth": 3098,
+     "helpers": [
+      "create_funccal",
+      "eval_expr_partial",
+      "exe_typval_instr",
+      "eval_expr_func",
+      "eval_expr_string"
+     ]
+    },
+    {
+     "function": "get_arglist_as_rettv",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated list items and copied strings are owned by the list stored in rettv, whose caller is responsible for releasing it.",
+     "reason_now": "The allocated list items and strings are owned by the list stored in rettv, which transfers responsibility to the caller for eventual cleanup.",
+     "growth": 1326,
+     "helpers": [
+      "list_append",
+      "vim_strnsave",
+      "list_alloc",
+      "rettv_list_set",
+      "buflist_findnr"
+     ]
+    },
+    {
+     "function": "general_beval_cb",
+     "was": true,
+     "now": true,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The text allocated by get_beval_info is not freed when balloonexpr is empty and no NetBeans callback consumes it.",
+     "reason_now": "The text allocated by get_beval_info is not freed when balloonexpr is empty and control falls through to the fallback path.",
+     "growth": 3654,
+     "helpers": [
+      "Y_2_ROW",
+      "X_2_COL",
+      "vim_free",
+      "tabstop_copy",
+      "set_vim_var_nr",
+      "set_vim_var_string",
+      "was_set_insecurely",
+      "get_option_sctx",
+      "eval_to_string",
+      "STRLEN",
+      "post_balloon",
+      "redraw_after_callback"
+     ]
+    },
+    {
+     "function": "buflist_add",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated buffer is retained by the buffer list or current-buffer state, so returning its file number does not make it unreachable.",
+     "reason_now": "The allocated buffer is registered in the global buffer list and remains owned there after its file number is returned.",
+     "growth": 5371,
+     "helpers": [
+      "hash_init",
+      "fname_expand",
+      "mch_stat",
+      "buflist_findname_stat",
+      "buflist_findname",
+      "vim_free",
+      "buflist_setfpos",
+      "set_bufref",
+      "apply_autocmds",
+      "bufref_valid",
+      "curbuf_reusable",
+      "trigger_undo_ftplugin",
+      "aborting",
+      "ALLOC_CLEAR_ONE",
+      "dict_alloc_id",
+      "init_var_dict"
+     ]
+    },
+    {
+     "function": "buflist_new",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated wininfo entry is linked into the buffer and released by buffer cleanup, so it is not leaked.",
+     "reason_now": "The allocated wininfo entry is attached to the buffer and is released by buffer cleanup, so it is not leaked.",
+     "growth": 6878,
+     "helpers": [
+      "FOR_ALL_BUF_WININFO",
+      "ALLOC_CLEAR_ONE",
+      "clear_winopt",
+      "deleteFoldRecurse",
+      "cloneFoldGrowArray",
+      "mem_pre_free",
+      "vim_strchr",
+      "CLEAR_FIELD",
+      "init_buf_opt_idx",
+      "COPY_OPT_SCTX",
+      "set_buflocal_cpt_callbacks",
+      "set_buflocal_cfu_callback",
+      "set_buflocal_ofu_callback",
+      "set_buflocal_tfu_callback",
+      "tabstop_set",
+      "compile_cap_prog"
+     ]
+    },
+    {
+     "function": "f_listener_add",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated callback name is either transferred and freed appropriately or released by free_callback on failure paths.",
+     "reason_now": "The allocated script-local callback name is non-NULL when created and is freed by free_callback or after ownership is copied on success.",
+     "growth": 2291,
+     "helpers": [
+      "CLEAR_FIELD",
+      "partial_name",
+      "SAFE_isdigit",
+      "func_ref",
+      "check_for_bool_arg",
+      "tv_get_buf",
+      "semsg",
+      "tv_get_string"
+     ]
+    },
+    {
+     "function": "buf_set_name",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The fix_fname allocation remains owned and reachable through b_ffname; the assignment only makes b_fname alias b_sfname.",
+     "reason_now": "The allocated full path remains owned by b_ffname and is freed during buffer cleanup; assigning b_fname does not make it unreachable.",
+     "growth": 511,
+     "helpers": [
+      "mch_resolve_path",
+      "STRLEN",
+      "alloc",
+      "mch_memmove"
+     ]
+    },
+    {
+     "function": "clip_wl_init_buffer_store",
+     "was": true,
+     "now": true,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated store is returned without being freed when ftruncate fails.",
+     "reason_now": "The allocated store is not freed when ftruncate fails before ownership is transferred.",
+     "growth": 3798,
+     "helpers": [
+      "lalloc",
+      "mch_get_random",
+      "emsg",
+      "mch_open",
+      "mch_remove",
+      "vim_free"
+     ]
+    },
+    {
+     "function": "may_record_change",
+     "was": false,
+     "now": true,
+     "conf_was": 0.99,
+     "conf_now": 0.92,
+     "reason_was": "The allocated list item is transferred to and owned by the recorded-changes list, which will release it during list cleanup.",
+     "reason_now": "The list item is transferred to the list on success, but a failed listitem allocation leaves the newly allocated dictionary unfreed.",
+     "growth": 829,
+     "helpers": [
+      "list_append",
+      "dict_add_number_special"
+     ]
+    },
+    {
+     "function": "invoke_sync_listeners",
+     "was": false,
+     "now": false,
+     "conf_was": 0.96,
+     "conf_now": 0.98,
+     "reason_was": "The list item is released when list_unref frees recorded_changes, including the referenced dictionary.",
+     "reason_now": "The list item and dictionary are released when the listener call returns, so the reported allocation is not leaked.",
+     "growth": 4085,
+     "helpers": [
+      "list_append",
+      "dict_add_number_special",
+      "call_callback",
+      "clear_tv",
+      "after_updating_screen"
+     ]
+    },
+    {
+     "function": "f_cmdcomplete_info",
+     "was": true,
+     "now": false,
+     "conf_was": 0.96,
+     "conf_now": 0.99,
+     "reason_was": "If dictitem_alloc fails, dict_add_list does not take ownership or free the newly allocated list.",
+     "reason_now": "The list is reference-counted and transferred to the result dictionary by dict_add_list, which also releases it on failure.",
+     "growth": 1497,
+     "helpers": [
+      "ALLOC_CLEAR_ONE",
+      "list_init",
+      "dict_add_number_special",
+      "dictitem_alloc",
+      "dict_add",
+      "dictitem_free"
+     ]
+    },
+    {
+     "function": "dict_add_callback",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The callback value is freed by dictitem_free on insertion failure or owned by the dictionary after successful insertion.",
+     "reason_now": "The callback string is owned by the typval and is released by dictitem_free on insertion failure or when the dictionary item is later cleared.",
+     "growth": 1422,
+     "helpers": [
+      "func_ref",
+      "STRLEN",
+      "alloc",
+      "mch_memmove",
+      "dict_wrong_func_name",
+      "hash_add"
+     ]
+    },
+    {
+     "function": "truncate_line",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "ml_replace with copy=false takes ownership of the allocated string, so the caller must not free it.",
+     "reason_now": "The allocated buffer is transferred to ml_replace, which takes ownership when copy is false.",
+     "growth": 377,
+     "helpers": [
+      "STRLEN",
+      "alloc",
+      "mch_memmove",
+      "STRNCPY"
+     ]
+    },
+    {
+     "function": "dict_extend_func",
+     "was": true,
+     "now": true,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "When is_new is true, a failed type check returns without releasing the copied dictionary.",
+     "reason_now": "The copied dictionary is not unreferenced when type validation fails, so its allocation becomes unreachable.",
+     "growth": 2199,
+     "helpers": [
+      "dict_alloc",
+      "alloc_type",
+      "HASHITEM_EMPTY",
+      "dictitem_alloc",
+      "HI2DI",
+      "vim_free",
+      "dict_add",
+      "dictitem_free"
+     ]
+    },
+    {
+     "function": "dict_add_func",
+     "was": false,
+     "now": false,
+     "conf_was": 0.98,
+     "conf_now": 0.99,
+     "reason_was": "dictitem_free calls clear_tv, which releases the allocated VAR_FUNC string on the failure path.",
+     "reason_now": "dictitem_free calls clear_tv, which releases the allocated function-name string on the dict_add failure path.",
+     "growth": 1130,
+     "helpers": [
+      "alloc",
+      "STRNCPY",
+      "STRLEN",
+      "mch_memmove",
+      "dict_wrong_func_name",
+      "hash_add"
+     ]
+    },
+    {
+     "function": "dict_filter_map",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated funccall is released by remove_funccal on every path after successful creation.",
+     "reason_now": "The funccall allocated by eval_expr_get_funccal is released by remove_funccal on every normal exit when non-NULL.",
+     "growth": 3098,
+     "helpers": [
+      "create_funccal",
+      "eval_expr_partial",
+      "exe_typval_instr",
+      "eval_expr_func",
+      "eval_expr_string"
+     ]
+    },
+    {
+     "function": "has_profiling",
+     "was": true,
+     "now": true,
+     "conf_was": 0.86,
+     "conf_now": 0.93,
+     "reason_was": "The allocation is normally transferred to the hash table, but it leaks when hash_add_item fails before inserting it and its return value is ignored.",
+     "reason_now": "The entry is normally owned by the hash table, but allocation leaks when hash_add_item fails due to HTFLAGS_ERROR and its return value is ignored.",
+     "growth": 2084,
+     "helpers": [
+      "lalloc"
+     ]
+    },
+    {
+     "function": "blob2items",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated list items remain owned by l2, which is attached to the returned list and will be cleaned up by normal list destruction.",
+     "reason_now": "All allocated list items remain owned by their lists, and each inner list is transferred to the returned outer list for cleanup.",
+     "growth": 710,
+     "helpers": [
+      "list_append",
+      "mem_pre_free"
+     ]
+    },
+    {
+     "function": "parse_diff_optarg",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "With save=false, dict_get_string returns a borrowed value rather than allocating owned heap memory.",
+     "reason_now": "dict_get_string is called with save=false and returns a static buffer, so no heap allocation is leaked.",
+     "growth": 1001,
+     "helpers": [
+      "dict_find",
+      "tv_get_string",
+      "vim_strsave"
+     ]
+    },
+    {
+     "function": "stop_insert",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated buffer is either transferred to last_insert or explicitly freed on every path.",
+     "reason_now": "The allocated buffer is either transferred to last_insert or explicitly freed on every path.",
+     "growth": 432,
+     "helpers": [
+      "VIM_CLEAR",
+      "mem_pre_free"
+     ]
+    },
+    {
+     "function": "digraph_getlist_appendpair",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "Both allocated strings are owned by list string values and are freed when the containing lists are released.",
+     "reason_now": "The allocated strings are transferred to list-item string values and are freed when the containing lists are destroyed.",
+     "growth": 510,
+     "helpers": [
+      "STRLEN",
+      "alloc",
+      "mch_memmove",
+      "ALLOC_ONE",
+      "CHECK_LIST_MATERIALIZE"
+     ]
+    },
+    {
+     "function": "echo_one",
+     "was": false,
+     "now": false,
+     "no_helpers": true,
+     "growth": 0,
+     "helpers": []
+    },
+    {
+     "function": "dict2list",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "All allocations remain owned by the returned outer list and its nested list items, including failure paths.",
+     "reason_now": "All allocated strings and list items remain owned by the returned lists and are released through normal list/typval cleanup.",
+     "growth": 1409,
+     "helpers": [
+      "STRLEN",
+      "alloc",
+      "mch_memmove",
+      "check_typval_arg_type",
+      "ALLOC_ONE",
+      "vim_strnsave",
+      "CHECK_LIST_MATERIALIZE",
+      "ALLOC_CLEAR_ONE",
+      "list_init"
+     ]
+    },
+    {
+     "function": "eval_addtuple",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The tuple returned by tuple_concat is owned by var3 and transferred to tv1 after the old value is cleared.",
+     "reason_now": "The concatenated tuple is transferred into tv1 after the old value is released, so its reference remains owned and is not leaked.",
+     "growth": 5089,
+     "helpers": [
+      "tuple_alloc",
+      "tuple_len",
+      "TUPLE_ITEM",
+      "tuple_append_tv",
+      "tuple_free",
+      "equal_type",
+      "emsg",
+      "func_unref",
+      "VIM_CLEAR",
+      "partial_unref",
+      "blob_unref",
+      "list_unref",
+      "tuple_unref",
+      "dict_unref",
+      "job_unref",
+      "channel_unref"
+     ]
+    },
+    {
+     "function": "list2fpos",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocation is owned and managed by the buffer's memfile cache, not leaked by list2fpos.",
+     "reason_now": "The allocation is managed by the memfile subsystem and may remain cached until the buffer or memfile is released, so list2fpos does not leak it.",
+     "growth": 2094,
+     "helpers": [
+      "list_find",
+      "tv_get_number_chk",
+      "vim_snprintf",
+      "hash_find",
+      "HASHITEM_EMPTY"
+     ]
+    },
+    {
+     "function": "f_bufnr",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The newly allocated buffer is inserted into the global buffer list and its lifetime is managed there, so f_bufnr does not leak it.",
+     "reason_now": "The newly created buffer is inserted into Vim's global buffer list, which owns and later frees it.",
+     "growth": 5371,
+     "helpers": [
+      "hash_init",
+      "fname_expand",
+      "mch_stat",
+      "buflist_findname_stat",
+      "buflist_findname",
+      "vim_free",
+      "buflist_setfpos",
+      "set_bufref",
+      "apply_autocmds",
+      "bufref_valid",
+      "curbuf_reusable",
+      "trigger_undo_ftplugin",
+      "aborting",
+      "ALLOC_CLEAR_ONE",
+      "dict_alloc_id",
+      "init_var_dict"
+     ]
+    },
+    {
+     "function": "f_deletebufline",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.98,
+     "reason_was": "The allocation from u_saveline is transferred to Vim's undo data structures, which own and later free it.",
+     "reason_now": "The allocated string is retained through the buffer's undo state and is later managed or freed by undo cleanup, so it is not leaked.",
+     "growth": 1839,
+     "helpers": [
+      "u_saveline",
+      "im_is_preediting",
+      "get_undolevel",
+      "u_getbot",
+      "may_invoke_listeners"
+     ]
+    },
+    {
+     "function": "get_buffer_info",
+     "was": false,
+     "now": false,
+     "conf_was": 0.96,
+     "conf_now": 0.99,
+     "reason_was": "dict_add_list transfers ownership of the list to the dictionary, so the reported allocation is not leaked on the normal path.",
+     "reason_now": "dict_add_list transfers ownership through the dictionary reference, so the allocated list remains reachable and is not leaked.",
+     "growth": 2089,
+     "helpers": [
+      "ALLOC_CLEAR_ONE",
+      "list_init",
+      "dictitem_alloc",
+      "dict_add",
+      "dictitem_free",
+      "FOR_ALL_SIGNS_IN_BUF",
+      "sign_get_info",
+      "list_append_dict"
+     ]
+    },
+    {
+     "function": "eval8",
+     "was": true,
+     "now": true,
+     "conf_was": 0.98,
+     "conf_now": 0.99,
+     "reason_was": "Issue 2 is a real leak because allocated type entries are not cleared when evaluation is disabled, while issue 1 has an explicit cleanup path.",
+     "reason_now": "Composite types allocated while evaluation is disabled are not cleared because cleanup is conditional on evaluation, while the error path explicitly clears them.",
+     "growth": 4173,
+     "helpers": [
+      "ASCII_ISALNUM",
+      "parse_type_member",
+      "parse_type_object",
+      "parse_type_user_defined",
+      "ga_init",
+      "vim_free",
+      "ga_clear"
+     ]
+    },
+    {
+     "function": "f_getbufinfo",
+     "was": false,
+     "now": false,
+     "conf_was": 0.98,
+     "conf_now": 0.99,
+     "reason_was": "The allocated list item is owned by the returned list, so it is not leaked; only an unrelated unchecked append failure could leak the dictionary.",
+     "reason_now": "The allocated list item is linked into the returned list, which owns and later frees it.",
+     "growth": 3522,
+     "helpers": [
+      "list_append",
+      "dict_alloc",
+      "dict_add_number",
+      "dict_add_string",
+      "buflist_findlnum",
+      "bufIsChanged",
+      "CHANGEDTICK",
+      "dict_add_dict",
+      "list_alloc",
+      "FOR_ALL_TAB_WINDOWS",
+      "list_append_number",
+      "dict_add_list",
+      "FOR_ALL_POPUPWINS",
+      "FOR_ALL_TABPAGES",
+      "FOR_ALL_POPUPWINS_IN_TAB",
+      "get_buffer_signs"
+     ]
+    },
+    {
+     "function": "f_getcellpixels",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated list items are owned by rettv's returned list and will be freed with it.",
+     "reason_now": "The allocated list items are ownership-transferred to the result list and will be freed when the returned typval is released.",
+     "growth": 732,
+     "helpers": [
+      "list_append",
+      "ch_log"
+     ]
+    },
+    {
+     "function": "get_buffer_lines",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated list item and copied string are owned by the result list, which remains referenced through rettv for cleanup.",
+     "reason_now": "The appended list items and duplicated strings remain owned by the result list, which the caller is responsible for freeing.",
+     "growth": 1991,
+     "helpers": [
+      "list_append",
+      "vim_strnsave",
+      "STRLEN",
+      "alloc",
+      "mch_memmove",
+      "siemsg",
+      "STRCPY",
+      "get_trans_bufname",
+      "shorten_dir"
+     ]
+    },
+    {
+     "function": "f_expand",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated string is copied into a list item whose list is transferred through rettv and later owns and frees it.",
+     "reason_now": "The allocated string is copied into and owned by the returned list, which is later freed through normal typval/list cleanup.",
+     "growth": 5856,
+     "helpers": [
+      "listitem_alloc",
+      "list_append",
+      "vim_strnsave",
+      "list_alloc",
+      "mem_pre_free",
+      "FreeWild",
+      "VIM_CLEAR",
+      "cmdline_pum_remove",
+      "get_cmdline_info",
+      "ExpandOne_start",
+      "find_longest_match",
+      "STRLEN_LITERAL",
+      "STRLEN",
+      "alloc",
+      "vim_snprintf_safelen"
+     ]
+    },
+    {
+     "function": "eval_addlist",
+     "was": false,
+     "now": true,
+     "conf_was": 0.99,
+     "conf_now": 0.93,
+     "reason_was": "The concatenated list and its items are ownership-transferred through var3 into tv1, so they remain reachable and are not leaked.",
+     "reason_now": "list_concat can fail after creating the result list, but eval_addlist does not clear that owned result before returning.",
+     "growth": 4073,
+     "helpers": [
+      "list_alloc",
+      "list_extend",
+      "func_unref",
+      "VIM_CLEAR",
+      "partial_unref",
+      "blob_unref",
+      "list_unref",
+      "tuple_unref",
+      "dict_unref",
+      "job_unref",
+      "channel_unref",
+      "class_unref",
+      "object_unref",
+      "typealias_unref"
+     ]
+    },
+    {
+     "function": "getpos_both",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "Appended list items are owned by the result list and freed when the returned typval is cleared.",
+     "reason_now": "The allocated list items are ownership-transferred to the result list and freed when that list is released.",
+     "growth": 5748,
+     "helpers": [
+      "list_append",
+      "list_find_nr",
+      "mb_charlen",
+      "ml_get",
+      "ml_get_len",
+      "list_find",
+      "STRCMP",
+      "in_vim9script",
+      "check_for_string_arg",
+      "tv_get_string_chk",
+      "validate_botline",
+      "check_cursor_moved",
+      "ml_get_curline",
+      "ml_get_curline_len",
+      "semsg",
+      "update_curswant_force"
+     ]
+    },
+    {
+     "function": "f_getchangelist",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "Both allocations are owned by the returned list structure and are released when that structure is destroyed.",
+     "reason_now": "Both allocations are owned by the returned outer list, so neither becomes unreachable at the reported locations.",
+     "growth": 1706,
+     "helpers": [
+      "ALLOC_CLEAR_ONE",
+      "list_init",
+      "list_append",
+      "tv_get_buf",
+      "tv_get_number",
+      "hash_init"
+     ]
+    },
+    {
+     "function": "f_balloon_split",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "All strings allocated by split_message are freed in the loop before the array itself is freed.",
+     "reason_now": "The array and every allocated text entry are explicitly freed, while list entries receive independent copies.",
+     "growth": 2014,
+     "helpers": [
+      "ga_init2",
+      "ga_grow",
+      "skipwhite",
+      "ptr2cells",
+      "ALLOC_CLEAR_MULT",
+      "alloc",
+      "vim_strncpy",
+      "ga_clear",
+      "tv_get_string_buf_chk",
+      "listitem_alloc",
+      "list_append",
+      "vim_strnsave"
+     ]
+    },
+    {
+     "function": "f_inputsave",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.98,
+     "reason_was": "The allocated input buffer is stored in the typeahead stack and is owned for later restoration and cleanup.",
+     "reason_now": "The allocated input buffer is stored in the persistent ga_userinput stack and is owned for later restoration and cleanup.",
+     "growth": 1451,
+     "helpers": [
+      "alloc_typebuf",
+      "ga_grow_inner"
+     ]
+    },
+    {
+     "function": "add_regionpos_range",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated list items are owned by l2 or l3, which are reachable through l1 and rettv, so they are eventually freed with the containing lists.",
+     "reason_now": "The allocated list items are owned by l2 and l3, which are nested into rettv and will be freed with the resulting list.",
+     "growth": 710,
+     "helpers": [
+      "list_append",
+      "mem_pre_free"
+     ]
+    },
+    {
+     "function": "f_searchpairpos",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated list items are owned by the returned list and will be freed with it.",
+     "reason_now": "The allocated list items are ownership-transferred to the result list, which owns and frees them.",
+     "growth": 3460,
+     "helpers": [
+      "list_append",
+      "in_vim9script",
+      "check_for_string_arg",
+      "check_for_opt_string_arg",
+      "check_for_opt_number_arg",
+      "tv_get_string_chk",
+      "tv_get_string_buf_chk",
+      "get_search_arg",
+      "semsg",
+      "tv_get_string",
+      "tv_get_number_chk"
+     ]
+    },
+    {
+     "function": "f_srand",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated list items are appended to the result list, whose ownership is transferred through rettv and later released by normal typval cleanup.",
+     "reason_now": "The allocated list items remain owned by the result list through rettv and are freed with it.",
+     "growth": 433,
+     "helpers": [
+      "list_append"
+     ]
+    },
+    {
+     "function": "f_screenchars",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "Allocated list items are appended to the result list, whose ownership is transferred through rettv for caller cleanup.",
+     "reason_now": "The allocated list items are transferred to the result list, whose ownership is returned through rettv and later released by the caller.",
+     "growth": 1765,
+     "helpers": [
+      "list_append",
+      "utf_ptr2char",
+      "utf_ptr2len",
+      "UTF_COMPOSINGLIKE"
+     ]
+    },
+    {
+     "function": "f_searchpos",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated list items are owned by the result list in rettv and will be freed when that list is released.",
+     "reason_now": "The allocated list items are linked into the result list stored in rettv, transferring ownership to the caller.",
+     "growth": 5245,
+     "helpers": [
+      "list_append",
+      "in_vim9script",
+      "check_for_string_arg",
+      "check_for_opt_string_arg",
+      "check_for_opt_number_arg",
+      "tv_get_string",
+      "get_search_arg",
+      "tv_get_number_chk",
+      "eval_expr_valid_arg",
+      "semsg",
+      "CLEAR_FIELD",
+      "STRLEN",
+      "EQUAL_POS",
+      "eval_expr_to_bool",
+      "setpcmark",
+      "check_cursor"
+     ]
+    },
+    {
+     "function": "f_setcharsearch",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "With save disabled, dict_get_string returns borrowed data, and set_last_csearch copies it without transferring or requiring ownership.",
+     "reason_now": "The call uses save=false, so dict_get_string does not allocate memory, and set_last_csearch copies the characters rather than retaining the pointer.",
+     "growth": 2200,
+     "helpers": [
+      "tv_get_string",
+      "vim_strsave",
+      "semsg",
+      "utf_ptr2char",
+      "utf_ptr2len",
+      "UTF_COMPOSINGLIKE"
+     ]
+    },
+    {
+     "function": "f_spellbadword",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated list items and copied strings are owned by the result list and freed when the returned typval is cleared.",
+     "reason_now": "The allocated list items and strings remain owned by the result list in rettv and are freed when that list is destroyed.",
+     "growth": 5516,
+     "helpers": [
+      "list_append",
+      "CLEAR_FIELD",
+      "skipbin",
+      "skiphex",
+      "skipdigits",
+      "spell_iswordp",
+      "advance_camelcase_word",
+      "MB_PTR_ADV",
+      "PTR2CHAR",
+      "SPELL_ISUPPER",
+      "spell_casefold",
+      "STRLEN",
+      "LANGP_ENTRY",
+      "count_common_word",
+      "spell_iswordp_nmw",
+      "vim_regexec"
+     ]
+    },
+    {
+     "function": "f_setreg",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "Both calls request a non-owning string view, so no heap allocation requires freeing in this function.",
+     "reason_now": "Both calls use save=false, so dict_get_string returns borrowed or static storage rather than newly allocated heap memory.",
+     "growth": 1253,
+     "helpers": [
+      "tv_get_string",
+      "vim_strnsave",
+      "vim_strncpy",
+      "hash_find",
+      "HASHITEM_EMPTY",
+      "HI2DI",
+      "VIM_ISDIGIT",
+      "getdigits",
+      "tv_get_bool"
+     ]
+    },
+    {
+     "function": "f_synconcealed",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated list items and string are owned by the result list, which is transferred through rettv and later released by normal typval cleanup.",
+     "reason_now": "The allocated items and string are owned by the result list, which is transferred through rettv and cleaned up by normal typval disposal.",
+     "growth": 639,
+     "helpers": [
+      "list_append",
+      "vim_strnsave"
+     ]
+    },
+    {
+     "function": "list_one_var",
+     "was": false,
+     "now": false,
+     "no_helpers": true,
+     "growth": 0,
+     "helpers": []
+    },
+    {
+     "function": "f_getreginfo",
+     "was": true,
+     "now": true,
+     "conf_was": 0.99,
+     "conf_now": 0.98,
+     "reason_was": "dict_add_list increments the list reference count, but f_getreginfo never releases the caller's original reference.",
+     "reason_now": "The returned list retains its original reference after dict_add_list increments it, and no unreference releases that ownership.",
+     "growth": 6161,
+     "helpers": [
+      "getreg_wrap_one_line",
+      "get_expr_line_src",
+      "get_expr_line",
+      "valid_yank_reg",
+      "call_clip_provider_request",
+      "may_get_selection",
+      "vim_strsave",
+      "get_yank_register",
+      "list_alloc",
+      "list_append_string",
+      "list_free",
+      "alloc",
+      "STRCPY",
+      "dict_alloc_lock",
+      "rettv_dict_set",
+      "dictitem_free"
+     ]
+    },
+    {
+     "function": "f_tabpagebuflist",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated list items are owned by the result list, which is transferred through rettv and later released by the caller.",
+     "reason_now": "Allocated list items are owned by the returned list, which transfers ownership through rettv and is freed by normal typval cleanup.",
+     "growth": 737,
+     "helpers": [
+      "list_append",
+      "list_alloc",
+      "rettv_list_set"
+     ]
+    },
+    {
+     "function": "f_virtcol",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated list items are owned by the result list in rettv and will be released with it.",
+     "reason_now": "The allocated list items are owned by the returned list, which owns them until the return value is released.",
+     "growth": 3138,
+     "helpers": [
+      "list_append",
+      "list_alloc",
+      "rettv_list_set",
+      "valid_tabpage",
+      "unuse_tabpage",
+      "use_tabpage",
+      "goto_tabpage_tp",
+      "win_valid",
+      "WIN_IS_POPUP",
+      "win_goto"
+     ]
+    },
+    {
+     "function": "win_id2tabwin",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated list items are owned by the destination list and will be released when that list is freed.",
+     "reason_now": "The allocated list items are successfully appended to the caller-owned list, which assumes responsibility for freeing them.",
+     "growth": 433,
+     "helpers": [
+      "list_append"
+     ]
+    },
+    {
+     "function": "heredoc_get",
+     "was": true,
+     "now": true,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated list is not freed when compilation fails and the function returns FAIL.",
+     "reason_now": "The allocated list is not freed when compilation fails and the function returns early.",
+     "growth": 805,
+     "helpers": [
+      "ALLOC_CLEAR_ONE",
+      "list_init",
+      "emsg_not_now",
+      "vim_vsnprintf"
+     ]
+    },
+    {
+     "function": "assert_error",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "All allocations are owned by the v:errors list and will be released when that list is cleared or destroyed.",
+     "reason_now": "The allocated list item and copied string become owned by the persistent v:errors list, so they remain reachable and are not leaked.",
+     "growth": 772,
+     "helpers": [
+      "list_append",
+      "ALLOC_CLEAR_ONE",
+      "list_init"
+     ]
+    },
+    {
+     "function": "get_matches_in_str",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.96,
+     "reason_was": "The sublist is reference-counted and ownership transfers to the dictionary, while failed insertion cleanup releases it.",
+     "reason_now": "The list is reference-counted and ownership transfers to the dictionary on successful insertion, while insertion failure cleans up the reference.",
+     "growth": 1510,
+     "helpers": [
+      "ALLOC_CLEAR_ONE",
+      "list_init",
+      "dictitem_alloc",
+      "vim_strsave",
+      "vim_strnsave",
+      "dict_add",
+      "dictitem_free"
+     ]
+    },
+    {
+     "function": "f_gettabinfo",
+     "was": false,
+     "now": false,
+     "conf_was": 0.98,
+     "conf_now": 0.99,
+     "reason_was": "The allocated list item is transferred to the returned list, whose ownership persists through rettv.",
+     "reason_now": "The allocated list item is owned by the result list and will be freed when the returned typval is released.",
+     "growth": 2365,
+     "helpers": [
+      "list_append",
+      "dict_alloc",
+      "dict_add_number",
+      "list_alloc",
+      "FOR_ALL_WINDOWS_IN_TAB",
+      "list_append_number",
+      "dict_add_list",
+      "dict_add_dict"
+     ]
+    },
+    {
+     "function": "f_getwinpos",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated list items are owned by the result list and will be freed when the returned typval is released.",
+     "reason_now": "Allocated list items are ownership-transferred to the returned list, which the caller is responsible for freeing.",
+     "growth": 1858,
+     "helpers": [
+      "list_append",
+      "gui_mch_get_winpos",
+      "mch_get_winpos",
+      "term_get_winpos"
+     ]
+    },
+    {
+     "function": "f_win_id2tabwin",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated list items are owned by the result list stored in rettv and will be released with that list.",
+     "reason_now": "The allocated list items are owned by the newly allocated result list, which is transferred through rettv for eventual cleanup.",
+     "growth": 1083,
+     "helpers": [
+      "tv_get_number",
+      "FOR_ALL_TABPAGES",
+      "FOR_ALL_WINDOWS_IN_TAB",
+      "list_append_number",
+      "list_alloc",
+      "rettv_list_set"
+     ]
+    },
+    {
+     "function": "get_tabpage_info",
+     "was": true,
+     "now": false,
+     "conf_was": 0.93,
+     "conf_now": 0.93,
+     "reason_was": "The list is normally transferred to the dictionary, but it leaks when dict_add_list fails before taking ownership.",
+     "reason_now": "dict_add_list transfers ownership of the newly allocated list on success and releases it if insertion fails.",
+     "growth": 793,
+     "helpers": [
+      "ALLOC_CLEAR_ONE",
+      "list_init",
+      "dict_add_number_special"
+     ]
+    },
+    {
+     "function": "f_win_screenpos",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated list items are owned by rettv->vval.v_list and are released when the returned list is cleared.",
+     "reason_now": "The allocated list items are owned by the result list and ownership transfers through rettv, so they are not leaked.",
+     "growth": 1569,
+     "helpers": [
+      "list_append",
+      "tv_get_number_chk",
+      "win_id2wp",
+      "tv_get_number",
+      "find_win_by_nr"
+     ]
+    },
+    {
+     "function": "f_getwininfo",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated list items are owned by the result list, which remains reachable through rettv and is freed by its eventual owner.",
+     "reason_now": "The allocated list items are owned by the returned list and will be freed when that list is released.",
+     "growth": 2282,
+     "helpers": [
+      "list_append",
+      "dict_alloc",
+      "validate_botline_win",
+      "dict_add_number",
+      "win_col_off",
+      "bt_terminal",
+      "bt_quickfix",
+      "dict_add_dict",
+      "FOR_ALL_POPUPWINS_IN_TAB"
+     ]
+    },
+    {
+     "function": "report_pending",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated message is freed at the end of the CSTP_THROW path, so it does not leak.",
+     "reason_now": "The allocated message is freed by vim_free when CSTP_THROW is pending, so it does not leak.",
+     "growth": 222,
+     "helpers": [
+      "alloc",
+      "STRNCPY"
+     ]
+    },
+    {
+     "function": "f_winlayout",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated strings are owned by the result list in rettv and are released when that list is cleaned up.",
+     "reason_now": "The allocated strings are owned by the returned list, whose lifetime is transferred through rettv and later reference-counted cleanup.",
+     "growth": 1507,
+     "helpers": [
+      "list_alloc",
+      "list_append_list",
+      "vim_free",
+      "list_append_string",
+      "list_append_number",
+      "tv_get_number_chk"
+     ]
+    },
+    {
+     "function": "expand_findfunc",
+     "was": true,
+     "now": true,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The copied list returned by call_findfunc is owned by expand_findfunc and is not freed when it is empty.",
+     "reason_now": "The returned list is allocated by list_copy and is not freed on the empty-list path.",
+     "growth": 4547,
+     "helpers": [
+      "get_option_sctx",
+      "get_findfunc_callback",
+      "call_callback",
+      "list_copy",
+      "get_copyID",
+      "emsg",
+      "clear_tv"
+     ]
+    },
+    {
+     "function": "compare_readdirex_item",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "dict_get_string(..., FALSE) returns a borrowed dictionary-owned string, so the comparator does not own or need to free it.",
+     "reason_now": "With save set to FALSE, dict_get_string returns borrowed or static storage, so no heap allocation is leaked.",
+     "growth": 1001,
+     "helpers": [
+      "dict_find",
+      "tv_get_string",
+      "vim_strsave"
+     ]
+    },
+    {
+     "function": "get_framelayout",
+     "was": true,
+     "now": false,
+     "conf_was": 0.98,
+     "conf_now": 0.97,
+     "reason_was": "Freshly allocated nested lists retain an extra reference after list_append_list(), so their contained items can remain leaked.",
+     "reason_now": "The appended list items remain owned and reachable through the returned list hierarchy, so neither reported allocation is leaked.",
+     "growth": 1458,
+     "helpers": [
+      "list_append",
+      "ALLOC_CLEAR_ONE",
+      "list_init",
+      "mem_pre_free",
+      "vim_strnsave",
+      "vim_strsave"
+     ]
+    },
+    {
+     "function": "readdirex_dict_arg",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "dict_get_string is called with save=false, so compare is a borrowed dictionary value and requires no freeing.",
+     "reason_now": "dict_get_string is called with save=false, so it returns a borrowed or static string without allocating heap memory.",
+     "growth": 1409,
+     "helpers": [
+      "dict_find",
+      "tv_get_string",
+      "vim_strsave",
+      "emsg_not_now",
+      "vim_vsnprintf"
+     ]
+    },
+    {
+     "function": "findfunc_find_file",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The list_free call releases the list and its materialized items, so the allocation is not leaked.",
+     "reason_now": "The materialized list items allocated during list_find are released by list_free, so no heap allocation remains leaked.",
+     "growth": 444,
+     "helpers": [
+      "CHECK_LIST_MATERIALIZE",
+      "STRLEN",
+      "alloc",
+      "mch_memmove"
+     ]
+    },
+    {
+     "function": "rename_buffer",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The newly created buffer is transferred to the global buffer list, which owns and eventually frees it.",
+     "reason_now": "The new buffer remains owned by the global buffer list, so assigning its number to w_alt_fnum does not make the allocation unreachable.",
+     "growth": 5513,
+     "helpers": [
+      "hash_init",
+      "fname_expand",
+      "mch_stat",
+      "buflist_findname_stat",
+      "buflist_findname",
+      "buflist_setfpos",
+      "set_bufref",
+      "bufref_valid",
+      "curbuf_reusable",
+      "trigger_undo_ftplugin",
+      "ALLOC_CLEAR_ONE",
+      "dict_alloc_id",
+      "init_var_dict",
+      "init_changedtick",
+      "vim_strsave",
+      "clear_wininfo"
+     ]
+    },
+    {
+     "function": "foldCreateMarkers",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.98,
+     "reason_was": "The allocated copy is intentionally retained by the undo system as an undo record, not leaked.",
+     "reason_now": "The reported allocation is an undo-system snapshot retained and managed by undo data structures, not leaked by foldCreateMarkers.",
+     "growth": 5122,
+     "helpers": [
+      "ml_get",
+      "ml_get_len",
+      "u_save",
+      "skip_comment",
+      "alloc",
+      "STRLEN",
+      "STRCPY",
+      "vim_strncpy",
+      "STRNCPY",
+      "ml_replace",
+      "vim_strchr",
+      "changed_lines_buf",
+      "diff_internal",
+      "mark_adjust",
+      "FOR_ALL_WINDOWS",
+      "redraw_win_later"
+     ]
+    },
+    {
+     "function": "ex_throw",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated string is freed when throwing fails and ownership is transferred to the exception when throwing succeeds.",
+     "reason_now": "The returned string is either transferred to the exception on success or freed by ex_throw when throw_exception fails.",
+     "growth": 3876,
+     "helpers": [
+      "fill_evalarg_from_eap",
+      "eval0",
+      "vim_strsave",
+      "tv_get_string",
+      "clear_tv",
+      "clear_evalarg",
+      "emsg_not_now"
+     ]
+    },
+    {
+     "function": "foldSplit",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The realloc-backed buffer remains owned and reachable through gap2->ga_data, so no leak occurs at the reported line.",
+     "reason_now": "The reallocated nested-array buffer remains owned through gap2->ga_data and is not made unreachable by updating fd_len.",
+     "growth": 818,
+     "helpers": [
+      "ga_grow_inner"
+     ]
+    },
+    {
+     "function": "do_fuzzymatch",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "Each allocated sublist is either freed on append failure or transferred into the returned list, so no leak occurs.",
+     "reason_now": "The allocated list is transferred into the return list on successful append and is freed on append failure.",
+     "growth": 1563,
+     "helpers": [
+      "ALLOC_CLEAR_ONE",
+      "list_init",
+      "listitem_alloc",
+      "list_append",
+      "list_free_contents",
+      "list_free_list"
+     ]
+    },
+    {
+     "function": "gui_set_fg_color",
+     "was": true,
+     "now": true,
+     "conf_was": 0.98,
+     "conf_now": 0.98,
+     "reason_was": "The allocated string is leaked when the callee cannot resolve the Normal highlight and returns without freeing or storing it.",
+     "reason_now": "The callee takes ownership only when the Normal highlight exists; otherwise it returns without freeing the allocated string.",
+     "growth": 1023,
+     "helpers": [
+      "STRLEN",
+      "alloc",
+      "mch_memmove",
+      "syn_name2id",
+      "vim_free",
+      "HL_TABLE"
+     ]
+    },
+    {
+     "function": "getchar_common",
+     "was": false,
+     "now": false,
+     "conf_was": 0.98,
+     "conf_now": 0.99,
+     "reason_was": "The call passes save=false, so dict_get_string does not allocate an owned copy and cursor_str is only a borrowed value.",
+     "reason_now": "The call uses save=false, so dict_get_string returns a borrowed or static string rather than newly allocated heap memory.",
+     "growth": 1123,
+     "helpers": [
+      "dict_find",
+      "tv_get_string",
+      "vim_strsave",
+      "tv_get_bool"
+     ]
+    },
+    {
+     "function": "gui_set_bg_color",
+     "was": true,
+     "now": true,
+     "conf_was": 0.98,
+     "conf_now": 0.98,
+     "reason_was": "The allocation is transferred on success but leaked when the callee returns early because the Normal highlight ID is unavailable.",
+     "reason_now": "The pointer is ownership-transferred only when the Normal highlight exists; otherwise the callee returns without freeing it.",
+     "growth": 1023,
+     "helpers": [
+      "STRLEN",
+      "alloc",
+      "mch_memmove",
+      "syn_name2id",
+      "vim_free",
+      "HL_TABLE"
+     ]
+    },
+    {
+     "function": "f_readdirex",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.98,
+     "reason_was": "The allocated list item is owned by the result list, while each dictionary reference is balanced by dict_unref.",
+     "reason_now": "The allocated list item is owned by the returned list, while failed append paths release the dictionary reference; the reported leak is therefore a false alarm.",
+     "growth": 5347,
+     "helpers": [
+      "list_append",
+      "ga_init2",
+      "FREE_ITEM",
+      "vim_free",
+      "alloc",
+      "STRNCPY",
+      "STRLEN",
+      "MB_PTR_BACK",
+      "STRCPY",
+      "enc_to_utf16",
+      "semsg",
+      "utf16_to_enc",
+      "ga_grow",
+      "vim_strsave",
+      "qsort",
+      "sort_strings"
+     ]
+    },
+    {
+     "function": "helptags_one",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "Both reported paths call FreeWild, which frees each allocated filename and the containing array.",
+     "reason_now": "Both reported allocations are released by FreeWild on their respective paths.",
+     "growth": 7024,
+     "helpers": [
+      "expand_env",
+      "has_special_wildchar",
+      "vim_backtick",
+      "expand_backtick",
+      "has_env_var",
+      "expand_env_save_opt",
+      "ga_clear_strings",
+      "mch_has_exp_wildcard",
+      "mch_isFullName",
+      "vim_ispathsep",
+      "expand_in_path",
+      "backslash_halve_save",
+      "addfile",
+      "emsg_not_now",
+      "vim_vsnprintf"
+     ]
+    },
+    {
+     "function": "cs_add_common",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The callee frees the previous buffer on replacement or nulls the pointer on allocation failure, and successful paths are freed by the caller.",
+     "reason_now": "The helper frees the prior buffer whenever its replacement allocation fails, so the null-check path does not leak allocated memory.",
+     "growth": 7520,
+     "helpers": [
+      "expand_env_save",
+      "MB_PTR_ADV",
+      "vim_ispathsep",
+      "FullName_save",
+      "vim_isAbsName",
+      "vim_strchr",
+      "enc_to_utf16",
+      "utf16_to_enc",
+      "mch_isdir",
+      "STRLEN",
+      "add_pathsep",
+      "mch_dirname",
+      "vim_strsave",
+      "shorten_fname",
+      "fnamencmp",
+      "gettail"
+     ]
+    },
+    {
+     "function": "do_helptags",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "FreeWild releases the wildcard array and every allocated filename, while failure paths are cleaned up by gen_expand_wildcards.",
+     "reason_now": "FreeWild releases every filename and the containing array, so the reported allocation is not leaked.",
+     "growth": 7171,
+     "helpers": [
+      "expand_env",
+      "has_special_wildchar",
+      "vim_backtick",
+      "expand_backtick",
+      "has_env_var",
+      "expand_env_save_opt",
+      "vim_free",
+      "ga_clear_strings",
+      "mch_has_exp_wildcard",
+      "mch_isFullName",
+      "vim_ispathsep",
+      "expand_in_path",
+      "backslash_halve_save",
+      "addfile",
+      "emsg_not_now",
+      "vim_vsnprintf"
+     ]
+    },
+    {
+     "function": "serverSendToVim",
+     "was": true,
+     "now": false,
+     "conf_was": 0.96,
+     "conf_now": 0.98,
+     "reason_was": "The allocated loosename is not freed on the w == None return path.",
+     "reason_now": "Any allocated loosename is freed on invalid-window retries or after selecting a valid window, and no allocation occurs when the final lookup returns None.",
+     "growth": 4817,
+     "helpers": [
+      "GetRegProp",
+      "SAFE_isspace",
+      "STRICMP",
+      "IsSerialName",
+      "STRNICMP",
+      "STRLEN",
+      "mch_memmove",
+      "eval_client_expr_to_string",
+      "vim_snprintf",
+      "server_to_input_buf",
+      "mem_pre_free"
+     ]
+    },
+    {
+     "function": "trigger_complete_changed_event",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.98,
+     "reason_was": "The item is reference-counted when inserted into v:event and released by restore_v_event via dict_free_contents.",
+     "reason_now": "The dictionary is reference-counted when inserted into v:event and released when the event contents are restored.",
+     "growth": 921,
+     "helpers": [
+      "ALLOC_CLEAR_ONE",
+      "hash_init",
+      "dict_alloc_lock",
+      "dict_add_string",
+      "dict_add_tv"
+     ]
+    },
+    {
+     "function": "change_indent",
+     "was": true,
+     "now": true,
+     "conf_was": 0.98,
+     "conf_now": 0.99,
+     "reason_was": "orig_line is leaked when the later new_line allocation fails before ownership is transferred to ml_replace.",
+     "reason_now": "orig_line is leaked when its allocation succeeds but the later new_line allocation fails and the function returns.",
+     "growth": 3524,
+     "helpers": [
+      "STRNCPY",
+      "changedOneline",
+      "spell_check_window",
+      "vim_strchr",
+      "redrawWinline",
+      "FOR_ALL_WINDOWS",
+      "redraw_win_later",
+      "diff_lnum_win",
+      "ALLOC_MULT",
+      "mch_memmove"
+     ]
+    },
+    {
+     "function": "ins_compl_add_tv",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "dict_get_string with save=false returns borrowed or temporary conversion storage, not an owned heap allocation requiring freeing.",
+     "reason_now": "dict_get_string(..., FALSE) returns an existing or temporary conversion buffer and does not allocate heap memory.",
+     "growth": 1360,
+     "helpers": [
+      "dict_find",
+      "tv_get_string",
+      "vim_strsave",
+      "syn_name2attr",
+      "dict_get_number_def"
+     ]
+    },
+    {
+     "function": "get_complete_info",
+     "was": true,
+     "now": false,
+     "conf_was": 0.87,
+     "conf_now": 0.99,
+     "reason_was": "The list can leak when dict_add_list fails before taking its reference, while appended list items are ownership-transferred.",
+     "reason_now": "The list and its items are transferred into the returned dictionary and released with it, so none of the reported allocations leak.",
+     "growth": 2543,
+     "helpers": [
+      "ALLOC_CLEAR_ONE",
+      "list_init",
+      "list_append",
+      "dictitem_alloc",
+      "vim_strsave",
+      "vim_strnsave",
+      "dict_add",
+      "dictitem_free",
+      "hash_init",
+      "dict_add_bool",
+      "dict_add_tv"
+     ]
+    },
+    {
+     "function": "f_prompt_setprompt",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated string is transferred to buf->b_prompt_text, which owns it for later cleanup.",
+     "reason_now": "The allocated string is ownership-transferred to buf->b_prompt_text, which is managed as buffer state rather than becoming unreachable.",
+     "growth": 566,
+     "helpers": [
+      "STRLEN",
+      "alloc",
+      "mch_memmove",
+      "mem_pre_free"
+     ]
+    },
+    {
+     "function": "f_prompt_setcallback",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The first allocation cannot coincide with a NULL callback name, and the second allocation is owned by the buffer callback and later freed by free_callback.",
+     "reason_now": "The first allocation is freed on valid callback setup, while the second is owned by the buffer callback and later freed by free_callback.",
+     "growth": 3909,
+     "helpers": [
+      "CLEAR_FIELD",
+      "partial_name",
+      "SAFE_isdigit",
+      "func_ref",
+      "emsg",
+      "buflist_findnr",
+      "buflist_find_by_name",
+      "find_buffer",
+      "partial_unref",
+      "func_unref",
+      "mem_pre_free"
+     ]
+    },
+    {
+     "function": "json_encode_lsp_msg",
+     "was": true,
+     "now": true,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "On encoding failure, json_encode_gap replaces the cleared buffer with an allocated empty string, but the caller returns without freeing it.",
+     "reason_now": "On encoding failure, json_encode_gap replaces the cleared buffer with a newly allocated empty string, which the caller returns without freeing.",
+     "growth": 414,
+     "helpers": [
+      "get_copyID",
+      "ga_init",
+      "ga_grow"
+     ]
+    },
+    {
+     "function": "vimlist_remove",
+     "was": false,
+     "now": false,
+     "conf_was": 0.93,
+     "conf_now": 0.93,
+     "reason_was": "The function only unlinks items; removed nodes remain owned by the caller, so materialized allocations are not inherently leaked here.",
+     "reason_now": "The function only unlinks items, while the caller retains the removed-item pointers and is responsible for freeing them.",
+     "growth": 406,
+     "helpers": [
+      "list_append_number",
+      "ALLOC_ONE"
+     ]
+    },
+    {
+     "function": "list2items",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated items remain owned by l2, which is appended to the returned list and will be freed through normal list cleanup.",
+     "reason_now": "The allocated items remain owned by l2, which is reference-counted and owned by the result list even when later appends fail.",
+     "growth": 1064,
+     "helpers": [
+      "list_append",
+      "check_typval_arg_type",
+      "mem_pre_free"
+     ]
+    },
+    {
+     "function": "f_prompt_setinterrupt",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The first allocation cannot reach the reported null-name path, and the second allocation is owned by the buffer callback until free_callback releases it.",
+     "reason_now": "The allocated callback name is either not created on the early-return path or is owned by the buffer and freed by free_callback.",
+     "growth": 3909,
+     "helpers": [
+      "CLEAR_FIELD",
+      "partial_name",
+      "SAFE_isdigit",
+      "func_ref",
+      "emsg",
+      "buflist_findnr",
+      "buflist_find_by_name",
+      "find_buffer",
+      "partial_unref",
+      "func_unref",
+      "mem_pre_free"
+     ]
+    },
+    {
+     "function": "f_tuple2list",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "Each allocated list item is appended to the result list, whose ownership is returned through rettv.",
+     "reason_now": "The allocated list item is appended to the returned list, which owns and later frees it.",
+     "growth": 787,
+     "helpers": [
+      "check_typval_arg_type",
+      "list_append"
+     ]
+    },
+    {
+     "function": "list_join_inner",
+     "was": false,
+     "now": false,
+     "conf_was": 0.98,
+     "conf_now": 0.99,
+     "reason_was": "The allocated string is ownership-transferred to the join entry via tofree and is intended to be released when join_gap is cleaned up.",
+     "reason_now": "The allocated string is intentionally transferred to the join_gap entry through p->tofree for later cleanup.",
+     "growth": 9320,
+     "helpers": [
+      "emsg",
+      "string_tv2string",
+      "func_tv2string",
+      "partial_tv2string",
+      "method_tv2string",
+      "blob2string",
+      "list_tv2string",
+      "tuple_tv2string",
+      "dict_tv2string",
+      "tv_get_string_buf",
+      "jobchan_tv2string",
+      "class_tv2string",
+      "object_tv2string",
+      "vim_snprintf",
+      "get_var_special_name",
+      "vim_strsave"
+     ]
+    },
+    {
+     "function": "eval_list",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "list_free releases the list contents, including appended list items, on every failure path.",
+     "reason_now": "list_free releases the list contents, including appended list items, so the allocation is not leaked.",
+     "growth": 3248,
+     "helpers": [
+      "ALLOC_ONE",
+      "func_unref",
+      "VIM_CLEAR",
+      "partial_unref",
+      "blob_unref",
+      "list_unref",
+      "tuple_unref",
+      "dict_unref",
+      "job_unref",
+      "channel_unref",
+      "class_unref",
+      "object_unref",
+      "typealias_unref",
+      "CHECK_LIST_MATERIALIZE"
+     ]
+    },
+    {
+     "function": "item_compare",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated strings remain reachable through tofree1 and tofree2 and are freed before the function returns.",
+     "reason_now": "The allocated string remains tracked by tofree1 and is freed at function exit despite p1 being advanced by strtod.",
+     "growth": 1449,
+     "helpers": [
+      "tv_get_float_chk"
+     ]
+    },
+    {
+     "function": "highlight_get_info",
+     "was": true,
+     "now": true,
+     "conf_was": 0.96,
+     "conf_now": 0.97,
+     "reason_was": "Both nested dictionaries are retained on successful insertion but leak if a later operation fails because the error path raw-frees the outer dictionary without releasing its entries.",
+     "reason_now": "Successful insertion transfers ownership, but later failures use raw vim_free and leak inserted attribute dictionaries.",
+     "growth": 1572,
+     "helpers": [
+      "ARRAY_LENGTH",
+      "dict_add_string_len",
+      "dictitem_alloc",
+      "dict_add",
+      "dictitem_free",
+      "TOLOWER_ASC",
+      "HL_TABLE",
+      "GUI_MCH_GET_RGB"
+     ]
+    },
+    {
+     "function": "job_info",
+     "was": true,
+     "now": false,
+     "conf_was": 0.98,
+     "conf_now": 0.97,
+     "reason_was": "The list retains an allocation reference in addition to the dictionary reference, and the function never releases it.",
+     "reason_now": "The allocated list is transferred to the dictionary by dict_add_list and is subsequently owned and reclaimed through reference counting.",
+     "growth": 899,
+     "helpers": [
+      "ALLOC_CLEAR_ONE",
+      "list_init",
+      "dict_add_string_len"
+     ]
+    },
+    {
+     "function": "list_reduce",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated funccall is released by remove_funccal immediately when fc is non-NULL.",
+     "reason_now": "The allocated funccall is released by remove_funccal on every path where it is created.",
+     "growth": 3098,
+     "helpers": [
+      "create_funccal",
+      "eval_expr_partial",
+      "exe_typval_instr",
+      "eval_expr_func",
+      "eval_expr_string"
+     ]
+    },
+    {
+     "function": "list_filter_map",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated function-call context is explicitly released by remove_funccal() when fc is non-null.",
+     "reason_now": "The allocated function-call context is released by remove_funccal() on every path where creation succeeds.",
+     "growth": 3098,
+     "helpers": [
+      "create_funccal",
+      "eval_expr_partial",
+      "exe_typval_instr",
+      "eval_expr_func",
+      "eval_expr_string"
+     ]
+    },
+    {
+     "function": "list_extend_func",
+     "was": true,
+     "now": true,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "When is_new is set, the copied list remains referenced only by local l1 and is not unreferenced on any of these early returns.",
+     "reason_now": "The copied list retains its reference on each early return before ownership is transferred to the return value.",
+     "growth": 1730,
+     "helpers": [
+      "list_alloc",
+      "alloc_type",
+      "CHECK_LIST_MATERIALIZE",
+      "listitem_alloc",
+      "vim_free",
+      "list_append",
+      "list_unref"
+     ]
+    },
+    {
+     "function": "f_mapset",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The strings are borrowed when save is false, and map_add transfers ownership by linking each allocated mapping into the map table.",
+     "reason_now": "The dictionary strings are borrowed values and map_add transfers each mapping's ownership to the mapping tables, so none of the reported allocations becomes leaked.",
+     "growth": 6076,
+     "helpers": [
+      "dict_find",
+      "tv_get_string",
+      "ALLOC_CLEAR_ONE",
+      "STRLEN",
+      "MAP_HASH",
+      "emsg_not_now",
+      "get_map_mode",
+      "check_map",
+      "str2special_save",
+      "rettv_dict_alloc",
+      "mapblock2dict",
+      "mem_pre_free"
+     ]
+    },
+    {
+     "function": "f_matcharg",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated list items and strings are owned by the result list and freed when the returned typval is released.",
+     "reason_now": "The allocated list items and copied strings are owned by the result list, which is transferred through rettv for eventual cleanup.",
+     "growth": 718,
+     "helpers": [
+      "list_append",
+      "vim_strnsave",
+      "HL_TABLE"
+     ]
+    },
+    {
+     "function": "ml_open",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "All allocated blocks remain owned by the memfile and are released by mf_close on failure or later shutdown.",
+     "reason_now": "All allocated blocks remain owned by the memfile and are freed by mf_close on failure or later lifecycle cleanup.",
+     "growth": 6390,
+     "helpers": [
+      "mf_release",
+      "mf_alloc_bhdr",
+      "alloc",
+      "mf_rem_free",
+      "vim_free",
+      "mf_ins_used",
+      "mf_ins_hash",
+      "vim_memset",
+      "PB_COUNT_MAX",
+      "ALLOC_ONE",
+      "mf_do_open",
+      "mf_hash_init",
+      "fstatfs",
+      "emsg_not_now",
+      "set_vim_var_string",
+      "msg_putchar"
+     ]
+    },
+    {
+     "function": "nb_joinlines",
+     "was": false,
+     "now": false,
+     "conf_was": 0.97,
+     "conf_now": 0.99,
+     "reason_was": "ml_replace called with copy=false takes ownership of the allocated buffer, so the allocation is not leaked.",
+     "reason_now": "ml_replace called with copy=false takes ownership of the allocated buffer, so it is not leaked.",
+     "growth": 2375,
+     "helpers": [
+      "lalloc",
+      "ml_get_buf_len"
+     ]
+    },
+    {
+     "function": "netbeans_file_activated",
+     "was": true,
+     "now": true,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "If nb_quote succeeds but nb_get_buf returns NULL, the early return leaves q allocated and unreleased.",
+     "reason_now": "If nb_quote succeeds but nb_get_buf returns NULL, the early return leaves q allocated and unreachable.",
+     "growth": 727,
+     "helpers": [
+      "alloc",
+      "STRLEN",
+      "alloc_clear",
+      "vim_realloc",
+      "vim_memset",
+      "vim_vsnprintf"
+     ]
+    },
+    {
+     "function": "set_string_option_global",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated string is intentionally transferred to *p after the previous value is freed, so it remains owned and reachable.",
+     "reason_now": "The allocated string is assigned to the global option pointer, transferring ownership rather than leaking it.",
+     "growth": 436,
+     "helpers": [
+      "STRLEN",
+      "alloc",
+      "mch_memmove",
+      "vim_free"
+     ]
+    },
+    {
+     "function": "did_set_pumborder",
+     "was": true,
+     "now": true,
+     "conf_was": 1.0,
+     "conf_now": 1.0,
+     "reason_was": "Invalid custom-border parsing jumps to error without freeing the allocated token.",
+     "reason_now": "The custom-token error paths jump to cleanup without freeing the allocated token.",
+     "growth": 222,
+     "helpers": [
+      "alloc",
+      "STRNCPY"
+     ]
+    },
+    {
+     "function": "mch_dirname",
+     "was": false,
+     "now": false,
+     "no_helpers": true,
+     "growth": 0,
+     "helpers": []
+    },
+    {
+     "function": "f_getcellwidths",
+     "was": true,
+     "now": false,
+     "conf_was": 0.98,
+     "conf_now": 0.99,
+     "reason_was": "The successful nested-list append increments entry's reference count without releasing the creator's reference, leaking its number items when the result is later freed.",
+     "reason_now": "All allocated list items and the nested list are retained by the returned list on success, while failure paths free the temporary entry.",
+     "growth": 1477,
+     "helpers": [
+      "list_append",
+      "ALLOC_CLEAR_ONE",
+      "list_init",
+      "list_free_contents",
+      "list_free_list"
+     ]
+    },
+    {
+     "function": "socket_server_append_msg",
+     "was": false,
+     "now": false,
+     "conf_was": 0.96,
+     "conf_now": 0.99,
+     "reason_was": "The allocated buffer is stored in msg->msg_contents and ownership is transferred to the command for later cleanup.",
+     "reason_now": "The allocated buffer is stored in cmd->cmd_msgs and ownership is retained for later cleanup after the successful append.",
+     "growth": 2084,
+     "helpers": [
+      "lalloc"
+     ]
+    },
+    {
+     "function": "split_message",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated string remains reachable through the returned array and its ownership is transferred to the caller for cleanup.",
+     "reason_now": "The allocated string is stored in the returned array and its ownership is transferred to the caller for later cleanup.",
+     "growth": 213,
+     "helpers": [
+      "STRLEN",
+      "mch_memmove"
+     ]
+    },
+    {
+     "function": "mch_call_shell_fork",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocation is reclaimed by the operating system when the child exits via _exit, while the parent frees its own copies during cleanup.",
+     "reason_now": "The child exits immediately after exec failure, so the operating system reclaims inherited heap memory, while the parent frees the allocations.",
+     "growth": 6756,
+     "helpers": [
+      "vim_strsave",
+      "mch_parse_cmd",
+      "STRLEN",
+      "skipwhite",
+      "termrequest_any_pending",
+      "vpeekc_nomap",
+      "check_for_codes_from_term",
+      "out_str",
+      "out_str_t_BE",
+      "setmouse",
+      "may_req_termresponse",
+      "mch_openpty"
+     ]
+    },
+    {
+     "function": "menuitem_getinfo",
+     "was": true,
+     "now": true,
+     "conf_was": 0.98,
+     "conf_now": 0.86,
+     "reason_was": "If dictitem_alloc fails, dict_add_list does not take ownership of the newly allocated list and the caller ignores the failure, leaving it leaked.",
+     "reason_now": "The list is normally transferred to the dictionary, but a dictitem allocation failure leaves it unowned because dict_add_list's return value is ignored.",
+     "growth": 1497,
+     "helpers": [
+      "ALLOC_CLEAR_ONE",
+      "list_init",
+      "dictitem_alloc",
+      "dict_add",
+      "dictitem_free",
+      "dict_add_number_special"
+     ]
+    },
+    {
+     "function": "option_set_callback_func",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated script-local name is nonempty whenever returned, so the failure branch cannot discard it; successful paths transfer or free its ownership.",
+     "reason_now": "The allocated script-local name is always nonempty when successfully allocated, so the reported failure branch cannot discard it; it is copied into the callback and then freed.",
+     "growth": 3624,
+     "helpers": [
+      "CLEAR_FIELD",
+      "partial_name",
+      "SAFE_isdigit",
+      "func_ref",
+      "emsg",
+      "STRLEN",
+      "alloc",
+      "mch_memmove",
+      "func_unref",
+      "partial_unref",
+      "blob_unref",
+      "list_unref",
+      "tuple_unref",
+      "dict_unref",
+      "job_unref",
+      "channel_unref"
+     ]
+    },
+    {
+     "function": "apply_move_options",
+     "was": false,
+     "now": false,
+     "conf_was": 0.98,
+     "conf_now": 0.99,
+     "reason_was": "The call with save=false returns a borrowed dictionary string, so no heap allocation is owned by this function or leaked.",
+     "reason_now": "The string is retrieved with save=false, so dict_get_string returns borrowed or static storage that apply_move_options does not own or need to free.",
+     "growth": 1300,
+     "helpers": [
+      "tv_get_string",
+      "vim_strsave",
+      "ARRAY_LENGTH",
+      "STRCMP",
+      "vim_strnsave",
+      "vim_strncpy",
+      "hash_find",
+      "vim_free",
+      "HASHITEM_EMPTY",
+      "HI2DI"
+     ]
+    },
+    {
+     "function": "get_pos_entry",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "With save set to FALSE, dict_get_string returns borrowed storage rather than allocating heap memory, so no leak occurs.",
+     "reason_now": "With save set to FALSE, dict_get_string returns a borrowed or static buffer and does not allocate heap memory.",
+     "growth": 1001,
+     "helpers": [
+      "dict_find",
+      "tv_get_string",
+      "vim_strsave"
+     ]
+    },
+    {
+     "function": "apply_general_options",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "Both calls pass save=false, so dict_get_string returns borrowed or static storage rather than newly allocated heap memory.",
+     "reason_now": "Both calls use dict_get_string with save=false, so no owned allocation is created; issue 1 stores a separate copy in the window and issue 2 only reads the returned string.",
+     "growth": 4057,
+     "helpers": [
+      "tv_get_bool",
+      "mem_pre_free",
+      "tv_get_string_buf",
+      "block_autocmds",
+      "set_string_option_direct",
+      "unblock_autocmds"
+     ]
+    },
+    {
+     "function": "add_popup_dicts",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "dict_get_string(..., FALSE) returns borrowed or temporary conversion storage, not newly owned heap memory, so no leak occurs at ml_append_buf.",
+     "reason_now": "The call uses save=false, so dict_get_string does not allocate owned heap memory and ml_append_buf does not create an unreleased allocation.",
+     "growth": 1180,
+     "helpers": [
+      "tv_get_string",
+      "vim_strsave",
+      "ml_append_flush"
+     ]
+    },
+    {
+     "function": "f_popup_create",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated popup window is owned and retained by the popup subsystem after successful creation, so ignoring the returned pointer does not leak it.",
+     "reason_now": "The allocated popup window is registered in popup lists and reclaimed by popup lifecycle management, so ignoring the returned pointer does not leak it.",
+     "growth": 4650,
+     "helpers": [
+      "in_vim9script",
+      "check_for_string_or_number_or_list_arg",
+      "check_for_dict_arg",
+      "buflist_findnr",
+      "semsg",
+      "popup_terminal_exists",
+      "emsg",
+      "check_for_nonnull_dict_arg",
+      "dict_has_key",
+      "dict_get_number",
+      "popup_is_notification",
+      "find_tabpage",
+      "win_alloc_popup_win",
+      "win_init_popup_win",
+      "set_local_options_default",
+      "buffer_ensure_loaded"
+     ]
+    },
+    {
+     "function": "f_popup_atcursor",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The created popup window is registered with the popup system, which owns and later frees it; ignoring the return value does not leak it.",
+     "reason_now": "The created popup window is registered in popup lists and owns its lifetime until explicitly closed, so ignoring the return value does not leak it.",
+     "growth": 4650,
+     "helpers": [
+      "in_vim9script",
+      "check_for_string_or_number_or_list_arg",
+      "check_for_dict_arg",
+      "buflist_findnr",
+      "semsg",
+      "popup_terminal_exists",
+      "emsg",
+      "check_for_nonnull_dict_arg",
+      "dict_has_key",
+      "dict_get_number",
+      "popup_is_notification",
+      "find_tabpage",
+      "win_alloc_popup_win",
+      "win_init_popup_win",
+      "set_local_options_default",
+      "buffer_ensure_loaded"
+     ]
+    },
+    {
+     "function": "string2items",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.96,
+     "reason_was": "The allocated items and strings remain owned by the nested lists referenced by rettv, which transfers their cleanup responsibility to the caller.",
+     "reason_now": "The allocated items and strings are attached to the nested lists, which are attached to the returned list and therefore owned for later cleanup.",
+     "growth": 710,
+     "helpers": [
+      "list_append",
+      "mem_pre_free"
+     ]
+    },
+    {
+     "function": "f_popup_beval",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated popup window is retained in the popup list and owned for later cleanup, so ignoring the return value does not leak it.",
+     "reason_now": "The created popup window is linked into Vim's popup window structures and is managed and freed by the popup lifecycle.",
+     "growth": 4650,
+     "helpers": [
+      "in_vim9script",
+      "check_for_string_or_number_or_list_arg",
+      "check_for_dict_arg",
+      "buflist_findnr",
+      "semsg",
+      "popup_terminal_exists",
+      "emsg",
+      "check_for_nonnull_dict_arg",
+      "dict_has_key",
+      "dict_get_number",
+      "popup_is_notification",
+      "find_tabpage",
+      "win_alloc_popup_win",
+      "win_init_popup_win",
+      "set_local_options_default",
+      "buffer_ensure_loaded"
+     ]
+    },
+    {
+     "function": "f_popup_dialog",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The created popup window is linked into the popup-management lists, which transfer ownership and handle its eventual cleanup.",
+     "reason_now": "The created popup window is transferred to Vim's popup lists and managed there, so ignoring the return value does not leak it.",
+     "growth": 4650,
+     "helpers": [
+      "in_vim9script",
+      "check_for_string_or_number_or_list_arg",
+      "check_for_dict_arg",
+      "buflist_findnr",
+      "semsg",
+      "popup_terminal_exists",
+      "emsg",
+      "check_for_nonnull_dict_arg",
+      "dict_has_key",
+      "dict_get_number",
+      "popup_is_notification",
+      "find_tabpage",
+      "win_alloc_popup_win",
+      "win_init_popup_win",
+      "set_local_options_default",
+      "buffer_ensure_loaded"
+     ]
+    },
+    {
+     "function": "f_popup_notification",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The created popup is ownership-transferred to Vim's popup window lists and is later freed when closed, so ignoring the return value is not a leak.",
+     "reason_now": "The allocated popup window is linked into the global or tab-specific popup list and is later owned and freed by popup management.",
+     "growth": 4650,
+     "helpers": [
+      "in_vim9script",
+      "check_for_string_or_number_or_list_arg",
+      "check_for_dict_arg",
+      "buflist_findnr",
+      "semsg",
+      "popup_terminal_exists",
+      "emsg",
+      "check_for_nonnull_dict_arg",
+      "dict_has_key",
+      "dict_get_number",
+      "popup_is_notification",
+      "find_tabpage",
+      "win_alloc_popup_win",
+      "win_init_popup_win",
+      "set_local_options_default",
+      "buffer_ensure_loaded"
+     ]
+    },
+    {
+     "function": "f_popup_menu",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The created popup window is registered with the popup subsystem, which owns and later frees it; ignoring the return value is intentional.",
+     "reason_now": "The created popup window is linked into Vim's popup-window lists and owned by the popup subsystem, so ignoring the returned pointer does not leak it.",
+     "growth": 4650,
+     "helpers": [
+      "in_vim9script",
+      "check_for_string_or_number_or_list_arg",
+      "check_for_dict_arg",
+      "buflist_findnr",
+      "semsg",
+      "popup_terminal_exists",
+      "emsg",
+      "check_for_nonnull_dict_arg",
+      "dict_has_key",
+      "dict_get_number",
+      "popup_is_notification",
+      "find_tabpage",
+      "win_alloc_popup_win",
+      "win_init_popup_win",
+      "set_local_options_default",
+      "buffer_ensure_loaded"
+     ]
+    },
+    {
+     "function": "f_popup_list",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated list items are owned by the result list and will be freed when the returned typval is released.",
+     "reason_now": "The allocated list items are appended to the returned list, whose ownership is transferred through rettv and later released by normal list cleanup.",
+     "growth": 602,
+     "helpers": [
+      "list_append",
+      "FOR_ALL_POPUPWINS_IN_TAB"
+     ]
+    },
+    {
+     "function": "qf_getprop_items",
+     "was": true,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The dictionary increments the list reference count, but the function never releases its original reference.",
+     "reason_now": "The list's ownership is transferred to the dictionary by dict_add_list, which increments its reference count and cleans up on insertion failure.",
+     "growth": 2310,
+     "helpers": [
+      "ALLOC_CLEAR_ONE",
+      "list_init",
+      "GET_LOC_LIST",
+      "qf_get_list",
+      "qf_list_empty",
+      "FOR_ALL_QFL_ITEMS",
+      "get_qfline_items"
+     ]
+    },
+    {
+     "function": "add_mark",
+     "was": true,
+     "now": true,
+     "conf_was": 0.99,
+     "conf_now": 0.98,
+     "reason_was": "The lpos list and its items are not released when either dictionary insertion fails before ownership is transferred.",
+     "reason_now": "Both failure paths can leave the allocated position list and its items unowned without cleanup.",
+     "growth": 1274,
+     "helpers": [
+      "list_append",
+      "ALLOC_CLEAR_ONE",
+      "list_init",
+      "dict_add_string_len"
+     ]
+    },
+    {
+     "function": "yank_do_autocmd",
+     "was": true,
+     "now": false,
+     "conf_was": 0.93,
+     "conf_now": 0.94,
+     "reason_was": "The list leaks if dict_add_list fails before allocating its dictionary item, because the caller ignores the failure and no ownership is transferred.",
+     "reason_now": "The list is reference-managed and tracked for garbage collection, while successful dictionary insertion transfers a reference and restoration releases it.",
+     "growth": 1583,
+     "helpers": [
+      "ALLOC_CLEAR_ONE",
+      "list_init",
+      "get_vim_var_dict",
+      "hash_init",
+      "listitem_alloc",
+      "list_append",
+      "vim_strnsave",
+      "vim_strsave"
+     ]
+    },
+    {
+     "function": "get_padding_border",
+     "was": true,
+     "now": false,
+     "conf_was": 0.98,
+     "conf_now": 0.93,
+     "reason_was": "The list leaks when dict_add_list fails before taking ownership, because its return value is ignored.",
+     "reason_now": "The list is transferred to the dictionary on success and remains tracked for garbage collection on failure, so no definite leak is shown.",
+     "growth": 1101,
+     "helpers": [
+      "ALLOC_CLEAR_ONE",
+      "list_init",
+      "dictitem_alloc",
+      "dict_add",
+      "dictitem_free"
+     ]
+    },
+    {
+     "function": "qf_setprop_qftf",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated script-local name is nonempty when returned, then copied into the stored callback and freed by the explicit cleanup.",
+     "reason_now": "The allocated script-local name is nonempty on successful allocation, then copied into the destination and explicitly freed, while early returns cannot occur for that allocation path.",
+     "growth": 2251,
+     "helpers": [
+      "CLEAR_FIELD",
+      "partial_name",
+      "SAFE_isdigit",
+      "func_ref",
+      "emsg",
+      "partial_unref",
+      "func_unref",
+      "vim_strsave"
+     ]
+    },
+    {
+     "function": "source_all_matches",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "FreeWild releases every returned filename and the containing array, so the reported allocation is not leaked.",
+     "reason_now": "FreeWild releases every returned filename and the containing array, so the reported allocation is properly freed.",
+     "growth": 6931,
+     "helpers": [
+      "expand_env",
+      "has_special_wildchar",
+      "vim_backtick",
+      "ga_init2",
+      "expand_backtick",
+      "has_env_var",
+      "expand_env_save_opt",
+      "vim_free",
+      "ga_clear_strings",
+      "mch_has_exp_wildcard",
+      "mch_isFullName",
+      "vim_ispathsep",
+      "expand_in_path",
+      "backslash_halve_save",
+      "addfile"
+     ]
+    },
+    {
+     "function": "hgr_search_files_in_dir",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The returned wildcard array is released by FreeWild, while temporary saved patterns are cleaned up inside the expansion routine.",
+     "reason_now": "The allocated filename array and its strings are released by FreeWild on every successful nonempty expansion, while zero-match results do not own allocated entries.",
+     "growth": 6931,
+     "helpers": [
+      "expand_env",
+      "has_special_wildchar",
+      "vim_backtick",
+      "ga_init2",
+      "expand_backtick",
+      "has_env_var",
+      "expand_env_save_opt",
+      "vim_free",
+      "ga_clear_strings",
+      "mch_has_exp_wildcard",
+      "mch_isFullName",
+      "vim_ispathsep",
+      "expand_in_path",
+      "backslash_halve_save",
+      "addfile"
+     ]
+    },
+    {
+     "function": "get_buffer_signs",
+     "was": true,
+     "now": true,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The list item is owned by the destination list, but each dictionary retains its original reference because list_append_dict increments the refcount without the caller unreferring it.",
+     "reason_now": "The dictionary reference returned by sign_get_info is never released after list_append_dict adds the list's reference, while the list item is correctly owned by the list.",
+     "growth": 1097,
+     "helpers": [
+      "list_append",
+      "dict_alloc_id",
+      "dict_add_number",
+      "dict_add_string",
+      "sign_typenr2name"
+     ]
+    },
+    {
+     "function": "f_sign_define",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated list item is owned by the result list stored in rettv and is released with that list.",
+     "reason_now": "The allocated list item is appended to the result list, whose ownership is transferred through rettv.",
+     "growth": 1087,
+     "helpers": [
+      "FOR_ALL_LIST_ITEMS",
+      "emsg",
+      "list_append_number",
+      "list_alloc",
+      "rettv_list_set",
+      "tv_get_string_buf_chk"
+     ]
+    },
+    {
+     "function": "f_sign_undefine",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated list item is owned by the result list stored in rettv and is freed with that list.",
+     "reason_now": "The allocated list item is appended to the returned list, whose ownership is transferred through rettv for later cleanup.",
+     "growth": 1205,
+     "helpers": [
+      "FOR_ALL_LIST_ITEMS",
+      "list_append_number",
+      "list_alloc",
+      "rettv_list_set",
+      "sign_undefine"
+     ]
+    },
+    {
+     "function": "f_sign_placelist",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated list item is appended to the returned list, whose ownership is transferred through rettv and later released by the caller.",
+     "reason_now": "The appended list item is owned by the result list and will be released when the returned typval is cleared.",
+     "growth": 433,
+     "helpers": [
+      "list_append"
+     ]
+    },
+    {
+     "function": "f_sign_unplacelist",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated list item is appended to the return list, whose ownership is transferred through rettv and later released by the caller.",
+     "reason_now": "The allocated list item is appended to the return list, which owns it and will release it during return-value cleanup.",
+     "growth": 433,
+     "helpers": [
+      "list_append"
+     ]
+    },
+    {
+     "function": "get_moved_list",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.94,
+     "reason_was": "The appended list items remain owned by the lists, whose references are transferred to the dictionary and released through normal dictionary cleanup.",
+     "reason_now": "The appended items are owned by the list, which is transferred to the dictionary on success or reclaimed by Vim's list garbage collection if insertion fails.",
+     "growth": 1476,
+     "helpers": [
+      "list_append",
+      "ALLOC_CLEAR_ONE",
+      "list_init",
+      "dictitem_alloc",
+      "dict_add",
+      "dictitem_free"
+     ]
+    },
+    {
+     "function": "read_charflags_section",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "Both error paths receive NULL from read_cnt_string when the length is negative, and the second path frees the previously allocated flags buffer.",
+     "reason_now": "Both error paths return NULL from the failed allocation/read, and any previously allocated buffer is explicitly freed.",
+     "growth": 741,
+     "helpers": [
+      "read_string",
+      "mem_pre_free"
+     ]
+    },
+    {
+     "function": "add_banned",
+     "was": true,
+     "now": false,
+     "conf_was": 0.98,
+     "conf_now": 0.99,
+     "reason_was": "The allocated string is transferred to the hash table only on successful insertion, but it leaks when hash_add_item returns early due to HTFLAGS_ERROR.",
+     "reason_now": "The allocated string is transferred to the hash table as its stored key, which owns it for later cleanup.",
+     "growth": 289,
+     "helpers": [
+      "STRLEN",
+      "alloc",
+      "mch_memmove"
+     ]
+    },
+    {
+     "function": "read_sofo_section",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "When cnt is negative, read_cnt_string returns NULL without allocating, so the reported path has no leaked heap memory.",
+     "reason_now": "When cnt is negative, read_cnt_string has returned NULL and any partial allocation was already freed.",
+     "growth": 741,
+     "helpers": [
+      "read_string",
+      "mem_pre_free"
+     ]
+    },
+    {
+     "function": "count_common_word",
+     "was": true,
+     "now": true,
+     "conf_was": 0.96,
+     "conf_now": 0.98,
+     "reason_was": "The hash table normally takes ownership, but a preexisting resize-error flag makes insertion fail without storing or freeing the allocation.",
+     "reason_now": "The allocation leaks when hash_add_item fails, because its failure return is ignored and the newly allocated wordcount is not freed.",
+     "growth": 2084,
+     "helpers": [
+      "lalloc"
+     ]
+    },
+    {
+     "function": "string_reduce",
+     "was": true,
+     "now": true,
+     "conf_was": 0.98,
+     "conf_now": 0.99,
+     "reason_was": "The early return after eval failure or an error bypasses remove_funccal, leaving the allocated funccall unreachable.",
+     "reason_now": "The allocated funccall is not removed on the loop's failure or error-message early-return paths.",
+     "growth": 3392,
+     "helpers": [
+      "create_funccal",
+      "STRNCPY",
+      "vim_strnsave",
+      "eval_expr_partial",
+      "exe_typval_instr",
+      "eval_expr_func",
+      "eval_expr_string"
+     ]
+    },
+    {
+     "function": "f_blob2str",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The returned pointer is borrowed when save is false, and enc_skip only creates an interior pointer while both derived encoding strings are freed.",
+     "reason_now": "dict_get_string called with save=false returns borrowed or static storage, so enc_skip does not create an owned allocation.",
+     "growth": 1001,
+     "helpers": [
+      "dict_find",
+      "tv_get_string",
+      "vim_strsave"
+     ]
+    },
+    {
+     "function": "f_string",
+     "was": false,
+     "now": false,
+     "no_helpers": true,
+     "growth": 0,
+     "helpers": []
+    },
+    {
+     "function": "add_keyword",
+     "was": true,
+     "now": false,
+     "conf_was": 0.94,
+     "conf_now": 0.99,
+     "reason_was": "Issue 1 is real because a failed hash insertion leaves the newly allocated entry and its copied lists unreachable, while issue 2 transfers ownership into the keyword list.",
+     "reason_now": "Both copied lists remain owned through the inserted keyentry and are freed with it, so no leak is shown.",
+     "growth": 158,
+     "helpers": [
+      "mch_memmove"
+     ]
+    },
+    {
+     "function": "string_filter_map",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "Both allocations are released by remove_funccal or clear_tv on all relevant paths.",
+     "reason_now": "Both allocations are released: the function call frame is removed at exit and each character string is cleared on all successful allocation paths.",
+     "growth": 3303,
+     "helpers": [
+      "create_funccal",
+      "STRNCPY",
+      "eval_expr_partial",
+      "exe_typval_instr",
+      "eval_expr_func",
+      "eval_expr_string",
+      "ga_init"
+     ]
+    },
+    {
+     "function": "spell_reload_one",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The returned object is the existing language entry, and failure-path allocations are cleaned by slang_clear or callee cleanup.",
+     "reason_now": "The reload call reuses the existing language object, which remains owned by the global list; no newly allocated result becomes unreachable.",
+     "growth": 7392,
+     "helpers": [
+      "mch_fopen",
+      "semsg",
+      "verbose_enter",
+      "smsg",
+      "verbose_leave",
+      "slang_alloc",
+      "vim_strsave",
+      "gettail",
+      "estack_push",
+      "emsg",
+      "get4c",
+      "read_string",
+      "read_region_section",
+      "read_charflags_section",
+      "read_prefcond_section",
+      "read_rep_section"
+     ]
+    },
+    {
+     "function": "qf_getprop_defaults",
+     "was": true,
+     "now": true,
+     "conf_was": 0.99,
+     "conf_now": 0.96,
+     "reason_was": "The allocated list retains its original reference because dict_add_list increments the reference count, and the caller never releases it.",
+     "reason_now": "dict_add_list can fail while allocating the dictionary item before acquiring ownership of the newly allocated list, leaving it without caller cleanup.",
+     "growth": 1603,
+     "helpers": [
+      "ALLOC_CLEAR_ONE",
+      "list_init",
+      "dict_add_string_len",
+      "dictitem_alloc",
+      "dict_add",
+      "dictitem_free"
+     ]
+    },
+    {
+     "function": "f_str2blob",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The string is borrowed because save is false, while the canonicalized encoding is separately freed at function exit.",
+     "reason_now": "dict_get_string called with save=false returns borrowed or static storage, so the overwritten pointer is not a heap allocation requiring cleanup.",
+     "growth": 3038,
+     "helpers": [
+      "dict_find",
+      "tv_get_string",
+      "vim_strsave",
+      "blob_alloc",
+      "rettv_blob_set",
+      "STRCMP",
+      "enc_locale",
+      "get_encoding_default",
+      "alloc",
+      "STRLEN",
+      "TOLOWER_ASC",
+      "STRMOVE",
+      "SAFE_isdigit",
+      "enc_canon_search",
+      "enc_alias_search"
+     ]
+    },
+    {
+     "function": "add_llist_tags",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "list_free releases the list items and decrements the referenced dictionaries, so the allocation is not leaked.",
+     "reason_now": "list_free releases the list items and decrements/frees their referenced dictionaries, so the reported allocation is not leaked.",
+     "growth": 1014,
+     "helpers": [
+      "list_append",
+      "mem_pre_free",
+      "ALLOC_CLEAR_ONE",
+      "hash_init"
+     ]
+    },
+    {
+     "function": "sign_get_placed_in_buf",
+     "was": true,
+     "now": true,
+     "conf_was": 0.99,
+     "conf_now": 0.97,
+     "reason_was": "dict_add_list increments the list reference count but the function never releases its original allocation reference.",
+     "reason_now": "The list is normally owned by the dictionary, but it leaks when dict_add_list fails before acquiring ownership.",
+     "growth": 1538,
+     "helpers": [
+      "alloc_does_fail",
+      "list_alloc",
+      "dict_add_number_special",
+      "dictitem_alloc",
+      "dict_add",
+      "dictitem_free"
+     ]
+    },
+    {
+     "function": "handle_drop_command",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "dict_get_string is called without saving, so it returns borrowed storage, while the separately allocated command buffer is freed at function exit.",
+     "reason_now": "dict_get_string(..., FALSE) returns a non-owning static buffer, while the separately allocated command buffer is freed after ex_splitview.",
+     "growth": 3797,
+     "helpers": [
+      "dict_find",
+      "vim_strsave",
+      "check_opt_strings",
+      "ch_log_lead",
+      "lalloc",
+      "STRICMP",
+      "MB_BYTE2LEN"
+     ]
+    },
+    {
+     "function": "f_term_getsize",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated list items are owned by the result list in rettv and will be released when that list is destroyed.",
+     "reason_now": "The allocated list items are owned by the result list stored in rettv and will be released with that list.",
+     "growth": 433,
+     "helpers": [
+      "list_append"
+     ]
+    },
+    {
+     "function": "term_write_session",
+     "was": true,
+     "now": false,
+     "conf_was": 0.86,
+     "conf_now": 0.96,
+     "reason_was": "The key is transferred only when hash_add succeeds, while its ignored failure paths can leave the allocated key unowned and leaked.",
+     "reason_now": "hash_add takes ownership of the allocated key, so the allocation is retained and later managed by the hash table.",
+     "growth": 2254,
+     "helpers": [
+      "lalloc",
+      "vim_vsnprintf"
+     ]
+    },
+    {
+     "function": "f_term_setansicolors",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated palette is stored in term->tl_palette and remains owned for later cleanup even when the function returns early.",
+     "reason_now": "The allocated palette is stored in term->tl_palette and remains owned for later cleanup, so the early returns and update call do not make it unreachable.",
+     "growth": 2084,
+     "helpers": [
+      "lalloc"
+     ]
+    },
+    {
+     "function": "f_term_setapi",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated string is stored in term->tl_api and is owned for later cleanup, so it is not unreachable or leaked here.",
+     "reason_now": "The allocated string is stored in term->tl_api and the previous value is freed before replacement.",
+     "growth": 428,
+     "helpers": [
+      "STRLEN",
+      "alloc",
+      "mch_memmove",
+      "tv_get_string_buf_chk"
+     ]
+    },
+    {
+     "function": "f_term_list",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated list item is owned by the result list, whose ownership is transferred through rettv.",
+     "reason_now": "The allocated list item is linked into the returned list, which owns and later frees it.",
+     "growth": 433,
+     "helpers": [
+      "list_append"
+     ]
+    },
+    {
+     "function": "assert_append_cmd_or_arg",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The temporary allocation returned through echo_string is released by the following vim_free(tofree) call.",
+     "reason_now": "The temporary string returned through tofree is explicitly released by vim_free after ga_concat.",
+     "growth": 631,
+     "helpers": [
+      "STRLEN",
+      "ga_grow",
+      "mch_memmove",
+      "mem_pre_free"
+     ]
+    },
+    {
+     "function": "f_term_setrestore",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated string is transferred to term->tl_command, whose previous value is freed first.",
+     "reason_now": "The allocated string is stored in term->tl_command, transferring ownership for later cleanup.",
+     "growth": 428,
+     "helpers": [
+      "STRLEN",
+      "alloc",
+      "mch_memmove",
+      "tv_get_string_buf_chk"
+     ]
+    },
+    {
+     "function": "f_term_setkill",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated string is stored in term->tl_kill and the previous value is freed, so ownership is retained rather than leaked.",
+     "reason_now": "The allocated string is stored in term->tl_kill, replacing and freeing the previous value, so ownership is retained rather than leaked.",
+     "growth": 428,
+     "helpers": [
+      "STRLEN",
+      "alloc",
+      "mch_memmove",
+      "tv_get_string_buf_chk"
+     ]
+    },
+    {
+     "function": "get_tag_details",
+     "was": false,
+     "now": true,
+     "conf_was": 0.99,
+     "conf_now": 0.97,
+     "reason_was": "The list items are owned by the list, which is retained by the returned dictionary, so they are not leaked.",
+     "reason_now": "dict_add_list increments the list reference count, but the function never releases its original reference, leaking the list and its appended items.",
+     "growth": 1137,
+     "helpers": [
+      "list_append",
+      "dictitem_alloc",
+      "dict_add",
+      "dictitem_free"
+     ]
+    },
+    {
+     "function": "test_gui_scrollbar",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "With save set to FALSE, dict_get_string returns borrowed or temporary storage rather than newly owned heap memory, so no leak is present.",
+     "reason_now": "With save set to FALSE, dict_get_string returns a static conversion buffer rather than newly allocated heap memory.",
+     "growth": 1216,
+     "helpers": [
+      "dict_find",
+      "tv_get_string",
+      "vim_strsave",
+      "dict_get_number_def"
+     ]
+    },
+    {
+     "function": "f_prop_add_list",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "dict_get_string(..., FALSE) returns a borrowed or temporary conversion pointer, not newly owned heap memory requiring freeing.",
+     "reason_now": "dict_get_string(..., FALSE) returns a borrowed or static string, not newly allocated heap memory requiring cleanup.",
+     "growth": 1236,
+     "helpers": [
+      "dict_find",
+      "tv_get_string",
+      "vim_strsave",
+      "get_buf_arg"
+     ]
+    },
+    {
+     "function": "prop_type_set",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The call passes save=false, so dict_get_string returns a borrowed or temporary conversion buffer that must not be freed by this function.",
+     "reason_now": "dict_get_string is called with save=false, so it returns a borrowed/static pointer and performs no allocation to leak.",
+     "growth": 1301,
+     "helpers": [
+      "vim_strsave",
+      "vim_strnsave",
+      "vim_strncpy",
+      "hash_find",
+      "HASHITEM_EMPTY",
+      "HI2DI",
+      "alloc",
+      "vim_strup",
+      "HL_TABLE",
+      "STRCMP"
+     ]
+    },
+    {
+     "function": "prop_add_common",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "All reported calls use dict_get_string with save=false, returning borrowed or internally managed storage rather than caller-owned heap memory.",
+     "reason_now": "All reported calls use save=false, so dict_get_string returns borrowed or static storage rather than newly allocated heap memory.",
+     "growth": 1239,
+     "helpers": [
+      "dict_find",
+      "tv_get_string",
+      "vim_strsave",
+      "emsg_not_now"
+     ]
+    },
+    {
+     "function": "test_gui_drop_files",
+     "was": true,
+     "now": true,
+     "conf_was": 0.99,
+     "conf_now": 0.93,
+     "reason_was": "The callee normally frees the filenames but returns immediately when already entered, leaving the caller's allocations unreleased.",
+     "reason_now": "The callee normally frees the transferred array, but its reentrancy guard can return immediately while leaving the caller\u2019s allocations unreleased.",
+     "growth": 566,
+     "helpers": [
+      "STRLEN",
+      "alloc",
+      "mch_memmove",
+      "mem_pre_free"
+     ]
+    },
+    {
+     "function": "tuple_copy",
+     "was": false,
+     "now": false,
+     "conf_was": 0.97,
+     "conf_now": 0.98,
+     "reason_was": "The tuple cleanup invoked by tuple_unref releases the copied type, so the alloc_type allocation is not leaked.",
+     "reason_now": "The allocated type is owned by the copied tuple and is released when tuple_unref reaches tuple_free on the failure path.",
+     "growth": 208,
+     "helpers": [
+      "ALLOC_ONE",
+      "ALLOC_MULT"
+     ]
+    },
+    {
+     "function": "get_tagstack",
+     "was": true,
+     "now": true,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The list retains its initial reference after dict_add_list increments the reference count, and get_tagstack never releases that reference.",
+     "reason_now": "The list reference acquired by list_alloc_id is never released, and dict_add_list can also fail without taking ownership.",
+     "growth": 1538,
+     "helpers": [
+      "alloc_does_fail",
+      "list_alloc",
+      "dict_add_number_special",
+      "dictitem_alloc",
+      "dict_add",
+      "dictitem_free"
+     ]
+    },
+    {
+     "function": "f_reltime",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated list items are owned by the result list stored in rettv, which transfers ownership to the caller for cleanup.",
+     "reason_now": "The allocated list items are appended to the return list, which transfers ownership to the returned typval for later cleanup.",
+     "growth": 433,
+     "helpers": [
+      "list_append"
+     ]
+    },
+    {
+     "function": "handle_pushline",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "Both allocations are ownership-transferred to the stored scrollback line, via sb_cells and sb_text respectively.",
+     "reason_now": "Both allocations are transferred into the scrollback line fields and are owned for later cleanup.",
+     "growth": 2437,
+     "helpers": [
+      "STRLEN",
+      "mch_memmove",
+      "ga_grow_inner",
+      "MultiByteToWideChar_alloc",
+      "WideCharToMultiByte_alloc",
+      "vim_free",
+      "ml_append_buf",
+      "ml_delete"
+     ]
+    },
+    {
+     "function": "tuple_foreach",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated funccall_T is released by remove_funccal() whenever fc is non-NULL.",
+     "reason_now": "The allocated funccall is released by remove_funccal when non-null, while allocation failure returns NULL without leaked memory.",
+     "growth": 3098,
+     "helpers": [
+      "create_funccal",
+      "eval_expr_partial",
+      "exe_typval_instr",
+      "eval_expr_func",
+      "eval_expr_string"
+     ]
+    },
+    {
+     "function": "tuple2items",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated list item is appended to a nested list that is retained by the returned list and will be freed during normal cleanup.",
+     "reason_now": "The allocated list item remains owned by the nested list, which is referenced by the returned list and will be cleaned up normally.",
+     "growth": 787,
+     "helpers": [
+      "check_typval_arg_type",
+      "list_append"
+     ]
+    },
+    {
+     "function": "add_timer_info",
+     "was": true,
+     "now": false,
+     "conf_was": 0.93,
+     "conf_now": 0.98,
+     "reason_was": "The callback string is owned by the dictionary on success, but leaks when list_append_dict fails because that failure is ignored and the unlinked dictionary is never released.",
+     "reason_now": "The allocated callback string is owned by the dictionary item and is freed when the dictionary is destroyed.",
+     "growth": 715,
+     "helpers": [
+      "func_ref",
+      "mem_pre_free"
+     ]
+    },
+    {
+     "function": "f_timer_start",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "All reported allocations are freed directly or transferred to timer/callback ownership for later cleanup.",
+     "reason_now": "The callback allocation is freed on failure, while successful timer and callback allocations are transferred to the timer and later managed there.",
+     "growth": 2824,
+     "helpers": [
+      "CLEAR_FIELD",
+      "partial_name",
+      "SAFE_isdigit",
+      "func_ref",
+      "ALLOC_CLEAR_ONE",
+      "insert_timer",
+      "timer_start",
+      "dict_get_number_def",
+      "partial_unref",
+      "func_unref",
+      "mem_pre_free"
+     ]
+    },
+    {
+     "function": "u_savecommon",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated undo entry and its array are released by u_freeentry on the interruption path.",
+     "reason_now": "The cleanup frees all initialized line buffers, the array, and the entry itself on the interruption path.",
+     "growth": 2516,
+     "helpers": [
+      "mf_release_all",
+      "iemsg",
+      "mem_pre_alloc_l",
+      "mch_avail_mem",
+      "alloc",
+      "clear_sb_text",
+      "mem_post_alloc"
+     ]
+    },
+    {
+     "function": "add_defer",
+     "was": true,
+     "now": true,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocation leaks when ga_grow fails before saved_name is stored, while successful growth transfers ownership to the defer record.",
+     "reason_now": "The allocation leaks when ga_grow fails, while successful insertion transfers ownership to the defer record.",
+     "growth": 289,
+     "helpers": [
+      "STRLEN",
+      "alloc",
+      "mch_memmove"
+     ]
+    },
+    {
+     "function": "tuple_reduce",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated funccall is released by remove_funccal when fc is non-NULL.",
+     "reason_now": "The allocated funccall is released by remove_funccal() when fc is non-NULL.",
+     "growth": 3098,
+     "helpers": [
+      "create_funccal",
+      "eval_expr_partial",
+      "exe_typval_instr",
+      "eval_expr_func",
+      "eval_expr_string"
+     ]
+    },
+    {
+     "function": "tuple_join_inner",
+     "was": false,
+     "now": false,
+     "conf_was": 0.98,
+     "conf_now": 0.99,
+     "reason_was": "The allocated string is transferred to join_gap via p->tofree for later cleanup, so it is not leaked here.",
+     "reason_now": "Allocated strings are stored in join_gap entries via tofree and are intended to be released when that owner is cleaned up.",
+     "growth": 9320,
+     "helpers": [
+      "emsg",
+      "string_tv2string",
+      "func_tv2string",
+      "partial_tv2string",
+      "method_tv2string",
+      "blob2string",
+      "list_tv2string",
+      "tuple_tv2string",
+      "dict_tv2string",
+      "tv_get_string_buf",
+      "jobchan_tv2string",
+      "class_tv2string",
+      "object_tv2string",
+      "vim_snprintf",
+      "get_var_special_name",
+      "vim_strsave"
+     ]
+    },
+    {
+     "function": "u_read_undo",
+     "was": true,
+     "now": true,
+     "conf_was": 1.0,
+     "conf_now": 1.0,
+     "reason_was": "The owner-mismatch return bypasses the cleanup that frees the allocated undo file name.",
+     "reason_now": "The owner-mismatch branch returns directly without freeing the filename allocated by u_get_undo_file_name().",
+     "growth": 4239,
+     "helpers": [
+      "resolve_symlink",
+      "STRLEN",
+      "copy_option_part",
+      "gettail",
+      "mch_memmove",
+      "STRCPY",
+      "mch_isdir",
+      "MB_PTR_ADV",
+      "vim_ispathsep",
+      "concat_fnames",
+      "mch_stat",
+      "VIM_CLEAR"
+     ]
+    },
+    {
+     "function": "add_member",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated name string is stored in the new member and ownership is transferred to the aggregate, so it is not leaked here.",
+     "reason_now": "The allocated string is stored in the newly added member and its ownership is transferred to the gap array for later cleanup.",
+     "growth": 982,
+     "helpers": [
+      "alloc",
+      "STRNCPY",
+      "ga_grow_inner"
+     ]
+    },
+    {
+     "function": "enum_set_internal_obj_vars",
+     "was": false,
+     "now": false,
+     "conf_was": 0.98,
+     "conf_now": 0.99,
+     "reason_was": "The allocated string is stored in the object's string typval and is owned for later cleanup, so advancing to the ordinal variable does not leak it.",
+     "reason_now": "The allocated string is stored in the object's name typval and remains owned for later cleanup.",
+     "growth": 222,
+     "helpers": [
+      "alloc",
+      "STRNCPY"
+     ]
+    },
+    {
+     "function": "add_interface_from_super_class",
+     "was": true,
+     "now": true,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated interface name is neither freed nor stored when the first ga_grow call fails.",
+     "reason_now": "The allocated interface name is not freed when the first ga_grow call fails.",
+     "growth": 982,
+     "helpers": [
+      "alloc",
+      "STRNCPY",
+      "ga_grow_inner"
+     ]
+    },
+    {
+     "function": "enum_add_values_member",
+     "was": true,
+     "now": true,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The initializer allocation is transferred on successful add_member but leaked when add_member fails before storing it.",
+     "reason_now": "The initializer string is transferred only on successful add_member calls and is leaked when add_member fails.",
+     "growth": 640,
+     "helpers": [
+      "alloc",
+      "STRNCPY",
+      "ga_grow",
+      "mem_pre_free"
+     ]
+    },
+    {
+     "function": "object_call_builtin_method",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated function-call frame is released by remove_funccal after call_def_function returns.",
+     "reason_now": "The allocated funccall is removed and freed by remove_funccal() after call_def_function() returns on all shown paths.",
+     "growth": 3717,
+     "helpers": [
+      "ALLOC_CLEAR_ONE",
+      "func_ptr_ref",
+      "STACK_TV",
+      "STACK_TV_BOT",
+      "STACK_TV_VAR",
+      "func_needs_compiling",
+      "get_compile_type",
+      "semsg",
+      "printable_func_name",
+      "INSTRUCTIONS",
+      "iemsg",
+      "funcdepth_get",
+      "funcdepth_increment",
+      "CLEAR_FIELD",
+      "ga_init2",
+      "GA_GROW_FAILS"
+     ]
+    },
+    {
+     "function": "copy_lambda_to_global_func",
+     "was": false,
+     "now": false,
+     "conf_was": 0.98,
+     "conf_now": 0.98,
+     "reason_was": "The copied strings and varargs name remain owned by the new function and are released by cleanup on failure or eventual function destruction.",
+     "reason_now": "All reported allocations are owned by the new function and released by normal function cleanup on failure or eventual destruction.",
+     "growth": 3774,
+     "helpers": [
+      "STRLEN",
+      "alloc",
+      "mch_memmove",
+      "ga_init2",
+      "ga_grow",
+      "ga_clear_strings",
+      "hash_hash",
+      "check_hashtab_frozen",
+      "hash_lookup",
+      "HASHITEM_EMPTY",
+      "internal_error",
+      "hash_add_item"
+     ]
+    },
+    {
+     "function": "parse_member",
+     "was": false,
+     "now": false,
+     "conf_was": 0.96,
+     "conf_now": 0.98,
+     "reason_was": "Allocated types from parse_type are tracked through type_list, so losing the local pointer on these exits does not leak.",
+     "reason_now": "Allocated types are tracked by type_list/type_gap, which retains ownership across all reported failure paths.",
+     "growth": 4599,
+     "helpers": [
+      "ASCII_ISALNUM",
+      "parse_type_member",
+      "parse_type_object",
+      "parse_type_user_defined",
+      "VIM_ISWHITE",
+      "type_name",
+      "vim_free"
+     ]
+    },
+    {
+     "function": "ex_type",
+     "was": false,
+     "now": false,
+     "conf_was": 0.98,
+     "conf_now": 0.98,
+     "reason_was": "The parsed type is owned by the script's type list, so returning on trailing characters does not leak it.",
+     "reason_now": "The parsed type is owned by the script's type list, so returning on trailing characters does not leak it.",
+     "growth": 4223,
+     "helpers": [
+      "ASCII_ISALNUM",
+      "parse_type_member",
+      "parse_type_object",
+      "parse_type_user_defined",
+      "emsg_not_now",
+      "vim_vsnprintf"
+     ]
+    },
+    {
+     "function": "compile_block",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated scope is linked into cctx->ctx_scope and its ownership is transferred for later cleanup.",
+     "reason_now": "The allocated scope is stored in cctx->ctx_scope and remains owned by the compilation context for later cleanup.",
+     "growth": 204,
+     "helpers": [
+      "ALLOC_CLEAR_ONE",
+      "VIM_ISWHITE"
+     ]
+    },
+    {
+     "function": "compile_if",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated scope is linked into cctx->ctx_scope and its lifetime is managed by the surrounding Vim9 scope machinery.",
+     "reason_now": "The allocated scope remains owned through cctx->ctx_scope and is intended to be released when the if scope is closed.",
+     "growth": 229,
+     "helpers": [
+      "ALLOC_CLEAR_ONE",
+      "RETURN_OK_IF_SKIP"
+     ]
+    },
+    {
+     "function": "compile_try",
+     "was": false,
+     "now": false,
+     "conf_was": 0.97,
+     "conf_now": 0.98,
+     "reason_was": "Both scopes remain owned through cctx->ctx_scope and are cleaned up by compilation-scope teardown, so neither allocation is leaked.",
+     "reason_now": "Both allocations remain reachable through cctx->ctx_scope and are owned by the scope-management cleanup.",
+     "growth": 537,
+     "helpers": [
+      "ALLOC_CLEAR_ONE",
+      "emsg",
+      "RETURN_NULL_IF_SKIP",
+      "GA_GROW_FAILS"
+     ]
+    },
+    {
+     "function": "compile_catch",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The pattern is freed on PUSHS failure or transferred to the instruction, and a successful new scope is owned by the compilation context.",
+     "reason_now": "The pattern string is transferred to the instruction or freed on failure, and a successful new scope is owned by the compilation context.",
+     "growth": 814,
+     "helpers": [
+      "alloc",
+      "STRNCPY",
+      "ALLOC_CLEAR_ONE",
+      "RETURN_NULL_IF_SKIP",
+      "GA_GROW_FAILS",
+      "mem_pre_free"
+     ]
+    },
+    {
+     "function": "object2string",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.98,
+     "reason_was": "The allocated string is assigned through the tofree pointer and released by vim_free(tf) on every path.",
+     "reason_now": "The returned allocation is tracked through tf and freed before the reported condition, including failure and recursion paths.",
+     "growth": 9320,
+     "helpers": [
+      "emsg",
+      "string_tv2string",
+      "func_tv2string",
+      "partial_tv2string",
+      "method_tv2string",
+      "blob2string",
+      "list_tv2string",
+      "tuple_tv2string",
+      "dict_tv2string",
+      "tv_get_string_buf",
+      "jobchan_tv2string",
+      "class_tv2string",
+      "object_tv2string",
+      "vim_snprintf",
+      "get_var_special_name",
+      "vim_strsave"
+     ]
+    },
+    {
+     "function": "compile_script",
+     "was": false,
+     "now": false,
+     "conf_was": 0.98,
+     "conf_now": 0.98,
+     "reason_was": "The allocated string is assigned to the generated instruction, which takes ownership for later cleanup.",
+     "reason_now": "The allocated string is stored in the generated instruction and its ownership is transferred for later cleanup.",
+     "growth": 526,
+     "helpers": [
+      "STRLEN",
+      "alloc",
+      "mch_memmove",
+      "RETURN_NULL_IF_SKIP",
+      "GA_GROW_FAILS"
+     ]
+    },
+    {
+     "function": "reserve_local",
+     "was": false,
+     "now": false,
+     "conf_was": 0.95,
+     "conf_now": 0.97,
+     "reason_was": "Both allocations are transferred to the local-variable structures, whose eventual cleanup owns them, including the partially initialized entry on growth failure.",
+     "reason_now": "Both allocations are stored in owning local/debug-name structures, so neither becomes unreachable at the reported lines.",
+     "growth": 377,
+     "helpers": [
+      "alloc",
+      "STRNCPY",
+      "STRLEN",
+      "mch_memmove"
+     ]
+    },
+    {
+     "function": "compile_exec",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated string is transferred to the generated PUSHS instruction, which owns it for later cleanup.",
+     "reason_now": "The allocated string is transferred to the generated PUSHS instruction, while the callee frees it if instruction generation fails.",
+     "growth": 549,
+     "helpers": [
+      "alloc",
+      "STRNCPY",
+      "VIM_ISWHITE",
+      "generate_instr_type",
+      "VIM_CLEAR"
+     ]
+    },
+    {
+     "function": "compile_while",
+     "was": true,
+     "now": true,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The scope allocated before the nesting-depth check is not dropped on that early return, while the other allocations remain owned or are explicitly freed.",
+     "reason_now": "The scope is leaked when loop nesting is too deep, while the other allocations are cleaned up or retained by compiler-owned structures.",
+     "growth": 3707,
+     "helpers": [
+      "ALLOC_CLEAR_ONE",
+      "arg_exists",
+      "emsg_namelen",
+      "GA_GROW_FAILS",
+      "CLEAR_POINTER",
+      "STRLEN",
+      "set_var_type",
+      "vim_strsave",
+      "emsg_not_now",
+      "iemsg",
+      "compile_free_jump_to_end",
+      "vim_free"
+     ]
+    },
+    {
+     "function": "compile_variable_range",
+     "was": true,
+     "now": true,
+     "conf_was": 0.96,
+     "conf_now": 0.98,
+     "reason_was": "The allocated range is not freed when generate_instr fails before generate_RANGE transfers it into an instruction.",
+     "reason_now": "The allocated range string is transferred on success but leaked if generate_instr fails before storing it.",
+     "growth": 715,
+     "helpers": [
+      "alloc",
+      "STRNCPY",
+      "generate_instr",
+      "push_type_stack"
+     ]
+    },
+    {
+     "function": "compile_nested_function",
+     "was": false,
+     "now": false,
+     "conf_was": 0.98,
+     "conf_now": 0.99,
+     "reason_was": "Both temporary strings are freed at the common cleanup label when reserve_local returns NULL.",
+     "reason_now": "The allocated function name remains owned by the caller and is freed at theend, including when reserve_local returns NULL.",
+     "growth": 2084,
+     "helpers": [
+      "lalloc"
+     ]
+    },
+    {
+     "function": "compile_assign_index",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "generate_PUSHS transfers the string pointer to the generated instruction on success and frees it on failure or skip.",
+     "reason_now": "generate_PUSHS transfers the string pointer to the generated instruction on success and frees it on failure or skip.",
+     "growth": 1516,
+     "helpers": [
+      "alloc",
+      "STRNCPY",
+      "eval_isnamec1",
+      "eval_isnamec",
+      "MB_PTR_ADV",
+      "vim_strchr",
+      "generate_instr_type",
+      "VIM_CLEAR"
+     ]
+    },
+    {
+     "function": "obj_method_prologue",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.98,
+     "reason_was": "The allocated string is stored in df_var_names and made owned by the growarray when ga_len is incremented, so it remains reachable for later cleanup.",
+     "reason_now": "The allocated string is stored in dfunc->df_var_names, which owns and later releases its entries; incrementing the length does not make it unreachable.",
+     "growth": 289,
+     "helpers": [
+      "STRLEN",
+      "alloc",
+      "mch_memmove"
+     ]
+    },
+    {
+     "function": "compile_all_expr_in_str",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "generate_PUSHS transfers ownership on success and frees the string on failure, so neither allocation leaks.",
+     "reason_now": "Both allocations are transferred to the generated PUSHS instruction on success and freed by generate_PUSHS on failure.",
+     "growth": 636,
+     "helpers": [
+      "STRLEN",
+      "alloc",
+      "mch_memmove",
+      "STRNCPY",
+      "generate_instr_type",
+      "VIM_CLEAR"
+     ]
+    },
+    {
+     "function": "push_default_value",
+     "was": true,
+     "now": true,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The blob is allocated before generate_PUSHBLOB, which does not free it when compilation is skipped or instruction allocation fails.",
+     "reason_now": "The allocated blob is leaked when instruction generation skips or fails before taking ownership.",
+     "growth": 1748,
+     "helpers": [
+      "ALLOC_CLEAR_ONE_ID",
+      "ga_init2",
+      "RETURN_OK_IF_SKIP",
+      "generate_instr_type",
+      "vim_strchr",
+      "vim_strsave",
+      "alloc",
+      "STRLEN",
+      "STRCPY"
+     ]
+    },
+    {
+     "function": "add_def_function",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated string is stored in dfunc->df_name and remains owned by the registered function for later cleanup.",
+     "reason_now": "The allocated name is stored in the globally retained dfunc structure, so ownership is transferred rather than lost.",
+     "growth": 339,
+     "helpers": [
+      "alloc",
+      "STRNCPY",
+      "ga_init"
+     ]
+    },
+    {
+     "function": "call_dfunc",
+     "was": false,
+     "now": false,
+     "no_helpers": true,
+     "growth": 0,
+     "helpers": []
+    },
+    {
+     "function": "f_undotree",
+     "was": true,
+     "now": false,
+     "conf_was": 0.98,
+     "conf_now": 0.98,
+     "reason_was": "dict_add_list increments the list reference count, but f_undotree never releases its original reference, leaking the list and its items.",
+     "reason_now": "The list items remain reachable through the list whose reference is transferred to the returned dictionary, so they are not leaked.",
+     "growth": 1868,
+     "helpers": [
+      "dict_alloc",
+      "list_append_dict",
+      "ALLOC_CLEAR_ONE",
+      "list_init",
+      "dictitem_alloc",
+      "dict_add",
+      "dictitem_free"
+     ]
+    },
+    {
+     "function": "compile_def_function_body",
+     "was": true,
+     "now": true,
+     "conf_was": 0.98,
+     "conf_now": 0.99,
+     "reason_was": "If ga_add_string fails, the newly allocated line is not stored or freed before returning.",
+     "reason_now": "If growing lines_to_free fails, the allocated line is not stored and is returned without being freed.",
+     "growth": 430,
+     "helpers": [
+      "STRLEN",
+      "alloc",
+      "mch_memmove",
+      "ga_grow"
+     ]
+    },
+    {
+     "function": "call_partial",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "emsg_funcname frees the concatenated string after reporting the error.",
+     "reason_now": "emsg_funcname frees the temporary string returned by concat_str after reporting the error.",
+     "growth": 801,
+     "helpers": [
+      "semsg",
+      "mem_pre_free"
+     ]
+    },
+    {
+     "function": "compile_for",
+     "was": true,
+     "now": true,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The newly allocated scope is leaked when maximum loop nesting is detected before drop_scope is called.",
+     "reason_now": "The scope allocated before the maximum-depth check is not dropped on that error path; the other allocations remain owned by the compiler context or are explicitly released.",
+     "growth": 4578,
+     "helpers": [
+      "ALLOC_CLEAR_ONE",
+      "arg_exists",
+      "emsg_namelen",
+      "GA_GROW_FAILS",
+      "CLEAR_POINTER",
+      "STRLEN",
+      "set_var_type",
+      "vim_strsave",
+      "alloc",
+      "STRNCPY",
+      "may_get_next_line",
+      "emsg_not_now",
+      "iemsg",
+      "compile_free_jump_to_end",
+      "RETURN_OK_IF_SKIP",
+      "generate_instr"
+     ]
+    },
+    {
+     "function": "exe_concat",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated array data is intentionally transferred to the resulting string value, so it remains reachable and owned after the function returns.",
+     "reason_now": "The allocated array is intentionally transferred to the surviving stack string, so it remains reachable and owned rather than leaked.",
+     "growth": 818,
+     "helpers": [
+      "ga_grow_inner"
+     ]
+    },
+    {
+     "function": "add_defer_item",
+     "was": false,
+     "now": false,
+     "conf_was": 0.98,
+     "conf_now": 0.99,
+     "reason_was": "The allocated defer list remains owned by defer_tv, while the separately allocated item list is freed when insertion fails.",
+     "reason_now": "The allocated list is stored in defer_tv and remains owned there even when insertion fails.",
+     "growth": 638,
+     "helpers": [
+      "rettv_list_set",
+      "alloc_clear",
+      "list_init"
+     ]
+    },
+    {
+     "function": "load_namespace_var",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated string is transferred to the stack typval as a VAR_FUNC and is freed during normal typval cleanup.",
+     "reason_now": "The allocated string is stored in the stack typval as a VAR_FUNC value, which transfers ownership for later cleanup.",
+     "growth": 2084,
+     "helpers": [
+      "lalloc"
+     ]
+    },
+    {
+     "function": "exe_newdict",
+     "was": true,
+     "now": true,
+     "conf_was": 0.99,
+     "conf_now": 0.98,
+     "reason_was": "On dict_add failure, the newly allocated item is not inserted and is not freed, while the dictionary allocation is correctly retained by the stack reference.",
+     "reason_now": "On dict_add failure the newly allocated item is not inserted or freed, while the dictionary allocation is correctly reference-managed.",
+     "growth": 3467,
+     "helpers": [
+      "STRLEN",
+      "alloc",
+      "mch_memmove",
+      "ALLOC_CLEAR_ONE",
+      "hash_init",
+      "dict_free",
+      "func_unref",
+      "VIM_CLEAR",
+      "partial_unref",
+      "blob_unref",
+      "list_unref",
+      "tuple_unref",
+      "job_unref",
+      "channel_unref",
+      "class_unref",
+      "object_unref"
+     ]
+    },
+    {
+     "function": "object_required_error",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.98,
+     "reason_was": "Allocated type data is released by clear_type_list, and the type_name buffer is freed explicitly.",
+     "reason_now": "Any dynamically allocated types are retained in type_list and released by clear_type_list, while type_name's temporary string is freed explicitly.",
+     "growth": 1315,
+     "helpers": [
+      "typval2type_int",
+      "ga_init"
+     ]
+    },
+    {
+     "function": "set_tuple_union_type_on_stack",
+     "was": false,
+     "now": false,
+     "conf_was": 0.98,
+     "conf_now": 0.98,
+     "reason_was": "The tuple type is retained by the context type list and referenced by the stack, so it is not leaked at this call.",
+     "reason_now": "The allocated tuple type is registered in the context type list, which retains ownership beyond this function.",
+     "growth": 1124,
+     "helpers": [
+      "get_type_ptr",
+      "tuple_type_add_types",
+      "mch_memmove",
+      "ga_grow"
+     ]
+    },
+    {
+     "function": "compile_expr8",
+     "was": false,
+     "now": false,
+     "conf_was": 0.93,
+     "conf_now": 0.98,
+     "reason_was": "Allocated types are tracked by the compilation context's type list, so losing the local pointer on these paths does not leak them.",
+     "reason_now": "The returned type is owned by the context type list, so failure paths do not make its allocation unreachable or leaked.",
+     "growth": 3963,
+     "helpers": [
+      "ASCII_ISALNUM",
+      "parse_type_member",
+      "parse_type_object",
+      "parse_type_user_defined",
+      "ASCII_ISALPHA",
+      "VIM_ISWHITE"
+     ]
+    },
+    {
+     "function": "generate_funcref",
+     "was": false,
+     "now": false,
+     "conf_was": 0.98,
+     "conf_now": 0.97,
+     "reason_was": "All reported allocations are either explicitly cleared or transferred to owned function/instruction state.",
+     "reason_now": "All reported allocations are either explicitly cleared or retained as owned function/profile data, so none is a leak.",
+     "growth": 5392,
+     "helpers": [
+      "IS_GENERIC_FUNC",
+      "generic_func_args_table_size",
+      "emsg_funcname",
+      "printable_func_name",
+      "ga_init2",
+      "generic_lookup_func",
+      "ga_clear",
+      "update_has_breakpoint",
+      "may_break_in_function",
+      "has_profiling",
+      "func_do_profile",
+      "func_is_global",
+      "vim_strchr",
+      "SAFE_isdigit"
+     ]
+    },
+    {
+     "function": "parse_generic_func_type_args",
+     "was": false,
+     "now": false,
+     "conf_was": 0.92,
+     "conf_now": 0.97,
+     "reason_was": "All allocations are either retained in the generic-argument tables or explicitly freed, so no definite leak is shown.",
+     "reason_now": "Parsed types are owned by the type table and the allocated name is transferred to the generic argument entry, so none of the reported allocations are leaked.",
+     "growth": 6118,
+     "helpers": [
+      "ASCII_ISALNUM",
+      "parse_type_member",
+      "parse_type_object",
+      "parse_type_user_defined",
+      "lalloc",
+      "mem_pre_free"
+     ]
+    },
+    {
+     "function": "compile_dict",
+     "was": true,
+     "now": true,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The dictionary allocation is leaked on direct failure returns that bypass dict_unref, while the converted string is owned by the generated instruction.",
+     "reason_now": "Several direct failure returns omit dict_unref(d), while the saved key string is transferred to the generated instruction and is not leaked.",
+     "growth": 1915,
+     "helpers": [
+      "ALLOC_CLEAR_ONE",
+      "hash_init",
+      "STRLEN",
+      "alloc",
+      "mch_memmove",
+      "vim_vsnprintf",
+      "RETURN_OK_IF_SKIP",
+      "get_type_on_stack",
+      "to_string_error",
+      "set_type_on_stack",
+      "generate_instr"
+     ]
+    },
+    {
+     "function": "generate_STORE",
+     "was": false,
+     "now": false,
+     "conf_was": 0.96,
+     "conf_now": 0.98,
+     "reason_was": "The allocated string is stored in the generated instruction and is owned for later cleanup, so it is not shown to become leaked.",
+     "reason_now": "The allocated string is stored in the generated instruction and ownership is transferred for later cleanup.",
+     "growth": 762,
+     "helpers": [
+      "STRLEN",
+      "alloc",
+      "mch_memmove",
+      "RETURN_NULL_IF_SKIP",
+      "generate_instr"
+     ]
+    },
+    {
+     "function": "generate_STOREOPT",
+     "was": false,
+     "now": false,
+     "conf_was": 0.98,
+     "conf_now": 0.98,
+     "reason_was": "The allocated string is stored in the instruction and its ownership is transferred for later cleanup.",
+     "reason_now": "The allocated string is stored in the generated instruction and ownership is transferred for later cleanup.",
+     "growth": 762,
+     "helpers": [
+      "STRLEN",
+      "alloc",
+      "mch_memmove",
+      "RETURN_NULL_IF_SKIP",
+      "generate_instr"
+     ]
+    },
+    {
+     "function": "generate_SETTYPE",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.98,
+     "reason_was": "The allocated type is stored in the generated instruction, which owns it for later cleanup.",
+     "reason_now": "The allocated type is stored in the generated instruction and its ownership is transferred for later cleanup.",
+     "growth": 445,
+     "helpers": [
+      "ALLOC_ONE",
+      "ALLOC_MULT",
+      "RETURN_NULL_IF_SKIP",
+      "GA_GROW_FAILS"
+     ]
+    },
+    {
+     "function": "generate_AUTOLOAD",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocation is only checked for NULL, while a successful string allocation is stored in the instruction for later ownership and cleanup.",
+     "reason_now": "The allocation is stored in the generated instruction and remains owned by it; when allocation fails, no heap block exists to leak.",
+     "growth": 673,
+     "helpers": [
+      "STRLEN",
+      "alloc",
+      "mch_memmove",
+      "generate_instr_type2"
+     ]
+    },
+    {
+     "function": "generate_LOAD",
+     "was": false,
+     "now": false,
+     "conf_was": 0.98,
+     "conf_now": 0.99,
+     "reason_was": "The duplicated string is stored in the generated instruction, whose lifecycle owns and later frees it; no leak is shown.",
+     "reason_now": "The allocated string is transferred to the generated instruction and is reclaimed with that instruction, so it is not a leak.",
+     "growth": 1024,
+     "helpers": [
+      "STRLEN",
+      "alloc",
+      "mch_memmove",
+      "generate_instr",
+      "push_type_stack2"
+     ]
+    },
+    {
+     "function": "generate_UNLET",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated string remains reachable through the instruction's ul_name field and is owned for later cleanup.",
+     "reason_now": "The allocated string is stored in the generated instruction's ul_name field, transferring ownership for later cleanup.",
+     "growth": 526,
+     "helpers": [
+      "STRLEN",
+      "alloc",
+      "mch_memmove",
+      "RETURN_NULL_IF_SKIP",
+      "GA_GROW_FAILS"
+     ]
+    },
+    {
+     "function": "generate_OLDSCRIPT",
+     "was": false,
+     "now": false,
+     "conf_was": 0.98,
+     "conf_now": 0.97,
+     "reason_was": "The allocated string is stored in the instruction's ls_name field, which owns it for later cleanup rather than losing the allocation.",
+     "reason_now": "The allocated string is transferred to the instruction's ls_name field, which owns it for later cleanup.",
+     "growth": 762,
+     "helpers": [
+      "STRLEN",
+      "alloc",
+      "mch_memmove",
+      "RETURN_NULL_IF_SKIP",
+      "generate_instr"
+     ]
+    },
+    {
+     "function": "generate_NEWLIST",
+     "was": false,
+     "now": false,
+     "conf_was": 0.97,
+     "conf_now": 0.99,
+     "reason_was": "The allocated type is retained in cctx->ctx_type_list, which owns and releases it rather than requiring generate_NEWLIST to free it.",
+     "reason_now": "The allocated type is registered in the context type list, which retains ownership regardless of whether it is pushed successfully.",
+     "growth": 2332,
+     "helpers": [
+      "IS_GENERIC_TYPE",
+      "get_type_ptr",
+      "check_type_is_value",
+      "common_type",
+      "GA_GROW_FAILS"
+     ]
+    },
+    {
+     "function": "generate_LOADV",
+     "was": false,
+     "now": false,
+     "conf_was": 0.97,
+     "conf_now": 0.97,
+     "reason_was": "The dynamically created type is retained through the compiler context's type list, while other returned types are static.",
+     "reason_now": "The dynamically created type is registered in the compilation context's type list, which owns and releases it; no leak occurs.",
+     "growth": 738,
+     "helpers": [
+      "RETURN_OK_IF_SKIP",
+      "generate_instr_type2",
+      "vim_strsave"
+     ]
+    },
+    {
+     "function": "generate_DEF",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated string is stored in the generated instruction and its ownership is transferred for later cleanup; the failure path has no allocated string to leak.",
+     "reason_now": "The allocated string is stored in the generated instruction and its ownership is transferred for later cleanup.",
+     "growth": 459,
+     "helpers": [
+      "alloc",
+      "STRNCPY",
+      "RETURN_NULL_IF_SKIP",
+      "GA_GROW_FAILS"
+     ]
+    },
+    {
+     "function": "generate_NEWDICT",
+     "was": false,
+     "now": false,
+     "conf_was": 0.98,
+     "conf_now": 0.98,
+     "reason_was": "The allocated type is owned by the context type list, which retains and cleans it up independently of the type-stack push.",
+     "reason_now": "The allocated type is registered in ctx_type_list, which retains ownership for later cleanup.",
+     "growth": 2225,
+     "helpers": [
+      "get_type_ptr",
+      "check_type_is_value",
+      "common_type",
+      "GA_GROW_FAILS"
+     ]
+    },
+    {
+     "function": "generate_NEWTUPLE",
+     "was": false,
+     "now": false,
+     "conf_was": 0.97,
+     "conf_now": 0.99,
+     "reason_was": "The allocated tuple type is owned by the context type list and remains referenced there, so it is not leaked at the return.",
+     "reason_now": "The allocated tuple type is registered in cctx->ctx_type_list, which retains ownership after the local pointer is passed onward.",
+     "growth": 1247,
+     "helpers": [
+      "get_type_ptr",
+      "tuple_type_add_types",
+      "mch_memmove",
+      "vim_free",
+      "ga_init"
+     ]
+    },
+    {
+     "function": "generic_func_add",
+     "was": true,
+     "now": true,
+     "conf_was": 0.93,
+     "conf_now": 0.86,
+     "reason_was": "The key normally transfers ownership through the hash table, but an existing hash-table error causes hash_add_item() to reject it and the newly allocated gfitem is leaked.",
+     "reason_now": "The key normally transfers ownership through the hash table, but a preexisting hash-table error makes hash_add_item return without storing it and the allocation is not freed.",
+     "growth": 2084,
+     "helpers": [
+      "lalloc"
+     ]
+    },
+    {
+     "function": "generate_UCALL",
+     "was": false,
+     "now": false,
+     "conf_was": 0.98,
+     "conf_now": 0.99,
+     "reason_was": "The allocated name is stored in the generated instruction and its ownership is transferred for later cleanup, so the subsequent field assignment does not make it unreachable.",
+     "reason_now": "The allocated string is stored in the generated instruction's cuf_name field, transferring ownership rather than making it unreachable.",
+     "growth": 885,
+     "helpers": [
+      "STRLEN",
+      "alloc",
+      "mch_memmove",
+      "RETURN_NULL_IF_SKIP",
+      "GA_GROW_FAILS",
+      "push_type_stack2"
+     ]
+    },
+    {
+     "function": "generate_CALL",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated method-function structure is stored in the generated instruction and is owned and released with that instruction.",
+     "reason_now": "The allocated method-function structure is transferred to the generated instruction, whose cleanup owns and frees it.",
+     "growth": 2084,
+     "helpers": [
+      "lalloc"
+     ]
+    },
+    {
+     "function": "generate_LOCKUNLOCK",
+     "was": false,
+     "now": false,
+     "conf_was": 0.98,
+     "conf_now": 0.99,
+     "reason_was": "The allocated string is stored in the generated instruction and its ownership is transferred for later cleanup.",
+     "reason_now": "The allocated string is stored in the generated instruction for later ownership and cleanup, while assigning lu_is_arg does not make it unreachable.",
+     "growth": 526,
+     "helpers": [
+      "STRLEN",
+      "alloc",
+      "mch_memmove",
+      "RETURN_NULL_IF_SKIP",
+      "GA_GROW_FAILS"
+     ]
+    },
+    {
+     "function": "generate_EXEC_copy",
+     "was": false,
+     "now": false,
+     "conf_was": 0.98,
+     "conf_now": 0.98,
+     "reason_was": "The allocated string is stored in the generated instruction and its ownership is transferred for later cleanup.",
+     "reason_now": "The allocated string is stored in the generated instruction and its ownership is transferred for later cleanup.",
+     "growth": 526,
+     "helpers": [
+      "STRLEN",
+      "alloc",
+      "mch_memmove",
+      "RETURN_NULL_IF_SKIP",
+      "GA_GROW_FAILS"
+     ]
+    },
+    {
+     "function": "generate_FUNCREF",
+     "was": false,
+     "now": false,
+     "conf_was": 0.98,
+     "conf_now": 0.99,
+     "reason_was": "The allocation remains owned through the instruction's fr_extra field, and assigning fr_dfunc_idx does not overwrite or abandon that pointer.",
+     "reason_now": "The allocated extra structure remains owned through fr_extra and is not made unreachable by assigning fr_dfunc_idx.",
+     "growth": 2222,
+     "helpers": [
+      "lalloc",
+      "vim_memset"
+     ]
+    },
+    {
+     "function": "generate_STRINGMEMBER",
+     "was": false,
+     "now": false,
+     "conf_was": 0.98,
+     "conf_now": 0.97,
+     "reason_was": "The allocated string is transferred to the generated instruction's string field, whose lifecycle owns and releases it.",
+     "reason_now": "The allocated string is stored in the generated instruction and remains owned through the instruction array for later cleanup.",
+     "growth": 459,
+     "helpers": [
+      "alloc",
+      "STRNCPY",
+      "RETURN_NULL_IF_SKIP",
+      "GA_GROW_FAILS"
+     ]
+    },
+    {
+     "function": "generate_cmdmods",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated command-modifier object is stored in the generated instruction and its ownership is transferred for later cleanup.",
+     "reason_now": "The allocation is stored in the generated instruction and its ownership is transferred for later cleanup.",
+     "growth": 2084,
+     "helpers": [
+      "lalloc"
+     ]
+    },
+    {
+     "function": "generate_LEGACY_EVAL",
+     "was": false,
+     "now": false,
+     "conf_was": 0.97,
+     "conf_now": 0.98,
+     "reason_was": "The allocated string is transferred to the generated instruction, which owns and releases it during instruction cleanup.",
+     "reason_now": "The allocated string is stored in the generated instruction, which owns it for later cleanup.",
+     "growth": 885,
+     "helpers": [
+      "STRLEN",
+      "alloc",
+      "mch_memmove",
+      "RETURN_NULL_IF_SKIP",
+      "GA_GROW_FAILS",
+      "push_type_stack2"
+     ]
+    },
+    {
+     "function": "vim9_declare_scriptvar",
+     "was": false,
+     "now": false,
+     "conf_was": 0.98,
+     "conf_now": 0.97,
+     "reason_was": "Allocated types are retained in the script's type list passed to parse_type, which owns and later releases them.",
+     "reason_now": "The parsed type is owned by the script type list, so it remains reachable and is not leaked on either failure path.",
+     "growth": 4023,
+     "helpers": [
+      "ASCII_ISALNUM",
+      "parse_type_member",
+      "parse_type_object",
+      "parse_type_user_defined",
+      "VIM_ISWHITE",
+      "STRCMP",
+      "ARRAY_LENGTH"
+     ]
+    },
+    {
+     "function": "get_tuple_type",
+     "was": false,
+     "now": false,
+     "conf_was": 0.98,
+     "conf_now": 0.98,
+     "reason_was": "The allocated type remains tracked in type_gap, so failure does not make it unreachable or leaked.",
+     "reason_now": "The allocated type is registered in type_gap, whose cleanup retains ownership even when tuple_type_add_types fails.",
+     "growth": 373,
+     "helpers": [
+      "ga_grow",
+      "ALLOC_CLEAR_ONE",
+      "ALLOC_CLEAR_MULT"
+     ]
+    },
+    {
+     "function": "list_typval2type",
+     "was": false,
+     "now": false,
+     "conf_was": 0.97,
+     "conf_now": 0.99,
+     "reason_was": "The allocated type objects are tracked through type_gap and reclaimed with that allocation context, so becoming unreachable locally is not a leak.",
+     "reason_now": "All dynamically allocated type objects are registered in type_gap and reclaimed with that allocation pool, so they are not leaked.",
+     "growth": 6457,
+     "helpers": [
+      "typval2type_int",
+      "equal_type",
+      "get_dict_type",
+      "common_type_var_func",
+      "ga_init2",
+      "copy_type_deep_rec",
+      "ga_clear",
+      "IS_GENERIC_TYPE",
+      "get_type_ptr"
+     ]
+    },
+    {
+     "function": "update_vim9_script_var",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated type is stored in sv->sv_type and ownership is recorded for later cleanup.",
+     "reason_now": "The allocated type is stored in sv->sv_type and marked for later release by free_type, so it remains reachable and ownership is transferred.",
+     "growth": 519,
+     "helpers": [
+      "ALLOC_ONE",
+      "ALLOC_MULT",
+      "vim_free",
+      "emsg"
+     ]
+    },
+    {
+     "function": "dict_typval2type",
+     "was": false,
+     "now": false,
+     "conf_was": 0.96,
+     "conf_now": 0.99,
+     "reason_was": "The allocated type is retained through the type-gap ownership model or embedded in the returned dictionary type, so it is not leaked.",
+     "reason_now": "The allocated type is registered in type_gap, which retains ownership for later cleanup.",
+     "growth": 5533,
+     "helpers": [
+      "typval2type_int",
+      "HASHITEM_EMPTY",
+      "HI2DI",
+      "equal_type",
+      "get_list_type",
+      "common_type_var_func",
+      "get_type_ptr"
+     ]
+    },
+    {
+     "function": "tuple_typval2type",
+     "was": false,
+     "now": false,
+     "conf_was": 0.98,
+     "conf_now": 0.97,
+     "reason_was": "The returned type objects remain owned through type_gap or are transferred into the tuple type, while ga_clear only frees the temporary pointer array.",
+     "reason_now": "Returned types are owned or tracked through type_gap, while ga_clear correctly frees only the temporary pointer array.",
+     "growth": 1315,
+     "helpers": [
+      "typval2type_int",
+      "ga_init"
+     ]
+    },
+    {
+     "function": "f_typename",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated type is released by clear_type_list, while type_name's temporary string is either freed or transferred to the return value.",
+     "reason_now": "The type allocation is retained in type_list and freed by clear_type_list, while any type_name allocation is either transferred to rettv or explicitly freed.",
+     "growth": 2028,
+     "helpers": [
+      "typval2type_int",
+      "get_type_ptr",
+      "func_type_add_arg_types"
+     ]
+    },
+    {
+     "function": "parse_type_func",
+     "was": false,
+     "now": false,
+     "conf_was": 0.98,
+     "conf_now": 0.98,
+     "reason_was": "All reported allocations are retained through type_gap or transferred into tracked function-type storage, so none is leaked.",
+     "reason_now": "All reported allocations are registered in type_gap and are reclaimed by its ownership cleanup, including function types and argument arrays.",
+     "growth": 4430,
+     "helpers": [
+      "ASCII_ISALNUM",
+      "parse_type_member",
+      "parse_type_object",
+      "parse_type_user_defined",
+      "get_type_ptr",
+      "VIM_ISWHITE",
+      "ga_grow",
+      "ALLOC_CLEAR_MULT"
+     ]
+    },
+    {
+     "function": "parse_type_tuple",
+     "was": false,
+     "now": false,
+     "conf_was": 0.98,
+     "conf_now": 0.98,
+     "reason_was": "The parsed type remains owned through type_gap or is transferred into the returned tuple, while clearing tuple_types_ga frees only its pointer array.",
+     "reason_now": "Parsed type objects are tracked through type_gap, while tuple_types_ga only stores non-owning pointers and clears its backing array.",
+     "growth": 3815,
+     "helpers": [
+      "ASCII_ISALNUM",
+      "parse_type_member",
+      "parse_type_object",
+      "parse_type_user_defined"
+     ]
+    },
+    {
+     "function": "parse_type_member",
+     "was": false,
+     "now": false,
+     "conf_was": 0.93,
+     "conf_now": 0.97,
+     "reason_was": "The parsed type is tracked through type_gap or transferred into the returned container type, so these paths do not leave heap memory unreachable.",
+     "reason_now": "The parsed type is retained by the type_gap ownership mechanism, so all reported paths do not leak it.",
+     "growth": 3564,
+     "helpers": [
+      "ASCII_ISALNUM",
+      "parse_type_object",
+      "parse_type_user_defined",
+      "VIM_ISWHITE",
+      "type_name",
+      "vim_free"
+     ]
+    },
+    {
+     "function": "xdl_prepare_env",
+     "was": false,
+     "now": false,
+     "no_helpers": true,
+     "growth": 0,
+     "helpers": []
+    },
+    {
+     "function": "read_viminfo_bufferlist",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The allocated wininfo entry is linked into the buffer and released with the buffer, so it is not leaked.",
+     "reason_now": "The allocated wininfo entry is linked to the buffer and is reclaimed with the buffer, so it remains owned rather than leaked.",
+     "growth": 5745,
+     "helpers": [
+      "FOR_ALL_BUF_WININFO",
+      "ALLOC_CLEAR_ONE",
+      "clear_winopt",
+      "deleteFoldRecurse",
+      "cloneFoldGrowArray",
+      "hash_init",
+      "fname_expand",
+      "mch_stat",
+      "buflist_findname_stat",
+      "buflist_findname",
+      "set_bufref",
+      "apply_autocmds",
+      "bufref_valid",
+      "curbuf_reusable",
+      "trigger_undo_ftplugin",
+      "aborting"
+     ]
+    },
+    {
+     "function": "check_window_scroll_resize",
+     "was": false,
+     "now": false,
+     "conf_was": 0.99,
+     "conf_now": 0.99,
+     "reason_was": "The dictionary reference is transferred to v_event and the caller correctly releases its temporary reference.",
+     "reason_now": "The dictionary reference is transferred to v_event, and the caller's reference decrement is correct.",
+     "growth": 1698,
+     "helpers": [
+      "dict_alloc",
+      "dict_add_tv",
+      "vim_vsnprintf",
+      "dictitem_alloc",
+      "dict_add",
+      "dictitem_free"
+     ]
+    },
+    {
+     "function": "ex_wlrestore",
+     "was": false,
+     "now": false,
+     "conf_was": 0.98,
+     "conf_now": 0.98,
+     "reason_was": "The allocated manager is retained in clip_wl and is released by clip_uninit_wayland during subsequent connection teardown.",
+     "reason_now": "The allocated manager is retained in clip_wl and is owned and released by clip_uninit_wayland during connection teardown; failure paths discard it.",
+     "growth": 4521,
+     "helpers": [
+      "vwl_connection_get_seat",
+      "vwl_data_device_manager_get_data_device",
+      "vwl_data_device_manager_discard",
+      "clip_wl_focus_stealing_available",
+      "clip_wl_init_buffer_store",
+      "msg_attr_keep"
+     ]
+    },
+    {
+     "function": "parse_type_object",
+     "was": false,
+     "now": false,
+     "conf_was": 0.9,
+     "conf_now": 0.95,
+     "reason_was": "The returned type is either a static singleton or tracked through type_gap for cleanup, so these paths do not establish an unowned heap allocation.",
+     "reason_now": "The allocated type is tracked through type_gap, which retains ownership across these returns and is cleaned up by the surrounding type-parsing lifecycle.",
+     "growth": 2710,
+     "helpers": [
+      "ASCII_ISALNUM",
+      "parse_type_member",
+      "parse_type_user_defined",
+      "VIM_ISWHITE"
+     ]
+    },
+    {
+     "function": "barline_parse",
+     "was": true,
+     "now": true,
+     "conf_was": 0.98,
+     "conf_now": 0.97,
+     "reason_was": "The buffer can remain unowned when long data is malformed or does not parse as a string, and is then never freed.",
+     "reason_now": "The continuation buffer can be abandoned when its contents do not form a quoted string, including the comma path and subsequent loop iteration.",
+     "growth": 2779,
+     "helpers": [
+      "lalloc",
+      "skipdigits",
+      "vim_fgets"
+     ]
+    }
+   ],
+   "t2f": [
+    "f_cmdcomplete_info",
+    "get_tabpage_info",
+    "get_framelayout",
+    "serverSendToVim",
+    "get_complete_info",
+    "job_info",
+    "f_getcellwidths",
+    "qf_getprop_items",
+    "yank_do_autocmd",
+    "get_padding_border",
+    "add_banned",
+    "add_keyword",
+    "term_write_session",
+    "add_timer_info",
+    "f_undotree"
+   ],
+   "f2t": [
+    "may_record_change",
+    "eval_addlist",
+    "get_tag_details"
+   ]
+  }
+ },
+ "usage": {
+  "calls": 238,
+  "cache_hits": 15,
+  "prompt_tokens": 900661,
+  "cached_tokens": 0,
+  "completion_tokens": 90314,
+  "cost_usd": 0.2885
+ }
+}

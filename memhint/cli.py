@@ -22,6 +22,14 @@ def main(argv: list[str] | None = None) -> int:
     s1.add_argument("--workers", type=int, default=8)
     s1.add_argument("--budget", type=float, default=20.0, help="max LLM spend in USD")
     s1.add_argument("--force", action="store_true", help="ignore checkpoints")
+    s1.add_argument("--rules", type=Path,
+                    help="file describing how this project manages memory (ownership conventions, "
+                         "allocator families, reference counting or collection). Injected verbatim "
+                         "after the generic instructions and before the function blocks; empty by "
+                         "default, which leaves the prompt unchanged")
+    s1.add_argument("--all-functions", action="store_true",
+                    help="summarise every extracted non-macro function instead of the "
+                         "pointer-signature pre-filter")
 
     for name, p in (("stage2", "run CodeQL/Infer with injected summaries"),
                     ("stage3", "Z3 feasibility filter + LLM validation")):
@@ -57,7 +65,8 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.cmd == "stage1":
         from .pipeline import Stage1
-        Stage1(args.project, args.out, args.source_root, args.workers, args.budget).run(args.force)
+        Stage1(args.project, args.out, args.source_root, args.workers, args.budget,
+               args.rules, args.all_functions).run(args.force)
     elif args.cmd == "stage2":
         from .pipeline import Stage2
         Stage2(args.project, args.out, args.analyzer, args.tools, args.vanilla, args.threads, args.tag, args.hints,

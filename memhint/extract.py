@@ -321,12 +321,22 @@ class Codebase:
                 return True
         return False
 
-    def candidates(self) -> list[FunctionInfo]:
+    def candidates(self, all_functions: bool = False) -> list[FunctionInfo]:
+        """Functions to ask the LLM about.
+
+        Default: the pointer-signature pre-filter, plus function-like macros.
+        ``all_functions``: every extracted non-macro function. Macros stay extracted either way --
+        they are still pulled in as source context -- but this mode does not make them summary
+        targets of their own.
+        """
         out = []
         for f in self.functions.values():
             if f.name in ENTRY_POINTS or "test" in f.name.lower():
                 continue
-            if f.is_macro or self.has_pointer_io(f):
+            if all_functions:
+                if not f.is_macro:
+                    out.append(f)
+            elif f.is_macro or self.has_pointer_io(f):
                 out.append(f)
         return out
 

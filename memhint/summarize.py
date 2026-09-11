@@ -120,9 +120,31 @@ def function_block(f: FunctionInfo, cb: Codebase, idx: int) -> str:
     return "\n".join(parts)
 
 
-def build_prompt(batch: list[FunctionInfo], cb: Codebase) -> str:
+def rules_block(rules: str) -> str:
+    """Project-supplied memory-management rules, verbatim, as a stable prompt section.
+
+    This is a generic extension point: the text is whatever the project hands us and is never
+    interpreted here, so no project's vocabulary leaks into this module. It describes how a
+    codebase manages memory overall -- its ownership conventions, allocator families, whether
+    objects are reference counted or collected -- rather than anything about the functions below.
+
+    It sits after the generic instructions and before the first per-function block, so every byte
+    that precedes changing content is identical across all batches of a run. That also matters for
+    cost: OpenAI's prompt cache needs 1024 identical leading tokens and the generic prefix alone is
+    only ~785, which is why a run without rules shows cached_tokens=0 across every batch.
+    """
+    rules = (rules or "").strip()
+    if not rules:
+        return ""
+    return ("\n\n## Project memory-management rules\n\n"
+            "The following describes how this particular codebase manages memory. Treat it as "
+            "background about the project, not as a verdict about any function below.\n\n"
+            + rules)
+
+
+def build_prompt(batch: list[FunctionInfo], cb: Codebase, rules: str = "") -> str:
     blocks = [function_block(f, cb, i + 1) for i, f in enumerate(batch)]
-    return INSTRUCTIONS + "\n\n" + "\n\n".join(blocks)
+    return INSTRUCTIONS + rules_block(rules) + "\n\n" + "\n\n".join(blocks)
 
 
 def parse_hints(text: str, names: set[str]) -> list[Summary]:
@@ -155,7 +177,8 @@ class SummaryResult:
 
 
 def generate_summaries(cb: Codebase, llm: LLM, candidates: list[FunctionInfo] | None = None,
-                       batch_size: int = BATCH_SIZE, workers: int = 8) -> SummaryResult:
+                       batch_size: int = BATCH_SIZE, workers: int = 8,
+                       rules: str = "") -> SummaryResult:
     cands = candidates if candidates is not None else cb.candidates()
     batches = [cands[i:i + batch_size] for i in range(0, len(cands), batch_size)]
     log.info("Phase 2: %d candidates in %d batches of %d", len(cands), len(batches), batch_size)
@@ -165,13 +188,14 @@ def generate_summaries(cb: Codebase, llm: LLM, candidates: list[FunctionInfo] | 
 
     def run(i: int, batch: list[FunctionInfo]) -> list[Summary]:
         names = {f.name for f in batch}
-        text = llm.chat(SYSTEM, build_prompt(batch, cb), tag=f"summ-{i}")
+        text = llm.chat(SYSTEM, build_prompt(batch, cb, rules), tag=f"summ-{i}")
         try:
             return parse_hints(text, names)
         except ValueError as e:
             # one retry, unbatched parse failures are rare
             log.warning("batch %d unparsable (%s); retrying once", i, e)
-            text = llm.chat(SYSTEM, build_prompt(batch, cb) + "\n\nReturn ONLY the JSON object.", tag=f"summ-{i}-retry")
+            text = llm.chat(SYSTEM, build_prompt(batch, cb, rules) + "\n\nReturn ONLY the JSON object.",
+                            tag=f"summ-{i}-retry")
             return parse_hints(text, names)
 
     with ThreadPoolExecutor(max_workers=workers) as ex:

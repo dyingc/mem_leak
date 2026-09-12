@@ -51,3 +51,14 @@ Repository" — a fork's PR author has no admin rights upstream. `.github/workfl
 on `push: branches: ["**"]` and `pull_request:` (whose default types include `reopened`), so
 closing and reopening the PR re-runs everything without touching the commit history. A force-push
 or an empty commit would also work and leaves a worse trace.
+
+## Commit signing
+
+The PR branch commits show as "Unverified" because the account has vigilant mode on
+(Settings → SSH and GPG keys → "Flag unsigned commits as unverified"), which flags any unsigned
+commit attributed to that address, and these were made with a plain `git commit`.
+
+It does not affect these PRs. Vim's maintainer does not merge the branch; he re-commits the change
+as a numbered patch, so the commit that lands is committed and signed by him. Patch 9.2.1058, ours,
+is `verified: true` in the tree with `author: dyingc` and `committer: Christian Brabandt`, and the
+branch commit behind it was unsigned too.

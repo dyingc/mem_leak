@@ -62,3 +62,9 @@ It does not affect these PRs. Vim's maintainer does not merge the branch; he re-
 as a numbered patch, so the commit that lands is committed and signed by him. Patch 9.2.1058, ours,
 is `verified: true` in the tree with `author: dyingc` and `committer: Christian Brabandt`, and the
 branch commit behind it was unsigned too.
+
+GitHub computes SSH signature verification when the commit is pushed and caches the result, so a
+commit pushed before the key was registered as a *signing* key stays "Unverified" even after the
+key is added. Only commits pushed afterwards show as verified. On GitHub a public key must be
+registered twice, once under SSH keys and once under SSH signing keys; being able to push proves
+only the first.

@@ -28,3 +28,26 @@ applies the change as a numbered patch.
 git -C subjects/vim_master fetch origin master
 git -C subjects/vim_master log --oneline 90fdb790..FETCH_HEAD --grep=list_free --grep=setmatches
 ```
+
+## CI outcome
+
+**#21283** — 39 pass, 1 fail. The failure is `codecov/patch`: the seven changed lines have no test
+coverage, which is the point the body already makes. All 34 GitHub Actions jobs pass.
+
+**#21284** — 40 pass, 0 fail, on the second attempt.
+
+The first attempt failed one job, `Windows (HUGE, msvc, no, no, x64, conpty)`, in 40 seconds:
+
+```
+if_python.c(63): fatal error C1083: Cannot open include file: 'Python.h'
+```
+
+Nothing to do with the change — the patch touches `src/match.c` and `src/testdir/test_match.vim`,
+and the Windows workflow installs Python 2.7 with `choco install python2 --no-progress`, a network
+install that can fail transiently. Re-running the same commit passed, which settles it.
+
+**Re-triggering CI as a fork PR author.** `gh run rerun` fails with "Must have admin rights to
+Repository" — a fork's PR author has no admin rights upstream. `.github/workflows/ci.yml` triggers
+on `push: branches: ["**"]` and `pull_request:` (whose default types include `reopened`), so
+closing and reopening the PR re-runs everything without touching the commit history. A force-push
+or an empty commit would also work and leaves a worse trace.

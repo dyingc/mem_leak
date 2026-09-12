@@ -63,8 +63,11 @@ as a numbered patch, so the commit that lands is committed and signed by him. Pa
 is `verified: true` in the tree with `author: dyingc` and `committer: Christian Brabandt`, and the
 branch commit behind it was unsigned too.
 
-GitHub computes SSH signature verification when the commit is pushed and caches the result, so a
-commit pushed before the key was registered as a *signing* key stays "Unverified" even after the
-key is added. Only commits pushed afterwards show as verified. On GitHub a public key must be
-registered twice, once under SSH keys and once under SSH signing keys; being able to push proves
-only the first.
+On GitHub a public key must be registered twice, once under SSH keys and once under SSH signing
+keys. Being able to push proves only the first, and `git config user.signingkey` must name the key
+registered as the second -- they need not be the same key, and here they were not: the ecdsa key
+authenticates and the ed25519 key signs. A commit signed with the wrong one comes back as
+`reason: unknown_key` from the commits API, which is the fastest way to tell.
+
+Verification is live, not cached at push time: re-signing an existing commit with the right key and
+force-pushing flipped it to `verified: true` immediately.
